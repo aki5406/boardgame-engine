@@ -27,6 +27,8 @@ The current public API exports:
 
 `EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
+`EngineEvent` is readonly because events represent facts that have already happened in the engine domain.
+
 ## Not Implemented Yet
 
 This package intentionally does not implement any engine behavior yet.
