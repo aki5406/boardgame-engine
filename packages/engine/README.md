@@ -1,0 +1,42 @@
+# @boardgame/engine
+
+`@boardgame/engine` is the future core package for boardgame-engine.
+
+This package will contain client-independent game engine logic that can be used from Discord, CLI, Web, and other adapters.
+
+## Role
+
+- Provide the central place for engine code.
+- Keep game logic independent from any client or transport.
+- Support an Event Driven and State Machine based design over time.
+- Make core behavior testable without Discord, CLI, or Web dependencies.
+
+## Future Responsibilities
+
+- Define engine-facing concepts when they are needed by real use cases.
+- Host state transition logic once the project is ready to implement it.
+- Provide stable boundaries for adapters to call into the engine.
+- Keep implementation decisions small and grounded in actual games.
+
+## Not Implemented Yet
+
+This package intentionally does not implement any engine behavior in this PR.
+
+It does not include:
+
+- Event
+- State
+- Reducer
+- Game
+- GameSession
+- Player
+- Lobby
+- Renderer
+- Rule
+- Engine class
+- Discord integration
+- CLI integration
+- Tests
+- Sample code
+
+The current goal is only to create the minimal package structure so future PRs can add behavior deliberately.
