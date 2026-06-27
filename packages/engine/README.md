@@ -18,9 +18,15 @@ This package will contain client-independent game engine logic that can be used 
 - Provide stable boundaries for adapters to call into the engine.
 - Keep implementation decisions small and grounded in actual games.
 
+## Public API
+
+The current public API only exports an empty `Engine` type.
+
+This type is a placeholder for the package boundary. It does not define behavior, lifecycle, events, state, reducers, sessions, players, rendering, or adapter integration.
+
 ## Not Implemented Yet
 
-This package intentionally does not implement any engine behavior in this PR.
+This package intentionally does not implement any engine behavior yet.
 
 It does not include:
 
