@@ -20,9 +20,12 @@ This package will contain client-independent game engine logic that can be used 
 
 ## Public API
 
-The current public API only exports an empty `Engine` type.
+The current public API exports:
 
-This type is a placeholder for the package boundary. It does not define behavior, lifecycle, events, state, reducers, sessions, players, rendering, or adapter integration.
+- `Engine`: a placeholder for the package boundary.
+- `EngineEvent`: a minimal domain event shape with a `type` field.
+
+`EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
 ## Not Implemented Yet
 
