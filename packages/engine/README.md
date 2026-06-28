@@ -24,10 +24,13 @@ The current public API exports:
 
 - `Engine`: a placeholder for the package boundary.
 - `EngineEvent`: a minimal domain event shape with a `type` field.
+- `EngineState`: a minimal readonly state snapshot shape.
 
 `EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
 `EngineEvent` is readonly because events represent facts that have already happened in the engine domain.
+
+`EngineState` represents a snapshot of engine-domain state. It does not define reducers, lifecycle, persistence, rendering, or client-specific behavior.
 
 ## Not Implemented Yet
 
@@ -35,8 +38,8 @@ This package intentionally does not implement any engine behavior yet.
 
 It does not include:
 
-- Event
-- State
+- Event payloads
+- State transitions
 - Reducer
 - Game
 - GameSession
