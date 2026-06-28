@@ -30,7 +30,7 @@ The current public API exports:
 
 `EngineEvent` is readonly because events represent facts that have already happened in the engine domain.
 
-`EngineState` represents a snapshot of engine-domain state. It does not define reducers, lifecycle, persistence, rendering, or client-specific behavior.
+`EngineState` represents a readonly snapshot of engine-domain state at a point in time. It does not define mutable internal state, reducers, lifecycle, persistence, rendering, or client-specific behavior.
 
 ## Not Implemented Yet
 
