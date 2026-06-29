@@ -23,12 +23,10 @@ This package will contain client-independent game engine logic that can be used 
 The current public API exports:
 
 - `Engine`: a placeholder for the package boundary.
-- `EngineGame`: a minimal game definition with a stable `id` and reducer.
 - `EngineEvent`: a minimal domain event shape with a `type` field.
 - `EngineState`: a minimal readonly state snapshot shape.
 - `EngineReducer`: a function type that describes state transition shape.
-
-`EngineGame` represents a game definition in the engine domain. It connects a stable game identity to the reducer that describes that game's state transition shape. It does not define sessions, players, turns, phases, rendering, adapters, or runtime execution.
+- `EngineGame`: a minimal game definition with a stable `id` and reducer.
 
 `EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
@@ -37,6 +35,8 @@ The current public API exports:
 `EngineState` represents a readonly snapshot of engine-domain state at a point in time. It does not define mutable internal state, reducers, lifecycle, persistence, rendering, or client-specific behavior.
 
 `EngineReducer` represents the shape of a state transition from `EngineState` and `EngineEvent` to the next `EngineState`. It does not define execution, dispatch, validation, effects, persistence, or error handling.
+
+`EngineGame` represents a game definition in the engine domain. It connects a stable game identity to the reducer that describes that game's state transition shape. It does not define sessions, players, turns, phases, rendering, adapters, or runtime execution.
 
 ## Not Implemented Yet
 
