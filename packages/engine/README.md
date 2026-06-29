@@ -24,8 +24,8 @@ The current public API exports:
 
 - `Engine`: a placeholder for the package boundary.
 - `EngineEvent`: a minimal domain event shape with a `type` field.
-- `EngineReducer`: a function type that describes state transition shape.
 - `EngineState`: a minimal readonly state snapshot shape.
+- `EngineReducer`: a function type that describes state transition shape.
 
 `EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
