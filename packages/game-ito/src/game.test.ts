@@ -4,6 +4,7 @@ import {
   createItoEngine,
   itoGame,
   itoInitialState,
+  judgeItoRevealOrder,
   reduceItoState,
   type ItoEvent,
   type ItoThemeSelectedEvent
@@ -93,10 +94,13 @@ describe("ITO game", () => {
         type: "ito.revealOrderSubmitted",
         playerIds: ["player-1", "player-2"]
       },
-      {
-        type: "ito.resultRevealed",
-        success: true
-      }
+      judgeItoRevealOrder({
+        assignedNumbers: [
+          { playerId: "player-1", number: 20 },
+          { playerId: "player-2", number: 80 }
+        ],
+        revealOrder: ["player-1", "player-2"]
+      })
     ];
 
     const finishedSession = events.reduce(
@@ -124,6 +128,36 @@ describe("ITO game", () => {
       result: {
         success: true
       }
+    });
+  });
+
+  it("judges submitted order by assigned numbers", () => {
+    expect(
+      judgeItoRevealOrder({
+        assignedNumbers: [
+          { playerId: "player-a", number: 10 },
+          { playerId: "player-b", number: 30 },
+          { playerId: "player-c", number: 20 }
+        ],
+        revealOrder: ["player-a", "player-c", "player-b"]
+      })
+    ).toEqual({
+      type: "ito.resultRevealed",
+      success: true
+    });
+
+    expect(
+      judgeItoRevealOrder({
+        assignedNumbers: [
+          { playerId: "player-a", number: 10 },
+          { playerId: "player-b", number: 30 },
+          { playerId: "player-c", number: 20 }
+        ],
+        revealOrder: ["player-a", "player-b", "player-c"]
+      })
+    ).toEqual({
+      type: "ito.resultRevealed",
+      success: false
     });
   });
 });

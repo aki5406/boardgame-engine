@@ -35,6 +35,7 @@ The current public API exports:
 - `itoInitialState`: the minimal initial state for an ITO session.
 - `itoGame`: the ITO game definition for the Engine.
 - `createItoEngine`: creates an Engine configured with `itoGame`.
+- `judgeItoRevealOrder`: creates a result event by checking whether the submitted order is ascending by assigned number.
 
 `ItoEvent` is built on top of `EngineEvent`. Each ITO event keeps the engine-level `type` field and narrows it to an ITO-specific event name.
 
@@ -54,7 +55,7 @@ The current one-round flow is represented by applying these events through the E
 4. `ito.revealOrderSubmitted`
 5. `ito.resultRevealed`
 
-The reducer records each event payload into state and advances `phase`. Number generation and result judging are still outside this package scope.
+The reducer records each event payload into state and advances `phase`. Number generation is still outside this package scope. Result judging is represented by `judgeItoRevealOrder`, which returns `success: true` when the submitted player order maps to ascending assigned numbers.
 
 It intentionally does not include:
 
@@ -62,6 +63,5 @@ It intentionally does not include:
 - Card
 - Player management
 - Number distribution
-- Judging logic
 - CLI integration
 - Discord integration
