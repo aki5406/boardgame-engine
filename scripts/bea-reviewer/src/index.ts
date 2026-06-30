@@ -19,12 +19,18 @@ async function main(): Promise<void> {
     readPullRequestContext()
   ]);
 
+  const model = process.env["OPENAI_MODEL"] || "gpt-5.1";
   const output = await reviewWithOpenAI({
     apiKey: process.env["OPENAI_API_KEY"],
-    model: process.env["OPENAI_MODEL"] || "gpt-5.2",
+    model,
     repository,
     pullRequest
-  });
+  }).catch((error: unknown) =>
+    buildSkippedSummary({
+      reason: "OpenAI API request failed",
+      detail: buildOpenAIErrorDetail(error, model)
+    })
+  );
 
   await appendStepSummary(output);
 }
@@ -39,3 +45,23 @@ main().catch(async (error: unknown) => {
   );
   process.exitCode = 1;
 });
+
+function buildOpenAIErrorDetail(error: unknown, model: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return [
+    `BEA dry run could not complete with model \`${model}\`.`,
+    "",
+    "The workflow did not post PR comments, approve, request changes, or merge.",
+    "",
+    "Sanitized error:",
+    "",
+    "```text",
+    sanitizeErrorMessage(message),
+    "```"
+  ].join("\n");
+}
+
+function sanitizeErrorMessage(message: string): string {
+  return message.replace(/sk-[A-Za-z0-9_-]+/g, "sk-***");
+}
