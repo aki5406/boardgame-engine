@@ -16,3 +16,5 @@ export type {
   ItoResult,
   ItoState
 } from "./state.js";
+export { itoReducer, reduceItoState } from "./reducer.js";
+export type { ItoReducer } from "./reducer.js";

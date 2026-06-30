@@ -29,14 +29,18 @@ The current public API exports:
 - `ItoAssignedNumber`: the player-to-number pair stored in state.
 - `ItoHint`: a player hint stored in state.
 - `ItoResult`: the revealed result stored in state.
+- `ItoReducer`: the ITO-specific reducer shape.
+- `reduceItoState`: applies an `ItoEvent` to an `ItoState`.
+- `itoReducer`: the reducer exposed through the Engine reducer shape.
 
 `ItoEvent` is built on top of `EngineEvent`. Each ITO event keeps the engine-level `type` field and narrows it to an ITO-specific event name.
 
 `ItoState` is built on top of `EngineState`. It keeps the engine-level readonly state shape and adds the minimal ITO-specific fields needed to describe the current game progress.
 
+`itoReducer` connects `ItoEvent` and `ItoState` through the Engine reducer shape. It only records event payloads into state and advances the phase; it does not generate numbers, judge results, or validate full game rules.
+
 It intentionally does not include:
 
-- ITO reducer
 - Theme
 - Card
 - Player management
