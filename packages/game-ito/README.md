@@ -44,6 +44,18 @@ The current public API exports:
 
 `itoGame` connects the ITO reducer to the Engine `Game` API. `itoInitialState` is exported separately because the current Engine game metadata only contains the game id and reducer.
 
+## Minimal Play Flow
+
+The current one-round flow is represented by applying these events through the Engine:
+
+1. `ito.themeSelected`
+2. `ito.numbersAssigned`
+3. `ito.hintSubmitted`
+4. `ito.revealOrderSubmitted`
+5. `ito.resultRevealed`
+
+The reducer records each event payload into state and advances `phase`. Number generation and result judging are still outside this package scope.
+
 It intentionally does not include:
 
 - Theme
@@ -53,4 +65,3 @@ It intentionally does not include:
 - Judging logic
 - CLI integration
 - Discord integration
-- Tests
