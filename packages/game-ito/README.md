@@ -23,12 +23,19 @@ The current public API exports:
 - `ItoRevealOrderSubmittedEvent`: records the reveal order chosen by the group.
 - `ItoResultRevealedEvent`: records the revealed round result.
 - `ItoNumberAssignment`: the player-to-number pair used by `ItoNumbersAssignedEvent`.
+- `ItoState`: the minimal ITO-specific state shape.
+- `ItoPhase`: the current ITO flow phase.
+- `ItoPlayer`: the ITO state player identity.
+- `ItoAssignedNumber`: the player-to-number pair stored in state.
+- `ItoHint`: a player hint stored in state.
+- `ItoResult`: the revealed result stored in state.
 
 `ItoEvent` is built on top of `EngineEvent`. Each ITO event keeps the engine-level `type` field and narrows it to an ITO-specific event name.
 
+`ItoState` is built on top of `EngineState`. It keeps the engine-level readonly state shape and adds the minimal ITO-specific fields needed to describe the current game progress.
+
 It intentionally does not include:
 
-- ITO state
 - ITO reducer
 - Theme
 - Card

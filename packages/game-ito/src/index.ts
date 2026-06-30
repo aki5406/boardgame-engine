@@ -8,3 +8,11 @@ export type {
   ItoRevealOrderSubmittedEvent,
   ItoThemeSelectedEvent
 } from "./event.js";
+export type {
+  ItoAssignedNumber,
+  ItoHint,
+  ItoPhase,
+  ItoPlayer,
+  ItoResult,
+  ItoState
+} from "./state.js";
