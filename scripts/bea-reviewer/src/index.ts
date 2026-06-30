@@ -4,6 +4,17 @@ import { reviewWithOpenAI } from "./openai.js";
 import { appendStepSummary, buildSkippedSummary } from "./summary.js";
 
 async function main(): Promise<void> {
+  if (process.env["BEA_REVIEW_OPENAI_ENABLED"] !== "true") {
+    await appendStepSummary(
+      buildSkippedSummary({
+        reason: "OpenAI API request disabled",
+        detail:
+          "BEA dry run did not call the OpenAI API. Set `BEA_REVIEW_OPENAI_ENABLED=true` as a repository variable to enable API-backed review."
+      })
+    );
+    return;
+  }
+
   if (!process.env["OPENAI_API_KEY"]) {
     await appendStepSummary(
       buildSkippedSummary({

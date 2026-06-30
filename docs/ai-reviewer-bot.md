@@ -187,7 +187,8 @@ Current behavior:
 - Uses read-only GitHub token permissions: `contents: read` and `pull-requests: read`.
 - Runs `pnpm bea:review`.
 - Reads PR body, PR diff, changed files, `AGENTS.md`, review docs, BEA playbook, and accepted ADRs.
-- Calls the OpenAI Responses API only when `OPENAI_API_KEY` is available.
+- Does not call the OpenAI Responses API unless `BEA_REVIEW_OPENAI_ENABLED=true` is set as a repository variable.
+- Calls the OpenAI Responses API only when API-backed review is enabled and `OPENAI_API_KEY` is available.
 - Writes BEA output to the GitHub Actions job summary.
 - Does not post PR comments.
 - Does not approve, request changes, merge, label, or create inline review comments.

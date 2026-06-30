@@ -736,6 +736,7 @@ Dry-run rules:
 - Use `pull_request`, not `pull_request_target`.
 - Use read-only permissions.
 - Write only to `GITHUB_STEP_SUMMARY`.
+- Do not call the OpenAI API unless `BEA_REVIEW_OPENAI_ENABLED=true` is explicitly set.
 - Do not post PR comments.
 - Do not approve.
 - Do not request changes.
