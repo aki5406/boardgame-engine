@@ -17,3 +17,19 @@ export function buildSkippedSummary(input: {
 }): string {
   return ["# BEA Review Dry Run", "", `skipped: ${input.reason}`, "", input.detail].join("\n");
 }
+
+export function buildFailedSummary(input: { readonly detail: string }): string {
+  return [
+    "# BEA Review Dry Run",
+    "",
+    "failed: BEA dry run did not complete",
+    "",
+    "The workflow did not post PR comments, approve, request changes, or merge.",
+    "",
+    "Sanitized error:",
+    "",
+    "```text",
+    input.detail,
+    "```"
+  ].join("\n");
+}
