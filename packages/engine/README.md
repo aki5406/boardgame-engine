@@ -22,7 +22,9 @@ This package will contain client-independent game engine logic that can be used 
 
 The current public API exports:
 
-- `Engine`: a placeholder for the package boundary.
+- `Engine`: a minimal entry point for starting sessions and applying events for one game.
+- `EngineStartSessionInput`: the input required to create an engine-domain session snapshot.
+- `EngineApplyEventInput`: the input required to apply one event to one session snapshot.
 - `EngineEvent`: a minimal domain event shape with a `type` field.
 - `EngineState`: a minimal readonly state snapshot shape.
 - `EngineReducer`: a function type that describes state transition shape.
@@ -44,6 +46,14 @@ The current public API exports:
 
 `EngineGameSession` represents one play of an `EngineGame` at a point in time. It connects a stable session identity to the game being played, the participating engine players, and the current readonly state snapshot. It does not define roles, teams, turns, phases, dispatch, event history, persistence, adapters, or runtime execution.
 
+`Engine` represents the engine-domain entry point for one `EngineGame`. It owns the boundary where adapters can ask the engine to start an `EngineGameSession` and apply an `EngineEvent` to an existing `EngineGameSession`. It relates the existing concepts without introducing session storage, scheduling, persistence, transport behavior, or adapter-specific dependencies.
+
+`startSession` creates a session for the engine's `game`; callers provide the session identity, players, and initial state, but not a separate game.
+
+`EngineStartSessionInput` connects a session identity, engine players, and an initial state snapshot. It does not define matchmaking, lobbies, authentication, persistence, or game-specific setup rules.
+
+`EngineApplyEventInput` connects an existing session snapshot to one engine event. It does not define event queues, subscriptions, effect handling, persistence, or external delivery.
+
 ## Not Implemented Yet
 
 This package intentionally does not implement any engine behavior yet.
@@ -53,13 +63,13 @@ It does not include:
 - Event payloads
 - State transition implementation
 - Reducer implementation
+- Concrete Engine implementation
 - Game runtime implementation
 - GameSession runtime implementation
 - Player runtime implementation
 - Lobby
 - Renderer
 - Rule
-- Engine class
 - Discord integration
 - CLI integration
 - Tests
