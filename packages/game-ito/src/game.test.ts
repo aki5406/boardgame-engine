@@ -33,6 +33,27 @@ describe("ITO game", () => {
     });
   });
 
+  it("stores assigned numbers through the ITO reducer", () => {
+    const nextState = reduceItoState(itoInitialState, {
+      type: "ito.numbersAssigned",
+      assignments: [
+        { playerId: "player-a", number: 10 },
+        { playerId: "player-b", number: 30 },
+        { playerId: "player-c", number: 20 }
+      ]
+    });
+
+    expect(nextState).toEqual({
+      phase: "numbersAssigned",
+      players: [],
+      assignedNumbers: [
+        { playerId: "player-a", number: 10 },
+        { playerId: "player-b", number: 30 },
+        { playerId: "player-c", number: 20 }
+      ]
+    });
+  });
+
   it("runs as an Engine game", () => {
     const engine = createItoEngine();
     const event: ItoThemeSelectedEvent = {
@@ -158,6 +179,41 @@ describe("ITO game", () => {
     ).toEqual({
       type: "ito.resultRevealed",
       success: false
+    });
+  });
+
+  it("judges reveal order using assigned numbers stored in state", () => {
+    const numbersAssignedState = reduceItoState(itoInitialState, {
+      type: "ito.numbersAssigned",
+      assignments: [
+        { playerId: "player-a", number: 10 },
+        { playerId: "player-b", number: 30 },
+        { playerId: "player-c", number: 20 }
+      ]
+    });
+    const revealOrderSubmittedState = reduceItoState(numbersAssignedState, {
+      type: "ito.revealOrderSubmitted",
+      playerIds: ["player-a", "player-c", "player-b"]
+    });
+
+    const resultEvent = judgeItoRevealOrder({
+      assignedNumbers: revealOrderSubmittedState.assignedNumbers ?? [],
+      revealOrder: revealOrderSubmittedState.revealOrder ?? []
+    });
+    const resultState = reduceItoState(revealOrderSubmittedState, resultEvent);
+
+    expect(resultState).toEqual({
+      phase: "resultRevealed",
+      players: [],
+      assignedNumbers: [
+        { playerId: "player-a", number: 10 },
+        { playerId: "player-b", number: 30 },
+        { playerId: "player-c", number: 20 }
+      ],
+      revealOrder: ["player-a", "player-c", "player-b"],
+      result: {
+        success: true
+      }
     });
   });
 });
