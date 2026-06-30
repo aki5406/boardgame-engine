@@ -48,6 +48,8 @@ The current public API exports:
 
 `Engine` represents the engine-domain entry point for one `EngineGame`. It owns the boundary where adapters can ask the engine to start an `EngineGameSession` and apply an `EngineEvent` to an existing `EngineGameSession`. It relates the existing concepts without introducing session storage, scheduling, persistence, transport behavior, or adapter-specific dependencies.
 
+`startSession` creates a session for the engine's `game`; callers provide the session identity, players, and initial state, but not a separate game.
+
 `EngineStartSessionInput` connects a session identity, engine players, and an initial state snapshot. It does not define matchmaking, lobbies, authentication, persistence, or game-specific setup rules.
 
 `EngineApplyEventInput` connects an existing session snapshot to one engine event. It does not define event queues, subscriptions, effect handling, persistence, or external delivery.
