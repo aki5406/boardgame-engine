@@ -1,7 +1,7 @@
 import { readRepositoryContext } from "./context.js";
 import { readPullRequestContext } from "./github.js";
 import { reviewWithOpenAI } from "./openai.js";
-import { appendStepSummary, buildFailedSummary, buildSkippedSummary } from "./summary.js";
+import { appendStepSummary, buildSkippedSummary } from "./summary.js";
 
 async function main(): Promise<void> {
   if (!process.env["OPENAI_API_KEY"]) {
@@ -25,17 +25,42 @@ async function main(): Promise<void> {
     model,
     repository,
     pullRequest
-  });
+  }).catch((error: unknown) =>
+    buildSkippedSummary({
+      reason: "OpenAI API request failed",
+      detail: buildOpenAIErrorDetail(error, model)
+    })
+  );
 
   await appendStepSummary(output);
 }
 
 main().catch(async (error: unknown) => {
   const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
-  console.error(`BEA dry run failed: ${message}`);
-  await appendStepSummary(buildFailedSummary({ detail: message }));
+  await appendStepSummary(
+    buildSkippedSummary({
+      reason: "bea dry run failed",
+      detail: message
+    })
+  );
   process.exitCode = 1;
 });
+
+function buildOpenAIErrorDetail(error: unknown, model: string): string {
+  const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
+
+  return [
+    `BEA dry run could not complete with model \`${model}\`.`,
+    "",
+    "The workflow did not post PR comments, approve, request changes, or merge.",
+    "",
+    "Sanitized error:",
+    "",
+    "```text",
+    message,
+    "```"
+  ].join("\n");
+}
 
 function sanitizeErrorMessage(message: string): string {
   return message.replace(/sk-[A-Za-z0-9_-]+/g, "sk-***");
