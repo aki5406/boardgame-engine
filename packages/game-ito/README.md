@@ -7,12 +7,12 @@ This package will contain ITO-specific rules and state transitions on top of `@b
 ## Role
 
 - Keep ITO-specific concepts out of `@boardgame/engine`.
-- Provide the place for future ITO state, events, reducer, and game definition.
+- Provide ITO-specific events, state, reducer, and game definition.
 - Validate the Engine API through a real game implementation over time.
 
 ## Current Scope
 
-This package currently contains only the minimal package structure needed to start ITO implementation later.
+This package currently contains the minimal ITO event, state, reducer, and game definition needed to connect with the Engine.
 
 The current public API exports:
 
@@ -32,12 +32,17 @@ The current public API exports:
 - `ItoReducer`: the ITO-specific reducer shape.
 - `reduceItoState`: applies an `ItoEvent` to an `ItoState`.
 - `itoReducer`: the reducer exposed through the Engine reducer shape.
+- `itoInitialState`: the minimal initial state for an ITO session.
+- `itoGame`: the ITO game definition for the Engine.
+- `createItoEngine`: creates an Engine configured with `itoGame`.
 
 `ItoEvent` is built on top of `EngineEvent`. Each ITO event keeps the engine-level `type` field and narrows it to an ITO-specific event name.
 
 `ItoState` is built on top of `EngineState`. It keeps the engine-level readonly state shape and adds the minimal ITO-specific fields needed to describe the current game progress.
 
 `itoReducer` connects `ItoEvent` and `ItoState` through the Engine reducer shape. It only records event payloads into state and advances the phase; it does not generate numbers, judge results, or validate full game rules.
+
+`itoGame` connects the ITO reducer to the Engine `Game` API. `itoInitialState` is exported separately because the current Engine game metadata only contains the game id and reducer.
 
 It intentionally does not include:
 
