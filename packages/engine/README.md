@@ -27,6 +27,7 @@ The current public API exports:
 - `EngineState`: a minimal readonly state snapshot shape.
 - `EngineReducer`: a function type that describes state transition shape.
 - `EngineGame`: a minimal game definition with a stable `id` and reducer.
+- `EngineGameSession`: a minimal session snapshot for one play of a game.
 
 `EngineEvent` represents something that happened in the engine domain. It does not define payloads, handlers, event sourcing, state transitions, or transport-specific behavior.
 
@@ -38,6 +39,8 @@ The current public API exports:
 
 `EngineGame` represents a game definition in the engine domain. It connects a stable game identity to the reducer that describes that game's state transition shape. It does not define sessions, players, turns, phases, rendering, adapters, or runtime execution.
 
+`EngineGameSession` represents one play of an `EngineGame` at a point in time. It connects a stable session identity to the game being played and the current readonly state snapshot. It does not define players, turns, phases, dispatch, event history, persistence, adapters, or runtime execution.
+
 ## Not Implemented Yet
 
 This package intentionally does not implement any engine behavior yet.
@@ -48,7 +51,7 @@ It does not include:
 - State transition implementation
 - Reducer implementation
 - Game runtime implementation
-- GameSession
+- GameSession runtime implementation
 - Player
 - Lobby
 - Renderer
