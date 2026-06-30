@@ -726,3 +726,21 @@ Recommended sequence:
 7. Keep merge decisions human-owned.
 
 Initial implementation should avoid `pull_request_target`, should not execute PR code, and should use the minimum token permissions needed for the selected output channel.
+
+## Dry Run Operation
+
+The first executable BEA integration is a dry-run GitHub Actions workflow.
+
+Dry-run rules:
+
+- Use `pull_request`, not `pull_request_target`.
+- Use read-only permissions.
+- Write only to `GITHUB_STEP_SUMMARY`.
+- Do not post PR comments.
+- Do not approve.
+- Do not request changes.
+- Do not merge.
+- Treat PR body and diff as untrusted input.
+- Skip successfully when `OPENAI_API_KEY` is unavailable.
+
+This keeps BEA useful for experimentation while preserving human review authority.

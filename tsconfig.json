@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
   "files": [],
-  "references": [{ "path": "./packages/engine" }, { "path": "./packages/counter-sample" }]
+  "references": [
+    { "path": "./packages/engine" },
+    { "path": "./packages/counter-sample" },
+    { "path": "./scripts/bea-reviewer" }
+  ]
 }

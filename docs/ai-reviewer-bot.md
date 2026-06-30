@@ -169,11 +169,30 @@ It should avoid quoting long file contents, generated artifacts, or dependency c
 ## Initial Rollout Plan
 
 1. Add review policy and bot design docs.
-2. Add a manual or dry-run workflow that writes review output to the GitHub Actions job summary.
-3. Add PR comment posting after the dry-run output is useful.
-4. Keep approve/request-changes disabled.
-5. Evaluate comment quality over several real PRs.
-6. Consider required checks or stronger automation only after human reviewers trust the output.
+2. Add a dry-run workflow that writes review output to the GitHub Actions job summary.
+3. Keep the dry run read-only: use `pull_request`, `contents: read`, and `pull-requests: read`.
+4. Skip successfully when `OPENAI_API_KEY` is unavailable, such as fork PRs where secrets are not exposed.
+5. Add PR comment posting only after the dry-run output is useful.
+6. Keep approve/request-changes disabled.
+7. Evaluate comment quality over several real PRs.
+8. Consider required checks or stronger automation only after human reviewers trust the output.
+
+## Current Dry Run Workflow
+
+The repository includes a BEA dry-run workflow at `.github/workflows/bea-review.yml`.
+
+Current behavior:
+
+- Triggered by `pull_request` events: `opened`, `synchronize`, `reopened`, and `ready_for_review`.
+- Uses read-only GitHub token permissions: `contents: read` and `pull-requests: read`.
+- Runs `pnpm bea:review`.
+- Reads PR body, PR diff, changed files, `AGENTS.md`, review docs, BEA playbook, and accepted ADRs.
+- Calls the OpenAI Responses API only when `OPENAI_API_KEY` is available.
+- Writes BEA output to the GitHub Actions job summary.
+- Does not post PR comments.
+- Does not approve, request changes, merge, label, or create inline review comments.
+
+The dry run is intentionally non-blocking from a review-authority perspective. Humans still decide whether a PR needs changes and whether it can merge.
 
 ## Open Questions
 
