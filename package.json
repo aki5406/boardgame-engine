@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.7.0",
   "scripts": {
+    "bea:review": "tsc -p scripts/bea-reviewer/tsconfig.json && node scripts/bea-reviewer/dist/index.js",
     "build": "tsc -b",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "format": "prettier --write .",
