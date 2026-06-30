@@ -23,6 +23,7 @@ This package will contain client-independent game engine logic that can be used 
 The current public API exports:
 
 - `Engine`: a minimal entry point for starting sessions and applying events for one game.
+- `createEngine`: a minimal factory for creating an `Engine` from one `EngineGame`.
 - `EngineStartSessionInput`: the input required to create an engine-domain session snapshot.
 - `EngineApplyEventInput`: the input required to apply one event to one session snapshot.
 - `EngineEvent`: a minimal domain event shape with a `type` field.
@@ -48,6 +49,8 @@ The current public API exports:
 
 `Engine` represents the engine-domain entry point for one `EngineGame`. It owns the boundary where adapters can ask the engine to start an `EngineGameSession` and apply an `EngineEvent` to an existing `EngineGameSession`. It relates the existing concepts without introducing session storage, scheduling, persistence, transport behavior, or adapter-specific dependencies.
 
+`createEngine` creates the minimal concrete `Engine` implementation. It starts session snapshots and applies events by passing the current session state and event to the engine game's reducer.
+
 `startSession` creates a session for the engine's `game`; callers provide the session identity, players, and initial state, but not a separate game.
 
 `EngineStartSessionInput` connects a session identity, engine players, and an initial state snapshot. It does not define matchmaking, lobbies, authentication, persistence, or game-specific setup rules.
@@ -61,9 +64,7 @@ This package intentionally does not implement any engine behavior yet.
 It does not include:
 
 - Event payloads
-- State transition implementation
-- Reducer implementation
-- Concrete Engine implementation
+- Game-specific state transition implementation
 - Game runtime implementation
 - GameSession runtime implementation
 - Player runtime implementation

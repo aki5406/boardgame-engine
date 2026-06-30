@@ -21,3 +21,25 @@ export interface EngineApplyEventInput {
   readonly session: EngineGameSession;
   readonly event: EngineEvent;
 }
+
+export function createEngine(game: EngineGame): Engine {
+  return {
+    game,
+
+    startSession(input) {
+      return {
+        id: input.id,
+        game,
+        players: input.players,
+        state: input.initialState
+      };
+    },
+
+    applyEvent(input) {
+      return {
+        ...input.session,
+        state: game.reducer(input.session.state, input.event)
+      };
+    }
+  };
+}
