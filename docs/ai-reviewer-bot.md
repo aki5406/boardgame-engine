@@ -193,6 +193,8 @@ Current behavior:
 - Does not post PR comments.
 - Does not approve, request changes, merge, label, or create inline review comments.
 
+By default, the BEA dry run does not call the OpenAI API and does not incur OpenAI API usage. API-backed review must be explicitly enabled with `BEA_REVIEW_OPENAI_ENABLED=true`.
+
 The dry run is intentionally non-blocking from a review-authority perspective. Humans still decide whether a PR needs changes and whether it can merge.
 
 ## Open Questions
