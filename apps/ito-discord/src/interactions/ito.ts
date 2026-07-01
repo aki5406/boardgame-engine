@@ -6,6 +6,7 @@ import type { Engine } from "@boardgame/game-ito";
 import {
   assignItoDiscordNumbers,
   createItoDiscordSessionForChannel,
+  deliverItoDiscordNumbers,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
   setItoDiscordSessionTheme,
@@ -59,6 +60,32 @@ async function handleItoCommand(
     }
 
     await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
+    return;
+  }
+
+  if (subcommand === "deliver") {
+    const result = await deliverItoDiscordNumbers({
+      channelId: interaction.channelId,
+      registry: input.sessionRegistry,
+      sendDirectMessage: async ({ playerId, message }) => {
+        const user = await interaction.client.users.fetch(playerId);
+        await user.send(message);
+      }
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "notAssigned") {
+      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+      return;
+    }
+
+    await interaction.reply(
+      `ITO numbers delivery finished.\nSucceeded: ${result.succeeded}\nFailed: ${result.failed}`
+    );
     return;
   }
 
