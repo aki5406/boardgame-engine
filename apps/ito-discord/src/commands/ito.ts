@@ -16,5 +16,16 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("start").setDescription("Start the ITO session in this channel")
   )
   .addSubcommand((subcommand) =>
+    subcommand
+      .setName("theme")
+      .setDescription("Set the ITO theme for this session")
+      .addStringOption((option) =>
+        option
+          .setName("topic")
+          .setDescription("Set the ITO theme for this session")
+          .setRequired(true)
+      )
+  )
+  .addSubcommand((subcommand) =>
     subcommand.setName("ping").setDescription("Check whether the ITO bot is responding")
   );
