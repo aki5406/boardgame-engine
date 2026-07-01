@@ -7,6 +7,7 @@ import {
   createItoDiscordSessionForChannel,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
+  startItoDiscordSession,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
 
@@ -95,5 +96,25 @@ async function handleItoCommand(
     await interaction.reply(
       `ITO session status:\nSession: ${result.sessionId}\nPlayers: ${result.playerCount}`
     );
+    return;
+  }
+
+  if (subcommand === "start") {
+    const result = startItoDiscordSession({
+      channelId: interaction.channelId,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "noPlayers") {
+      await interaction.reply("No players have joined this ITO session. Use /ito join first.");
+      return;
+    }
+
+    await interaction.reply(`ITO session started.\nPlayers: ${result.playerCount}`);
   }
 }
