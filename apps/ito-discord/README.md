@@ -16,6 +16,7 @@ Current scope:
 - Create an ITO session for a channel with `/ito create`.
 - Join an existing channel session with `/ito join`.
 - Show the current channel session status with `/ito status`.
+- Start an existing channel session with `/ito start`.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
