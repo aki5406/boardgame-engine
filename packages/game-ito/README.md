@@ -37,6 +37,7 @@ The current public API exports:
 - `itoInitialState`: the minimal initial state for an ITO session.
 - `itoGame`: the ITO game definition for the Engine.
 - `createItoEngine`: creates an Engine configured with `itoGame`.
+- `createItoNumberAssignments`: creates deterministic player-to-number assignments from player ids and prepared numbers.
 - `judgeItoOrder`: creates a result event by checking whether the submitted order is ascending by assigned number.
 
 `ItoEvent` is built on top of `EngineEvent`. Each ITO event keeps the engine-level `type` field and narrows it to an ITO-specific event name.
@@ -83,7 +84,7 @@ Theme random generation and theme list management are intentionally outside the 
 
 Numbers are assigned explicitly with `ito.numbersAssigned`. The reducer stores the event payload in `state.assignedNumbers` and moves the phase to `numbersAssigned`.
 
-Random generation, shuffling, and private delivery are intentionally outside the reducer. They can be added later around event creation without changing the reducer contract.
+`createItoNumberAssignments` pairs player ids with numbers that were prepared outside the reducer. The caller provides one number per player. Random generation, shuffling, and private delivery are intentionally outside the reducer. They can be added later around event creation without changing the reducer contract.
 
 It intentionally does not include:
 
@@ -91,6 +92,7 @@ It intentionally does not include:
 - Theme list management
 - Card
 - Player management
-- Number distribution
+- Number random generation
+- Private number delivery
 - CLI integration
 - Discord integration

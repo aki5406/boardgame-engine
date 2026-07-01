@@ -1,4 +1,6 @@
 export type { Engine, EngineGame, EngineReducer, EngineState } from "@boardgame/engine";
+export { createItoNumberAssignments } from "./assignment.js";
+export type { CreateItoNumberAssignmentsInput } from "./assignment.js";
 export type {
   ItoDiscussionStartedEvent,
   ItoEvent,

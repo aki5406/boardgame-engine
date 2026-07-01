@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createItoNumberAssignments,
   createItoEngine,
   itoGame,
   itoInitialState,
@@ -34,13 +35,14 @@ describe("ITO game", () => {
   });
 
   it("stores assigned numbers through the ITO reducer", () => {
+    const assignments = createItoNumberAssignments({
+      playerIds: ["player-a", "player-b", "player-c"],
+      numbers: [10, 30, 20]
+    });
+
     const nextState = reduceItoState(itoInitialState, {
       type: "ito.numbersAssigned",
-      assignments: [
-        { playerId: "player-a", number: 10 },
-        { playerId: "player-b", number: 30 },
-        { playerId: "player-c", number: 20 }
-      ]
+      assignments
     });
 
     expect(nextState).toEqual({
@@ -52,6 +54,19 @@ describe("ITO game", () => {
         { playerId: "player-c", number: 20 }
       ]
     });
+  });
+
+  it("creates number assignments from player ids and prepared numbers", () => {
+    expect(
+      createItoNumberAssignments({
+        playerIds: ["player-a", "player-b", "player-c"],
+        numbers: [10, 30, 20]
+      })
+    ).toEqual([
+      { playerId: "player-a", number: 10 },
+      { playerId: "player-b", number: 30 },
+      { playerId: "player-c", number: 20 }
+    ]);
   });
 
   it("starts discussion through the ITO reducer", () => {
@@ -154,10 +169,10 @@ describe("ITO game", () => {
       },
       {
         type: "ito.numbersAssigned",
-        assignments: [
-          { playerId: "player-1", number: 20 },
-          { playerId: "player-2", number: 80 }
-        ]
+        assignments: createItoNumberAssignments({
+          playerIds: ["player-1", "player-2"],
+          numbers: [20, 80]
+        })
       },
       {
         type: "ito.discussionStarted"
