@@ -6,6 +6,7 @@
     { "path": "./packages/counter-sample" },
     { "path": "./packages/game-ito" },
     { "path": "./apps/ito-cli" },
+    { "path": "./apps/ito-discord" },
     { "path": "./scripts/bea-reviewer" }
   ]
 }

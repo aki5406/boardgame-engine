@@ -35,6 +35,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/game-ito
 
+  apps/ito-discord:
+    dependencies:
+      "@boardgame/game-ito":
+        specifier: workspace:*
+        version: link:../../packages/game-ito
+
   packages/counter-sample:
     dependencies:
       "@boardgame/engine":
