@@ -5,6 +5,7 @@ export type {
   ItoHintSubmittedEvent,
   ItoNumberAssignment,
   ItoNumbersAssignedEvent,
+  ItoOrderSubmissionStartedEvent,
   ItoResultRevealedEvent,
   ItoRevealOrderSubmittedEvent,
   ItoThemeSelectedEvent

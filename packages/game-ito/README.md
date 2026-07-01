@@ -21,6 +21,7 @@ The current public API exports:
 - `ItoNumbersAssignedEvent`: records which hidden number was assigned to each player.
 - `ItoDiscussionStartedEvent`: records that the round has entered the discussion phase.
 - `ItoHintSubmittedEvent`: records a player's hint for the selected theme.
+- `ItoOrderSubmissionStartedEvent`: records that the round has entered the order submission phase.
 - `ItoRevealOrderSubmittedEvent`: records the reveal order chosen by the group.
 - `ItoResultRevealedEvent`: records the revealed round result.
 - `ItoNumberAssignment`: the player-to-number pair used by `ItoNumbersAssignedEvent`.
@@ -54,8 +55,9 @@ The current one-round flow is represented by applying these events through the E
 2. `ito.numbersAssigned`
 3. `ito.discussionStarted`
 4. `ito.hintSubmitted`
-5. `ito.revealOrderSubmitted`
-6. `ito.resultRevealed`
+5. `ito.orderSubmissionStarted`
+6. `ito.revealOrderSubmitted`
+7. `ito.resultRevealed`
 
 The reducer records each event payload into state and advances `phase`. Number generation is still outside this package scope. Result judging is represented by `judgeItoRevealOrder`, which returns `success: true` when the submitted player order maps to ascending assigned numbers.
 
@@ -63,7 +65,13 @@ The reducer records each event payload into state and advances `phase`. Number g
 
 Discussion is represented as game progress with the `discussion` phase. `ito.discussionStarted` moves the state into that phase after theme selection and number assignment are ready.
 
-The reducer does not model chat messages, voice state, timers, or AI conversation. `ito.hintSubmitted` records player hints while keeping the state in `discussion`; `ito.revealOrderSubmitted` moves the game out of discussion and into reveal order submission.
+The reducer does not model chat messages, voice state, timers, or AI conversation. `ito.hintSubmitted` records player hints while keeping the state in `discussion`; `ito.orderSubmissionStarted` moves the game out of discussion and into order submission.
+
+## Order Submission Phase
+
+Order submission is represented as game progress with the `orderSubmission` phase. `ito.orderSubmissionStarted` marks that discussion has ended and the group is entering the reveal order.
+
+`ito.revealOrderSubmitted` remains the event for the submitted order itself. This keeps "start entering the order" separate from "submit the chosen order" without adding UI, CLI, or validation behavior.
 
 ## Theme Selection
 

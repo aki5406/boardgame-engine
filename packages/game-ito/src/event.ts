@@ -5,6 +5,7 @@ export type ItoEvent =
   | ItoNumbersAssignedEvent
   | ItoDiscussionStartedEvent
   | ItoHintSubmittedEvent
+  | ItoOrderSubmissionStartedEvent
   | ItoRevealOrderSubmittedEvent
   | ItoResultRevealedEvent;
 
@@ -35,6 +36,11 @@ export type ItoHintSubmittedEvent = EngineEvent &
     type: "ito.hintSubmitted";
     playerId: string;
     hint: string;
+  }>;
+
+export type ItoOrderSubmissionStartedEvent = EngineEvent &
+  Readonly<{
+    type: "ito.orderSubmissionStarted";
   }>;
 
 export type ItoRevealOrderSubmittedEvent = EngineEvent &
