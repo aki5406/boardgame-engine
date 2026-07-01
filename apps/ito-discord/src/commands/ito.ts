@@ -13,6 +13,9 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("deliver").setDescription("Deliver assigned ITO numbers by DM")
   )
   .addSubcommand((subcommand) =>
+    subcommand.setName("discuss").setDescription("Start the ITO discussion phase")
+  )
+  .addSubcommand((subcommand) =>
     subcommand.setName("join").setDescription("Join the ITO session in this channel")
   )
   .addSubcommand((subcommand) =>
