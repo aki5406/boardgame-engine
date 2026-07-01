@@ -18,10 +18,10 @@ describe("ITO game", () => {
     });
   });
 
-  it("updates state through the ITO reducer", () => {
+  it("stores selected theme through the ITO reducer", () => {
     const event: ItoThemeSelectedEvent = {
       type: "ito.themeSelected",
-      theme: "favorite food"
+      theme: "コンビニで買える嬉しいもの"
     };
 
     const nextState = reduceItoState(itoInitialState, event);
@@ -29,7 +29,7 @@ describe("ITO game", () => {
     expect(nextState).toEqual({
       phase: "themeSelected",
       players: [],
-      theme: "favorite food"
+      theme: "コンビニで買える嬉しいもの"
     });
   });
 
