@@ -10,6 +10,7 @@ Current scope:
 - Depend on `@boardgame/game-ito`.
 - Read `DISCORD_BOT_TOKEN` from the environment.
 - Create a Discord client and log in.
+- Define the `/ito ping` slash command data.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
