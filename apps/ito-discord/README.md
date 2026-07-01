@@ -8,6 +8,20 @@ Current scope:
 
 - Establish the app package location.
 - Depend on `@boardgame/game-ito`.
+- Read `DISCORD_BOT_TOKEN` from the environment.
+- Create a Discord client and log in.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
-It intentionally does not include `discord.js`, bot startup, slash command registration, token management, `.env`, Discord API calls, persistence, Docker, or deployment settings yet.
+Create a local `.env` or set the variable in your shell before starting the adapter:
+
+```sh
+DISCORD_BOT_TOKEN=
+```
+
+Run from the repository root:
+
+```sh
+pnpm --filter @boardgame/ito-discord start
+```
+
+It intentionally does not include slash command registration, interaction handling, ITO session creation, persistence, Docker, or deployment settings yet.
