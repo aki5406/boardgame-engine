@@ -57,6 +57,12 @@ The current one-round flow is represented by applying these events through the E
 
 The reducer records each event payload into state and advances `phase`. Number generation is still outside this package scope. Result judging is represented by `judgeItoRevealOrder`, which returns `success: true` when the submitted player order maps to ascending assigned numbers.
 
+## Theme Selection
+
+Themes are selected explicitly with `ito.themeSelected`. The reducer stores the event payload in `state.theme` and moves the phase to `themeSelected`.
+
+Theme random generation and theme list management are intentionally outside the reducer. They can be added later around event creation without changing the reducer contract.
+
 ## Number Assignment
 
 Numbers are assigned explicitly with `ito.numbersAssigned`. The reducer stores the event payload in `state.assignedNumbers` and moves the phase to `numbersAssigned`.
@@ -65,7 +71,8 @@ Random generation, shuffling, and private delivery are intentionally outside the
 
 It intentionally does not include:
 
-- Theme
+- Theme random generation
+- Theme list management
 - Card
 - Player management
 - Number distribution
