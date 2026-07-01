@@ -10,5 +10,8 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("join").setDescription("Join the ITO session in this channel")
   )
   .addSubcommand((subcommand) =>
+    subcommand.setName("status").setDescription("Show the ITO session status in this channel")
+  )
+  .addSubcommand((subcommand) =>
     subcommand.setName("ping").setDescription("Check whether the ITO bot is responding")
   );
