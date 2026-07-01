@@ -54,6 +54,45 @@ describe("ITO game", () => {
     });
   });
 
+  it("starts discussion through the ITO reducer", () => {
+    const nextState = reduceItoState(
+      {
+        ...itoInitialState,
+        phase: "numbersAssigned",
+        assignedNumbers: [{ playerId: "player-a", number: 10 }]
+      },
+      {
+        type: "ito.discussionStarted"
+      }
+    );
+
+    expect(nextState).toEqual({
+      phase: "discussion",
+      players: [],
+      assignedNumbers: [{ playerId: "player-a", number: 10 }]
+    });
+  });
+
+  it("stores hints while staying in discussion", () => {
+    const nextState = reduceItoState(
+      {
+        ...itoInitialState,
+        phase: "discussion"
+      },
+      {
+        type: "ito.hintSubmitted",
+        playerId: "player-a",
+        hint: "toast"
+      }
+    );
+
+    expect(nextState).toEqual({
+      phase: "discussion",
+      players: [],
+      hints: [{ playerId: "player-a", hint: "toast" }]
+    });
+  });
+
   it("runs as an Engine game", () => {
     const engine = createItoEngine();
     const event: ItoThemeSelectedEvent = {
@@ -100,6 +139,9 @@ describe("ITO game", () => {
           { playerId: "player-1", number: 20 },
           { playerId: "player-2", number: 80 }
         ]
+      },
+      {
+        type: "ito.discussionStarted"
       },
       {
         type: "ito.hintSubmitted",

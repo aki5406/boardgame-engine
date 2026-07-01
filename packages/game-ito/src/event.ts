@@ -3,6 +3,7 @@ import type { EngineEvent } from "@boardgame/engine";
 export type ItoEvent =
   | ItoThemeSelectedEvent
   | ItoNumbersAssignedEvent
+  | ItoDiscussionStartedEvent
   | ItoHintSubmittedEvent
   | ItoRevealOrderSubmittedEvent
   | ItoResultRevealedEvent;
@@ -23,6 +24,11 @@ export type ItoNumberAssignment = Readonly<{
   playerId: string;
   number: number;
 }>;
+
+export type ItoDiscussionStartedEvent = EngineEvent &
+  Readonly<{
+    type: "ito.discussionStarted";
+  }>;
 
 export type ItoHintSubmittedEvent = EngineEvent &
   Readonly<{

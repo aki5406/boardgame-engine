@@ -21,10 +21,16 @@ export const reduceItoState: ItoReducer = (state, event) => {
         assignedNumbers: event.assignments
       };
 
+    case "ito.discussionStarted":
+      return {
+        ...state,
+        phase: "discussion"
+      };
+
     case "ito.hintSubmitted":
       return {
         ...state,
-        phase: "hintsSubmitted",
+        phase: "discussion",
         hints: [
           ...(state.hints ?? []),
           {
@@ -64,6 +70,7 @@ function isItoEvent(event: EngineEvent): event is ItoEvent {
   return (
     event.type === "ito.themeSelected" ||
     event.type === "ito.numbersAssigned" ||
+    event.type === "ito.discussionStarted" ||
     event.type === "ito.hintSubmitted" ||
     event.type === "ito.revealOrderSubmitted" ||
     event.type === "ito.resultRevealed"
