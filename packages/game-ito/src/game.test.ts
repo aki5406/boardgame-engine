@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createItoNumberAssignments,
+  createItoThemeSelectedEvent,
   createItoEngine,
   itoGame,
   itoInitialState,
@@ -69,6 +70,13 @@ describe("ITO game", () => {
     ]);
   });
 
+  it("creates theme selected events from selected theme text", () => {
+    expect(createItoThemeSelectedEvent("favorite food")).toEqual({
+      type: "ito.themeSelected",
+      theme: "favorite food"
+    });
+  });
+
   it("starts discussion through the ITO reducer", () => {
     const nextState = reduceItoState(
       {
@@ -129,10 +137,7 @@ describe("ITO game", () => {
 
   it("runs as an Engine game", () => {
     const engine = createItoEngine();
-    const event: ItoThemeSelectedEvent = {
-      type: "ito.themeSelected",
-      theme: "favorite food"
-    };
+    const event: ItoThemeSelectedEvent = createItoThemeSelectedEvent("favorite food");
     const session = engine.startSession({
       id: "ito-session-1",
       players: [{ id: "player-1" }],
@@ -163,10 +168,7 @@ describe("ITO game", () => {
       }
     });
     const events: readonly ItoEvent[] = [
-      {
-        type: "ito.themeSelected",
-        theme: "favorite food"
-      },
+      createItoThemeSelectedEvent("favorite food"),
       {
         type: "ito.numbersAssigned",
         assignments: createItoNumberAssignments({
