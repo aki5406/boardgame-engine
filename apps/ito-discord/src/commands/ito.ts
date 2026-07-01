@@ -4,6 +4,9 @@ export const itoCommand = new SlashCommandBuilder()
   .setName("ito")
   .setDescription("Play ITO")
   .addSubcommand((subcommand) =>
+    subcommand.setName("assign").setDescription("Assign ITO numbers to joined players")
+  )
+  .addSubcommand((subcommand) =>
     subcommand.setName("create").setDescription("Create an ITO session for this channel")
   )
   .addSubcommand((subcommand) =>

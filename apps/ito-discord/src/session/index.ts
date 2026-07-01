@@ -1,9 +1,11 @@
+export { assignItoDiscordNumbers } from "./assign.js";
 export { createItoDiscordSessionForChannel } from "./create.js";
 export { getItoDiscordSessionStatus } from "./status.js";
 export { joinItoDiscordSessionForChannel } from "./join.js";
 export { createItoDiscordSessionRegistry } from "./registry.js";
 export { setItoDiscordSessionTheme } from "./theme.js";
 export { startItoDiscordSession } from "./start.js";
+export type { AssignItoDiscordNumbersInput, AssignItoDiscordNumbersResult } from "./assign.js";
 export type { CreateItoDiscordSessionInput, CreateItoDiscordSessionResult } from "./create.js";
 export type {
   GetItoDiscordSessionStatusInput,

@@ -18,6 +18,7 @@ Current scope:
 - Show the current channel session status with `/ito status`.
 - Start an existing channel session with `/ito start`.
 - Set the current channel session theme with `/ito theme`.
+- Assign ITO numbers to joined players with `/ito assign` without displaying secret numbers in the channel.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
