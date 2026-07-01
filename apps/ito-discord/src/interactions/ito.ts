@@ -7,6 +7,7 @@ import {
   createItoDiscordSessionForChannel,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
+  setItoDiscordSessionTheme,
   startItoDiscordSession,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
@@ -116,5 +117,23 @@ async function handleItoCommand(
     }
 
     await interaction.reply(`ITO session started.\nPlayers: ${result.playerCount}`);
+    return;
+  }
+
+  if (subcommand === "theme") {
+    const topic = interaction.options.getString("topic", true);
+    const result = setItoDiscordSessionTheme({
+      channelId: interaction.channelId,
+      theme: topic,
+      engine: input.engine,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    await interaction.reply(`ITO theme set:\n${result.theme}`);
   }
 }
