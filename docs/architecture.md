@@ -96,3 +96,5 @@ ITO では `ItoEvent`、`ItoState`、`ItoReducer` がこの Engine の shape に
 ## Documentation Notes
 
 README とこのドキュメントは、将来構想ではなく現在の実装を説明します。未実装の Adapter や基盤は Roadmap または今後検討事項として扱い、実装済みのようには書きません。
+
+Discord Adapter の設計案は [Discord Adapter Architecture](./discord-adapter-architecture.md) に記録しています。
