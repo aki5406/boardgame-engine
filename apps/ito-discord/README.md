@@ -14,6 +14,7 @@ Current scope:
 - Reply to `/ito ping`.
 - Keep an in-memory channel-to-session registry.
 - Create an ITO session for a channel with `/ito create`.
+- Join an existing channel session with `/ito join`.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
@@ -36,4 +37,4 @@ Register guild slash commands from the repository root:
 pnpm --filter @boardgame/ito-discord register-commands
 ```
 
-It intentionally does not include global slash command registration, player management, ITO game flow, persistence, Docker, or deployment settings yet.
+It intentionally does not include global slash command registration, ITO game flow, persistence, Docker, or deployment settings yet.

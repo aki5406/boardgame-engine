@@ -5,6 +5,7 @@ import type { Engine } from "@boardgame/game-ito";
 
 import {
   createItoDiscordSessionForChannel,
+  joinItoDiscordSessionForChannel,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
 
@@ -54,5 +55,27 @@ async function handleItoCommand(
     }
 
     await interaction.reply("ITO session created for this channel.");
+    return;
+  }
+
+  if (subcommand === "join") {
+    const result = joinItoDiscordSessionForChannel({
+      channelId: interaction.channelId,
+      playerId: interaction.user.id,
+      engine: input.engine,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "alreadyJoined") {
+      await interaction.reply("You have already joined this ITO session.");
+      return;
+    }
+
+    await interaction.reply("Joined the ITO session.");
   }
 }
