@@ -1,5 +1,6 @@
 export type { Engine, EngineGame, EngineReducer, EngineState } from "@boardgame/engine";
 export type {
+  ItoDiscussionStartedEvent,
   ItoEvent,
   ItoHintSubmittedEvent,
   ItoNumberAssignment,

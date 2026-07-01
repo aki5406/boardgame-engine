@@ -4,7 +4,7 @@ export type ItoPhase =
   | "waitingForPlayers"
   | "themeSelected"
   | "numbersAssigned"
-  | "hintsSubmitted"
+  | "discussion"
   | "revealOrderSubmitted"
   | "resultRevealed";
 

@@ -19,6 +19,7 @@ The current public API exports:
 - `ItoEvent`: the union of ITO-specific events that can drive future state transitions.
 - `ItoThemeSelectedEvent`: records the selected theme text for a round.
 - `ItoNumbersAssignedEvent`: records which hidden number was assigned to each player.
+- `ItoDiscussionStartedEvent`: records that the round has entered the discussion phase.
 - `ItoHintSubmittedEvent`: records a player's hint for the selected theme.
 - `ItoRevealOrderSubmittedEvent`: records the reveal order chosen by the group.
 - `ItoResultRevealedEvent`: records the revealed round result.
@@ -51,11 +52,18 @@ The current one-round flow is represented by applying these events through the E
 
 1. `ito.themeSelected`
 2. `ito.numbersAssigned`
-3. `ito.hintSubmitted`
-4. `ito.revealOrderSubmitted`
-5. `ito.resultRevealed`
+3. `ito.discussionStarted`
+4. `ito.hintSubmitted`
+5. `ito.revealOrderSubmitted`
+6. `ito.resultRevealed`
 
 The reducer records each event payload into state and advances `phase`. Number generation is still outside this package scope. Result judging is represented by `judgeItoRevealOrder`, which returns `success: true` when the submitted player order maps to ascending assigned numbers.
+
+## Discussion Phase
+
+Discussion is represented as game progress with the `discussion` phase. `ito.discussionStarted` moves the state into that phase after theme selection and number assignment are ready.
+
+The reducer does not model chat messages, voice state, timers, or AI conversation. `ito.hintSubmitted` records player hints while keeping the state in `discussion`; `ito.revealOrderSubmitted` moves the game out of discussion and into reveal order submission.
 
 ## Theme Selection
 
