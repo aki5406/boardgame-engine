@@ -29,6 +29,12 @@ importers:
         specifier: ^3.0.0
         version: 3.2.6(@types/node@22.20.0)
 
+  apps/ito-cli:
+    dependencies:
+      "@boardgame/game-ito":
+        specifier: workspace:*
+        version: link:../../packages/game-ito
+
   packages/counter-sample:
     dependencies:
       "@boardgame/engine":

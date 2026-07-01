@@ -10,6 +10,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "ito:playground": "pnpm --filter @boardgame/ito-cli playground",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -b --pretty"
