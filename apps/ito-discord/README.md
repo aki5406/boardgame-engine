@@ -20,6 +20,7 @@ Current scope:
 - Set the current channel session theme with `/ito theme`.
 - Assign ITO numbers to joined players with `/ito assign` without displaying secret numbers in the channel.
 - Build a private delivery view for assigned ITO numbers without sending DMs yet.
+- Deliver assigned ITO numbers to players by DM with `/ito deliver`.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
