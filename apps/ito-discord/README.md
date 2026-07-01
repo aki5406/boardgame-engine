@@ -11,6 +11,7 @@ Current scope:
 - Read `DISCORD_BOT_TOKEN` from the environment.
 - Create a Discord client and log in.
 - Define the `/ito ping` slash command data.
+- Reply to `/ito ping`.
 - Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
 
 Create a local `.env` or set the variable in your shell before starting the adapter:
@@ -33,4 +34,4 @@ Register guild slash commands from the repository root:
 pnpm --filter @boardgame/ito-discord register-commands
 ```
 
-It intentionally does not include global slash command registration, interaction handling, ITO session creation, persistence, Docker, or deployment settings yet.
+It intentionally does not include global slash command registration, ITO session creation, persistence, Docker, or deployment settings yet.
