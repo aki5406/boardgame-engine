@@ -5,6 +5,7 @@ export type ItoPhase =
   | "themeSelected"
   | "numbersAssigned"
   | "discussion"
+  | "orderSubmission"
   | "revealOrderSubmitted"
   | "resultRevealed";
 

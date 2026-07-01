@@ -93,6 +93,25 @@ describe("ITO game", () => {
     });
   });
 
+  it("starts order submission through the ITO reducer", () => {
+    const nextState = reduceItoState(
+      {
+        ...itoInitialState,
+        phase: "discussion",
+        hints: [{ playerId: "player-a", hint: "toast" }]
+      },
+      {
+        type: "ito.orderSubmissionStarted"
+      }
+    );
+
+    expect(nextState).toEqual({
+      phase: "orderSubmission",
+      players: [],
+      hints: [{ playerId: "player-a", hint: "toast" }]
+    });
+  });
+
   it("runs as an Engine game", () => {
     const engine = createItoEngine();
     const event: ItoThemeSelectedEvent = {
@@ -152,6 +171,9 @@ describe("ITO game", () => {
         type: "ito.hintSubmitted",
         playerId: "player-2",
         hint: "sushi"
+      },
+      {
+        type: "ito.orderSubmissionStarted"
       },
       {
         type: "ito.revealOrderSubmitted",
