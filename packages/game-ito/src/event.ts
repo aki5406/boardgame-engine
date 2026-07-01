@@ -6,7 +6,7 @@ export type ItoEvent =
   | ItoDiscussionStartedEvent
   | ItoHintSubmittedEvent
   | ItoOrderSubmissionStartedEvent
-  | ItoRevealOrderSubmittedEvent
+  | ItoOrderSubmittedEvent
   | ItoResultRevealedEvent;
 
 export type ItoThemeSelectedEvent = EngineEvent &
@@ -43,9 +43,9 @@ export type ItoOrderSubmissionStartedEvent = EngineEvent &
     type: "ito.orderSubmissionStarted";
   }>;
 
-export type ItoRevealOrderSubmittedEvent = EngineEvent &
+export type ItoOrderSubmittedEvent = EngineEvent &
   Readonly<{
-    type: "ito.revealOrderSubmitted";
+    type: "ito.orderSubmitted";
     playerIds: readonly string[];
   }>;
 

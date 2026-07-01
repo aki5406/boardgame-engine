@@ -6,8 +6,8 @@ export type {
   ItoNumberAssignment,
   ItoNumbersAssignedEvent,
   ItoOrderSubmissionStartedEvent,
+  ItoOrderSubmittedEvent,
   ItoResultRevealedEvent,
-  ItoRevealOrderSubmittedEvent,
   ItoThemeSelectedEvent
 } from "./event.js";
 export type {

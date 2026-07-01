@@ -6,7 +6,7 @@ export type ItoPhase =
   | "numbersAssigned"
   | "discussion"
   | "orderSubmission"
-  | "revealOrderSubmitted"
+  | "orderSubmitted"
   | "resultRevealed";
 
 export type ItoState = EngineState &

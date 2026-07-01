@@ -22,7 +22,7 @@ The current public API exports:
 - `ItoDiscussionStartedEvent`: records that the round has entered the discussion phase.
 - `ItoHintSubmittedEvent`: records a player's hint for the selected theme.
 - `ItoOrderSubmissionStartedEvent`: records that the round has entered the order submission phase.
-- `ItoRevealOrderSubmittedEvent`: records the reveal order chosen by the group.
+- `ItoOrderSubmittedEvent`: records the submitted player order chosen by the group.
 - `ItoResultRevealedEvent`: records the revealed round result.
 - `ItoNumberAssignment`: the player-to-number pair used by `ItoNumbersAssignedEvent`.
 - `ItoState`: the minimal ITO-specific state shape.
@@ -56,7 +56,7 @@ The current one-round flow is represented by applying these events through the E
 3. `ito.discussionStarted`
 4. `ito.hintSubmitted`
 5. `ito.orderSubmissionStarted`
-6. `ito.revealOrderSubmitted`
+6. `ito.orderSubmitted`
 7. `ito.resultRevealed`
 
 The reducer records each event payload into state and advances `phase`. Number generation is still outside this package scope. Result judging is represented by `judgeItoRevealOrder`, which returns `success: true` when the submitted player order maps to ascending assigned numbers.
@@ -69,9 +69,9 @@ The reducer does not model chat messages, voice state, timers, or AI conversatio
 
 ## Order Submission Phase
 
-Order submission is represented as game progress with the `orderSubmission` phase. `ito.orderSubmissionStarted` marks that discussion has ended and the group is entering the reveal order.
+Order submission is represented as game progress with the `orderSubmission` phase. `ito.orderSubmissionStarted` marks that discussion has ended and the group is entering the order submission step.
 
-`ito.revealOrderSubmitted` remains the event for the submitted order itself. This keeps "start entering the order" separate from "submit the chosen order" without adding UI, CLI, or validation behavior.
+`ito.orderSubmitted` remains the event for the submitted order itself. This keeps "start entering the order" separate from "submit the chosen order" without adding UI, CLI, or validation behavior.
 
 ## Theme Selection
 

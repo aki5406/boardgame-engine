@@ -176,7 +176,7 @@ describe("ITO game", () => {
         type: "ito.orderSubmissionStarted"
       },
       {
-        type: "ito.revealOrderSubmitted",
+        type: "ito.orderSubmitted",
         playerIds: ["player-1", "player-2"]
       },
       judgeItoRevealOrder({
@@ -255,16 +255,16 @@ describe("ITO game", () => {
         { playerId: "player-c", number: 20 }
       ]
     });
-    const revealOrderSubmittedState = reduceItoState(numbersAssignedState, {
-      type: "ito.revealOrderSubmitted",
+    const orderSubmittedState = reduceItoState(numbersAssignedState, {
+      type: "ito.orderSubmitted",
       playerIds: ["player-a", "player-c", "player-b"]
     });
 
     const resultEvent = judgeItoRevealOrder({
-      assignedNumbers: revealOrderSubmittedState.assignedNumbers ?? [],
-      revealOrder: revealOrderSubmittedState.revealOrder ?? []
+      assignedNumbers: orderSubmittedState.assignedNumbers ?? [],
+      revealOrder: orderSubmittedState.revealOrder ?? []
     });
-    const resultState = reduceItoState(revealOrderSubmittedState, resultEvent);
+    const resultState = reduceItoState(orderSubmittedState, resultEvent);
 
     expect(resultState).toEqual({
       phase: "resultRevealed",
