@@ -50,7 +50,7 @@ export const reduceItoState: ItoReducer = (state, event) => {
       return {
         ...state,
         phase: "orderSubmitted",
-        revealOrder: event.playerIds
+        submittedOrder: event.playerIds
       };
 
     case "ito.resultRevealed":

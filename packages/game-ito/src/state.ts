@@ -16,7 +16,7 @@ export type ItoState = EngineState &
     theme?: string;
     assignedNumbers?: readonly ItoAssignedNumber[];
     hints?: readonly ItoHint[];
-    revealOrder?: readonly string[];
+    submittedOrder?: readonly string[];
     result?: ItoResult;
   }>;
 
