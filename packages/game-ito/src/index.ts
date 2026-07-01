@@ -21,5 +21,5 @@ export type {
 export { itoReducer, reduceItoState } from "./reducer.js";
 export type { ItoReducer } from "./reducer.js";
 export { createItoEngine, itoGame, itoInitialState } from "./game.js";
-export { judgeItoRevealOrder } from "./judge.js";
-export type { JudgeItoRevealOrderInput } from "./judge.js";
+export { judgeItoOrder } from "./judge.js";
+export type { JudgeItoOrderInput } from "./judge.js";

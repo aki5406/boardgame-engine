@@ -1,16 +1,16 @@
 import type { ItoResultRevealedEvent } from "./event.js";
 import type { ItoAssignedNumber } from "./state.js";
 
-export type JudgeItoRevealOrderInput = Readonly<{
+export type JudgeItoOrderInput = Readonly<{
   assignedNumbers: readonly ItoAssignedNumber[];
-  revealOrder: readonly string[];
+  submittedOrder: readonly string[];
 }>;
 
-export function judgeItoRevealOrder(input: JudgeItoRevealOrderInput): ItoResultRevealedEvent {
+export function judgeItoOrder(input: JudgeItoOrderInput): ItoResultRevealedEvent {
   const numbersByPlayerId = new Map(
     input.assignedNumbers.map((assignment) => [assignment.playerId, assignment.number])
   );
-  const submittedNumbers = input.revealOrder.map((playerId) => numbersByPlayerId.get(playerId));
+  const submittedNumbers = input.submittedOrder.map((playerId) => numbersByPlayerId.get(playerId));
   const success =
     submittedNumbers.every((number) => number !== undefined) &&
     submittedNumbers.every(

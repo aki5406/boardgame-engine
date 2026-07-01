@@ -4,7 +4,7 @@ import {
   createItoEngine,
   itoGame,
   itoInitialState,
-  judgeItoRevealOrder,
+  judgeItoOrder,
   reduceItoState,
   type ItoEvent,
   type ItoThemeSelectedEvent
@@ -179,12 +179,12 @@ describe("ITO game", () => {
         type: "ito.orderSubmitted",
         playerIds: ["player-1", "player-2"]
       },
-      judgeItoRevealOrder({
+      judgeItoOrder({
         assignedNumbers: [
           { playerId: "player-1", number: 20 },
           { playerId: "player-2", number: 80 }
         ],
-        revealOrder: ["player-1", "player-2"]
+        submittedOrder: ["player-1", "player-2"]
       })
     ];
 
@@ -209,7 +209,7 @@ describe("ITO game", () => {
         { playerId: "player-1", hint: "toast" },
         { playerId: "player-2", hint: "sushi" }
       ],
-      revealOrder: ["player-1", "player-2"],
+      submittedOrder: ["player-1", "player-2"],
       result: {
         success: true
       }
@@ -218,13 +218,13 @@ describe("ITO game", () => {
 
   it("judges submitted order by assigned numbers", () => {
     expect(
-      judgeItoRevealOrder({
+      judgeItoOrder({
         assignedNumbers: [
           { playerId: "player-a", number: 10 },
           { playerId: "player-b", number: 30 },
           { playerId: "player-c", number: 20 }
         ],
-        revealOrder: ["player-a", "player-c", "player-b"]
+        submittedOrder: ["player-a", "player-c", "player-b"]
       })
     ).toEqual({
       type: "ito.resultRevealed",
@@ -232,13 +232,13 @@ describe("ITO game", () => {
     });
 
     expect(
-      judgeItoRevealOrder({
+      judgeItoOrder({
         assignedNumbers: [
           { playerId: "player-a", number: 10 },
           { playerId: "player-b", number: 30 },
           { playerId: "player-c", number: 20 }
         ],
-        revealOrder: ["player-a", "player-b", "player-c"]
+        submittedOrder: ["player-a", "player-b", "player-c"]
       })
     ).toEqual({
       type: "ito.resultRevealed",
@@ -246,7 +246,7 @@ describe("ITO game", () => {
     });
   });
 
-  it("judges reveal order using assigned numbers stored in state", () => {
+  it("judges submitted order using assigned numbers stored in state", () => {
     const numbersAssignedState = reduceItoState(itoInitialState, {
       type: "ito.numbersAssigned",
       assignments: [
@@ -260,9 +260,9 @@ describe("ITO game", () => {
       playerIds: ["player-a", "player-c", "player-b"]
     });
 
-    const resultEvent = judgeItoRevealOrder({
+    const resultEvent = judgeItoOrder({
       assignedNumbers: orderSubmittedState.assignedNumbers ?? [],
-      revealOrder: orderSubmittedState.revealOrder ?? []
+      submittedOrder: orderSubmittedState.submittedOrder ?? []
     });
     const resultState = reduceItoState(orderSubmittedState, resultEvent);
 
@@ -274,7 +274,7 @@ describe("ITO game", () => {
         { playerId: "player-b", number: 30 },
         { playerId: "player-c", number: 20 }
       ],
-      revealOrder: ["player-a", "player-c", "player-b"],
+      submittedOrder: ["player-a", "player-c", "player-b"],
       result: {
         success: true
       }
