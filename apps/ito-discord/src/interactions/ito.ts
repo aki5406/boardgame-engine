@@ -4,6 +4,7 @@ import { Events } from "discord.js";
 import type { Engine } from "@boardgame/game-ito";
 
 import {
+  assignItoDiscordNumbers,
   createItoDiscordSessionForChannel,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
@@ -39,6 +40,27 @@ async function handleItoCommand(
   input: RegisterItoInteractionHandlersInput
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(false);
+
+  if (subcommand === "assign") {
+    const result = assignItoDiscordNumbers({
+      channelId: interaction.channelId,
+      engine: input.engine,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "noPlayers") {
+      await interaction.reply("No players have joined this ITO session. Use /ito join first.");
+      return;
+    }
+
+    await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
+    return;
+  }
 
   if (subcommand === "ping") {
     await interaction.reply("Pong! ITO adapter is ready.");
