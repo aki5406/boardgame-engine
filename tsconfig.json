@@ -5,6 +5,7 @@
     { "path": "./packages/engine" },
     { "path": "./packages/counter-sample" },
     { "path": "./packages/game-ito" },
+    { "path": "./apps/ito-cli" },
     { "path": "./scripts/bea-reviewer" }
   ]
 }
