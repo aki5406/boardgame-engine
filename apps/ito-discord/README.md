@@ -17,6 +17,8 @@ Create a local `.env` or set the variable in your shell before starting the adap
 
 ```sh
 DISCORD_BOT_TOKEN=
+DISCORD_CLIENT_ID=
+DISCORD_GUILD_ID=
 ```
 
 Run from the repository root:
@@ -25,4 +27,10 @@ Run from the repository root:
 pnpm --filter @boardgame/ito-discord start
 ```
 
-It intentionally does not include slash command registration, interaction handling, ITO session creation, persistence, Docker, or deployment settings yet.
+Register guild slash commands from the repository root:
+
+```sh
+pnpm --filter @boardgame/ito-discord register-commands
+```
+
+It intentionally does not include global slash command registration, interaction handling, ITO session creation, persistence, Docker, or deployment settings yet.
