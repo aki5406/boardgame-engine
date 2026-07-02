@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client } from "discord.js";
+import type { ButtonInteraction, ChatInputCommandInteraction, Client } from "discord.js";
 import { Events } from "discord.js";
 
 import type { Engine } from "@boardgame/game-ito";
@@ -17,6 +17,7 @@ import {
   submitItoDiscordOrder,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
+import { createItoCreatedReply, ITO_JOIN_BUTTON_CUSTOM_ID } from "../views/ito-create.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoRevealMessage } from "../views/ito-reveal.js";
 import { formatItoStatusMessage } from "../views/ito-status.js";
@@ -31,6 +32,11 @@ export function registerItoInteractionHandlers(
   input: RegisterItoInteractionHandlersInput
 ): void {
   client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.isButton()) {
+      await handleItoButton(interaction, input);
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }
@@ -41,6 +47,17 @@ export function registerItoInteractionHandlers(
 
     await handleItoCommand(interaction, input);
   });
+}
+
+async function handleItoButton(
+  interaction: ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  if (interaction.customId !== ITO_JOIN_BUTTON_CUSTOM_ID) {
+    return;
+  }
+
+  await handleItoJoin(interaction, input);
 }
 
 async function handleItoCommand(
@@ -146,29 +163,12 @@ async function handleItoCommand(
       return;
     }
 
-    await interaction.reply("ITO game created for this channel.");
+    await interaction.reply(createItoCreatedReply());
     return;
   }
 
   if (subcommand === "join") {
-    const result = joinItoDiscordSessionForChannel({
-      channelId: interaction.channelId,
-      playerId: interaction.user.id,
-      engine: input.engine,
-      registry: input.sessionRegistry
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
-      return;
-    }
-
-    if (result.status === "alreadyJoined") {
-      await interaction.reply("You have already joined this ITO game.");
-      return;
-    }
-
-    await interaction.reply(`Joined the ITO game.\nPlayers: ${result.playerCount}`);
+    await handleItoJoin(interaction, input);
     return;
   }
 
@@ -282,4 +282,28 @@ async function handleItoCommand(
 
     await interaction.reply(`ITO theme set:\n${result.theme}`);
   }
+}
+
+async function handleItoJoin(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = joinItoDiscordSessionForChannel({
+    channelId: interaction.channelId,
+    playerId: interaction.user.id,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (result.status === "alreadyJoined") {
+    await interaction.reply("You have already joined this ITO game.");
+    return;
+  }
+
+  await interaction.reply(`Joined the ITO game.\nPlayers: ${result.playerCount}`);
 }
