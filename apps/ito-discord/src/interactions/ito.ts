@@ -247,7 +247,7 @@ async function handleItoCommand(
       return;
     }
 
-    await interaction.reply(`ITO theme set:\n${result.theme}`);
+    await interaction.reply(createItoThemeSetReply(result.theme));
   }
 }
 
