@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
   createItoCreateButtonRow,
   ITO_JOIN_BUTTON_CUSTOM_ID,
@@ -8,7 +9,7 @@ import {
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
-  it("formats the create reply with join and start buttons", () => {
+  it("formats the create reply with join, start, and assign buttons", () => {
     const reply = createItoCreatedReply();
 
     expect(reply.content).toBe("ITO game created!");
@@ -31,6 +32,12 @@ describe("createItoCreateButtonRow", () => {
           type: 2,
           custom_id: ITO_START_BUTTON_CUSTOM_ID,
           label: "Start ITO Game",
+          style: 2
+        },
+        {
+          type: 2,
+          custom_id: ITO_ASSIGN_BUTTON_CUSTOM_ID,
+          label: "Assign Numbers",
           style: 2
         }
       ]
