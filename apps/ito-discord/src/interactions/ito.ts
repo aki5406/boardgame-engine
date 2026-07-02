@@ -22,6 +22,7 @@ import {
   createItoAssignedReply,
   createItoCreatedReply,
   createItoDeliveredReply,
+  createItoDiscussionStartedReply,
   createItoStartedReply,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
@@ -346,9 +347,7 @@ async function handleItoDiscuss(
     return;
   }
 
-  await interaction.reply(
-    `ITO discussion started.\nTheme:\n${result.theme}\nEveryone, discuss without revealing your number.\nPlayers: ${result.playerCount}`
-  );
+  await interaction.reply(createItoDiscussionStartedReply(result.theme, result.playerCount));
 }
 
 const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
