@@ -4,12 +4,13 @@ import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
   createItoCreateButtonRow,
+  ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
-  it("formats the create reply with join, start, and assign buttons", () => {
+  it("formats the create reply with join, start, assign, and deliver buttons", () => {
     const reply = createItoCreatedReply();
 
     expect(reply.content).toBe("ITO game created!");
@@ -38,6 +39,12 @@ describe("createItoCreateButtonRow", () => {
           type: 2,
           custom_id: ITO_ASSIGN_BUTTON_CUSTOM_ID,
           label: "Assign Numbers",
+          style: 2
+        },
+        {
+          type: 2,
+          custom_id: ITO_DELIVER_BUTTON_CUSTOM_ID,
+          label: "Deliver Numbers",
           style: 2
         }
       ]

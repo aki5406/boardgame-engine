@@ -8,6 +8,7 @@ import {
 export const ITO_JOIN_BUTTON_CUSTOM_ID = "ito.join";
 export const ITO_START_BUTTON_CUSTOM_ID = "ito.start";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
+export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 
 export function createItoCreateButtonRow(): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -22,6 +23,10 @@ export function createItoCreateButtonRow(): ActionRowBuilder<ButtonBuilder> {
     new ButtonBuilder()
       .setCustomId(ITO_ASSIGN_BUTTON_CUSTOM_ID)
       .setLabel("Assign Numbers")
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(ITO_DELIVER_BUTTON_CUSTOM_ID)
+      .setLabel("Deliver Numbers")
       .setStyle(ButtonStyle.Secondary)
   );
 }
