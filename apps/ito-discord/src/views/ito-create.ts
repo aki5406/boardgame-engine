@@ -85,3 +85,16 @@ export function createItoDeliveredReply(
     components: [createItoDiscussionButtonRow()]
   };
 }
+
+export function createItoDiscussionStartedReply(
+  theme: string,
+  playerCount: number
+): InteractionReplyOptions {
+  return {
+    content:
+      `ITO discussion started.\nTheme:\n${theme}\n` +
+      `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
+      `Next:\nUse /ito status to check Player IDs.\n` +
+      `Use /ito submit order:"user-1,user-2,user-3"\nThen use /ito reveal`
+  };
+}

@@ -6,6 +6,7 @@ import {
   createItoCreatedReply,
   createItoDeliverButtonRow,
   createItoDeliveredReply,
+  createItoDiscussionStartedReply,
   createItoDiscussionButtonRow,
   createItoProgressionButtonRow,
   createItoSetupButtonRow,
@@ -52,6 +53,25 @@ describe("createItoDeliveredReply", () => {
     expect(reply.content).toBe("ITO numbers delivered.\nSucceeded: 3\nFailed: 0");
     expect(reply.components).toHaveLength(1);
     expect(reply.components?.[0]).toEqual(createItoDiscussionButtonRow());
+  });
+});
+
+describe("createItoDiscussionStartedReply", () => {
+  it("formats the discussion started reply with next-step guidance", () => {
+    const reply = createItoDiscussionStartedReply("好きなコンビニ商品", 3);
+
+    expect(reply).toEqual({
+      content:
+        "ITO discussion started.\n" +
+        "Theme:\n" +
+        "好きなコンビニ商品\n" +
+        "Everyone, discuss without revealing your number.\n" +
+        "Players: 3\n" +
+        "Next:\n" +
+        "Use /ito status to check Player IDs.\n" +
+        'Use /ito submit order:"user-1,user-2,user-3"\n' +
+        "Then use /ito reveal"
+    });
   });
 });
 
