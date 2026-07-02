@@ -10,6 +10,7 @@ import {
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
   setItoDiscordSessionTheme,
+  startItoDiscordDiscussion,
   startItoDiscordSession,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
@@ -85,6 +86,34 @@ async function handleItoCommand(
 
     await interaction.reply(
       `ITO numbers delivery finished.\nSucceeded: ${result.succeeded}\nFailed: ${result.failed}`
+    );
+    return;
+  }
+
+  if (subcommand === "discuss") {
+    const result = startItoDiscordDiscussion({
+      channelId: interaction.channelId,
+      engine: input.engine,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "noTheme") {
+      await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
+      return;
+    }
+
+    if (result.status === "notAssigned") {
+      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+      return;
+    }
+
+    await interaction.reply(
+      `ITO discussion started.\nTheme:\n${result.theme}\nEveryone, discuss without revealing your number.\nPlayers: ${result.playerCount}`
     );
     return;
   }
