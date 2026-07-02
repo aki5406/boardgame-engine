@@ -168,12 +168,12 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel.");
       return;
     }
 
     await interaction.reply(
-      `ITO session status:\nSession: ${result.sessionId}\nPlayers: ${result.playerCount}`
+      `ITO game status\nPhase: ${result.phase}\nTheme: ${formatThemeStatus(result.themeStatus)}\nPlayers: ${result.playerCount}\nHints: ${result.hintCount}\nNumbers: ${formatNumbersStatus(result.numbersStatus)}\nOrder: ${formatOrderStatus(result.orderStatus)}`
     );
     return;
   }
@@ -214,4 +214,16 @@ async function handleItoCommand(
 
     await interaction.reply(`ITO theme set:\n${result.theme}`);
   }
+}
+
+function formatOrderStatus(orderStatus: "submitted" | "notSubmitted"): string {
+  return orderStatus === "submitted" ? "submitted" : "not submitted";
+}
+
+function formatThemeStatus(themeStatus: "set" | "notSet"): string {
+  return themeStatus === "set" ? "set" : "not set";
+}
+
+function formatNumbersStatus(numbersStatus: "assigned" | "notAssigned"): string {
+  return numbersStatus === "assigned" ? "assigned" : "not assigned";
 }

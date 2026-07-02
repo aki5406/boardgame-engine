@@ -1,7 +1,18 @@
+import type { ItoPhase } from "@boardgame/game-ito";
+
+import { getItoState } from "./ito-state.js";
 import type { ItoDiscordSessionRegistry } from "./registry.js";
 
 export type GetItoDiscordSessionStatusResult =
-  | Readonly<{ status: "found"; sessionId: string; playerCount: number }>
+  | Readonly<{
+      status: "found";
+      phase: ItoPhase;
+      themeStatus: "set" | "notSet";
+      playerCount: number;
+      hintCount: number;
+      numbersStatus: "assigned" | "notAssigned";
+      orderStatus: "submitted" | "notSubmitted";
+    }>
   | Readonly<{ status: "notFound" }>;
 
 export interface GetItoDiscordSessionStatusInput {
@@ -18,9 +29,17 @@ export function getItoDiscordSessionStatus(
     return { status: "notFound" };
   }
 
+  const state = getItoState(session);
+
   return {
     status: "found",
-    sessionId: session.id,
-    playerCount: session.players.length
+    phase: state.phase,
+    themeStatus: state.theme ? "set" : "notSet",
+    playerCount: session.players.length,
+    hintCount: state.hints?.length ?? 0,
+    numbersStatus:
+      state.assignedNumbers && state.assignedNumbers.length > 0 ? "assigned" : "notAssigned",
+    orderStatus:
+      state.submittedOrder && state.submittedOrder.length > 0 ? "submitted" : "notSubmitted"
   };
 }
