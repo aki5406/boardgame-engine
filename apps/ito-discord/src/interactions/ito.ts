@@ -20,6 +20,7 @@ import {
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
+  createItoStartedReply,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
@@ -288,7 +289,7 @@ async function handleItoStart(
     return;
   }
 
-  await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
+  await interaction.reply(createItoStartedReply(result.playerCount));
 }
 
 async function handleItoAssign(

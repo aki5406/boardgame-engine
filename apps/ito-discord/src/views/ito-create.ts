@@ -42,3 +42,10 @@ export function createItoCreatedReply(): InteractionReplyOptions {
     components: [createItoSetupButtonRow()]
   };
 }
+
+export function createItoStartedReply(playerCount: number): InteractionReplyOptions {
+  return {
+    content: `ITO game started.\nPlayers: ${playerCount}`,
+    components: [createItoProgressionButtonRow()]
+  };
+}

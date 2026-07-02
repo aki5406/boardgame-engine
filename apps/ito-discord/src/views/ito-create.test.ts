@@ -5,6 +5,7 @@ import {
   createItoCreatedReply,
   createItoProgressionButtonRow,
   createItoSetupButtonRow,
+  createItoStartedReply,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
@@ -16,6 +17,16 @@ describe("createItoCreatedReply", () => {
 
     expect(reply.content).toBe("ITO game created!");
     expect(reply.components).toHaveLength(1);
+  });
+});
+
+describe("createItoStartedReply", () => {
+  it("formats the started reply with the progression row", () => {
+    const reply = createItoStartedReply(3);
+
+    expect(reply.content).toBe("ITO game started.\nPlayers: 3");
+    expect(reply.components).toHaveLength(1);
+    expect(reply.components?.[0]).toEqual(createItoProgressionButtonRow());
   });
 });
 
