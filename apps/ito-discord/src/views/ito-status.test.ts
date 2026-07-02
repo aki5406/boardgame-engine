@@ -23,7 +23,7 @@ describe("formatItoStatusMessage", () => {
         resultStatus: "notRevealed"
       })
     ).toBe(
-      "ITO game status\nPhase: discussion\nTheme: set\nPlayers: 4\nPlayer IDs:\n- user-1\n- user-2\n- user-3\n- user-4\nHints: 3\nNumbers: assigned\nOrder: not submitted\nResult: not revealed"
+      'ITO game status\nPhase: discussion\nTheme: set\nPlayers: 4\nPlayer IDs:\n- user-1\n- user-2\n- user-3\n- user-4\nHints: 3\nNumbers: assigned\nOrder: not submitted\nResult: not revealed\nSubmit example:\n/ito submit order:"user-1,user-2,user-3,user-4"'
     );
   });
 
@@ -41,7 +41,7 @@ describe("formatItoStatusMessage", () => {
         resultStatus: "success"
       })
     ).toBe(
-      "ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nPlayer IDs:\n- user-1\n- user-2\n- user-3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: success"
+      'ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nPlayer IDs:\n- user-1\n- user-2\n- user-3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: success\nSubmit example:\n/ito submit order:"user-1,user-2,user-3"'
     );
   });
 
@@ -59,7 +59,7 @@ describe("formatItoStatusMessage", () => {
         resultStatus: "failure"
       })
     ).toBe(
-      "ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nPlayer IDs:\n- user-1\n- user-2\n- user-3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: failure"
+      'ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nPlayer IDs:\n- user-1\n- user-2\n- user-3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: failure\nSubmit example:\n/ito submit order:"user-1,user-2,user-3"'
     );
   });
 
