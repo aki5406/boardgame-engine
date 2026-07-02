@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoAssignedReply,
+  createItoAssignButtonRow,
   createItoCreatedReply,
   createItoDeliverButtonRow,
   createItoDeliveredReply,
@@ -12,9 +13,13 @@ import {
   createItoRevealButtonRow,
   createItoSetupButtonRow,
   createItoStartedReply,
+  createItoThemeModal,
+  createItoThemeSetReply,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
+  ITO_THEME_MODAL_CUSTOM_ID,
+  ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
   ITO_REVEAL_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID,
   ITO_THEME_BUTTON_CUSTOM_ID,
@@ -47,6 +52,16 @@ describe("createItoAssignedReply", () => {
     expect(reply.content).toBe("ITO numbers assigned.\nPlayers: 3");
     expect(reply.components).toHaveLength(1);
     expect(reply.components?.[0]).toEqual(createItoDeliverButtonRow());
+  });
+});
+
+describe("createItoThemeSetReply", () => {
+  it("formats the theme set reply with the assign row", () => {
+    const reply = createItoThemeSetReply("Favorite convenience store item");
+
+    expect(reply.content).toBe("Theme set.\nTheme:\nFavorite convenience store item");
+    expect(reply.components).toHaveLength(1);
+    expect(reply.components?.[0]).toEqual(createItoAssignButtonRow());
   });
 });
 
@@ -134,6 +149,46 @@ describe("createItoThemeButtonRow", () => {
           custom_id: ITO_THEME_BUTTON_CUSTOM_ID,
           label: "Set Theme",
           style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoAssignButtonRow", () => {
+  it("builds the assign action button row", () => {
+    expect(createItoAssignButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: ITO_ASSIGN_BUTTON_CUSTOM_ID,
+          label: "Assign Numbers",
+          style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoThemeModal", () => {
+  it("builds the theme modal", () => {
+    expect(createItoThemeModal().toJSON()).toEqual({
+      title: "Set Theme",
+      custom_id: ITO_THEME_MODAL_CUSTOM_ID,
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
+              custom_id: ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
+              label: "Theme",
+              style: 1,
+              placeholder: "好きなコンビニ商品",
+              required: true
+            }
+          ]
         }
       ]
     });

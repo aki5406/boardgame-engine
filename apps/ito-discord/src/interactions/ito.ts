@@ -1,4 +1,9 @@
-import type { ButtonInteraction, ChatInputCommandInteraction, Client } from "discord.js";
+import type {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Client,
+  ModalSubmitInteraction
+} from "discord.js";
 import { Events } from "discord.js";
 
 import type { Engine } from "@boardgame/game-ito";
@@ -24,12 +29,16 @@ import {
   createItoDeliveredReply,
   createItoDiscussionStartedReply,
   createItoStartedReply,
+  createItoThemeModal,
+  createItoThemeSetReply,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_REVEAL_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID,
-  ITO_THEME_BUTTON_CUSTOM_ID
+  ITO_THEME_BUTTON_CUSTOM_ID,
+  ITO_THEME_MODAL_CUSTOM_ID,
+  ITO_THEME_TOPIC_INPUT_CUSTOM_ID
 } from "../views/ito-create.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoRevealMessage } from "../views/ito-reveal.js";
@@ -52,6 +61,11 @@ export function registerItoInteractionHandlers(
   client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton()) {
       await handleItoButton(interaction, input);
+      return;
+    }
+
+    if (interaction.isModalSubmit()) {
+      await handleItoModalSubmit(interaction, input);
       return;
     }
 
@@ -78,6 +92,35 @@ async function handleItoButton(
   }
 
   await buttonHandler(interaction, input);
+}
+
+async function handleItoModalSubmit(
+  interaction: ModalSubmitInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  if (interaction.customId !== ITO_THEME_MODAL_CUSTOM_ID) {
+    return;
+  }
+
+  if (!interaction.channelId) {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  const topic = interaction.fields.getTextInputValue(ITO_THEME_TOPIC_INPUT_CUSTOM_ID);
+  const result = setItoDiscordSessionTheme({
+    channelId: interaction.channelId,
+    theme: topic,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  await interaction.reply(createItoThemeSetReply(result.theme));
 }
 
 async function handleItoCommand(
@@ -278,7 +321,7 @@ async function handleItoAssign(
 }
 
 async function handleItoThemeButton(interaction: ButtonInteraction): Promise<void> {
-  await interaction.reply('Use /ito theme topic:"..." to set the theme.');
+  await interaction.showModal(createItoThemeModal());
 }
 
 async function handleItoDeliver(
