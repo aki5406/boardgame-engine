@@ -4,6 +4,7 @@ export function formatItoHelpMessage(): string {
     "",
     "/ito create - Create an ITO game in this channel.",
     "/ito join - Join the current ITO game.",
+    "/ito reveal - Reveal the current ITO result.",
     "/ito status - Show the current ITO game status.",
     "/ito reset - Reset the current ITO game.",
     "/ito start - Start the current ITO game.",

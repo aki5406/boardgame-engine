@@ -1,0 +1,200 @@
+import { describe, expect, it } from "vitest";
+
+import { createItoEngine } from "@boardgame/game-ito";
+
+import { assignItoDiscordNumbers } from "./assign.js";
+import { createItoDiscordSessionForChannel } from "./create.js";
+import { joinItoDiscordSessionForChannel } from "./join.js";
+import { createItoDiscordSessionRegistry } from "./registry.js";
+import { revealItoDiscordResult } from "./reveal.js";
+import { submitItoDiscordOrder } from "./submit.js";
+
+describe("revealItoDiscordResult", () => {
+  it("judges the submitted order, applies the result event, and registers the updated session", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    const createdSession = registry.get("channel-1");
+
+    if (!createdSession) {
+      throw new Error("Expected session to be registered");
+    }
+
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-2",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-3",
+      engine,
+      registry
+    });
+    assignItoDiscordNumbers({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    submitItoDiscordOrder({
+      channelId: "channel-1",
+      engine,
+      order: "user-1,user-2,user-3",
+      registry
+    });
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result.status).toBe("revealed");
+
+    if (result.status !== "revealed") {
+      throw new Error("Expected reveal to succeed");
+    }
+
+    expect(result.items).toEqual([
+      { playerId: "user-1", number: 1 },
+      { playerId: "user-2", number: 2 },
+      { playerId: "user-3", number: 3 }
+    ]);
+    expect(result.success).toBe(true);
+    expect(result.session.state).toMatchObject({
+      phase: "resultRevealed",
+      result: {
+        success: true
+      }
+    });
+    expect(registry.get("channel-1")).toBe(result.session);
+  });
+
+  it("returns notAssigned when no numbers have been assigned", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result).toEqual({ status: "notAssigned" });
+  });
+
+  it("returns notSubmitted when no order has been submitted", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    const createdSession = registry.get("channel-1");
+
+    if (!createdSession) {
+      throw new Error("Expected session to be registered");
+    }
+
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-2",
+      engine,
+      registry
+    });
+    assignItoDiscordNumbers({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result).toEqual({ status: "notSubmitted" });
+  });
+
+  it("returns notFound when no ITO session exists for the channel", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result).toEqual({ status: "notFound" });
+  });
+
+  it("keeps unknown submitted players visible without inventing a number", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-1",
+      engine,
+      registry
+    });
+    assignItoDiscordNumbers({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    submitItoDiscordOrder({
+      channelId: "channel-1",
+      engine,
+      order: "user-1,user-unknown",
+      registry
+    });
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result.status).toBe("revealed");
+
+    if (result.status !== "revealed") {
+      throw new Error("Expected reveal to succeed");
+    }
+
+    expect(result.items).toEqual([
+      { playerId: "user-1", number: 1 },
+      { playerId: "user-unknown", number: undefined }
+    ]);
+    expect(result.success).toBe(false);
+  });
+});

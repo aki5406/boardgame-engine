@@ -9,6 +9,7 @@ import {
   deliverItoDiscordNumbers,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
+  revealItoDiscordResult,
   resetItoDiscordSessionForChannel,
   setItoDiscordSessionTheme,
   startItoDiscordDiscussion,
@@ -17,6 +18,7 @@ import {
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
+import { formatItoRevealMessage } from "../views/ito-reveal.js";
 import { formatItoStatusMessage } from "../views/ito-status.js";
 
 export interface RegisterItoInteractionHandlersInput {
@@ -167,6 +169,32 @@ async function handleItoCommand(
     }
 
     await interaction.reply("Joined the ITO session.");
+    return;
+  }
+
+  if (subcommand === "reveal") {
+    const result = revealItoDiscordResult({
+      channelId: interaction.channelId,
+      engine: input.engine,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO game exists in this channel.");
+      return;
+    }
+
+    if (result.status === "notAssigned") {
+      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+      return;
+    }
+
+    if (result.status === "notSubmitted") {
+      await interaction.reply("No ITO order has been submitted yet. Use /ito submit first.");
+      return;
+    }
+
+    await interaction.reply(formatItoRevealMessage(result));
     return;
   }
 
