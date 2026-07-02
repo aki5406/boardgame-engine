@@ -31,7 +31,7 @@ export function assignItoDiscordNumbers(
 
   const assignments = createItoNumberAssignments({
     playerIds,
-    numbers: playerIds.map((_, index) => index + 1)
+    numbers: createItoRandomNumbers(playerIds.length)
   });
   const event: ItoNumbersAssignedEvent = {
     type: "ito.numbersAssigned",
@@ -52,4 +52,18 @@ export function assignItoDiscordNumbers(
     session: nextSession,
     playerCount: assignments.length
   };
+}
+
+function createItoRandomNumbers(count: number): readonly number[] {
+  const numbers = Array.from({ length: 100 }, (_, index) => index + 1);
+
+  for (let index = numbers.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const current = numbers[index];
+
+    numbers[index] = numbers[swapIndex]!;
+    numbers[swapIndex] = current!;
+  }
+
+  return numbers.slice(0, count);
 }

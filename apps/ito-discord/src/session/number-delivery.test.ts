@@ -68,12 +68,16 @@ describe("getItoNumberDeliveryView", () => {
       registry
     });
 
-    expect(result).toEqual({
-      status: "ready",
-      items: [
-        { playerId: "user-1", number: 1 },
-        { playerId: "user-2", number: 2 }
-      ]
-    });
+    expect(result.status).toBe("ready");
+
+    if (result.status !== "ready") {
+      throw new Error("Expected delivery view to be ready");
+    }
+
+    expect(result.items).toHaveLength(2);
+    expect(result.items.map((item) => item.playerId)).toEqual(["user-1", "user-2"]);
+    const numbers = result.items.map((item) => item.number);
+    expect(new Set(numbers).size).toBe(2);
+    expect(numbers.every((number) => number >= 1 && number <= 100)).toBe(true);
   });
 });

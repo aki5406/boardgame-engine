@@ -58,10 +58,13 @@ describe("deliverItoDiscordNumbers", () => {
       succeeded: 2,
       failed: 0
     });
-    expect(sentMessages).toEqual([
-      { playerId: "user-1", message: "Your ITO number is: 1" },
-      { playerId: "user-2", message: "Your ITO number is: 2" }
-    ]);
+    expect(sentMessages).toHaveLength(2);
+    expect(sentMessages.map((message) => message.playerId)).toEqual(["user-1", "user-2"]);
+    const deliveredNumbers = sentMessages.map((message) =>
+      Number(message.message.replace("Your ITO number is: ", ""))
+    );
+    expect(new Set(deliveredNumbers).size).toBe(2);
+    expect(deliveredNumbers.every((number) => number >= 1 && number <= 100)).toBe(true);
   });
 
   it("summarizes direct message failures without returning player details", async () => {

@@ -60,11 +60,12 @@ describe("revealItoDiscordResult", () => {
       throw new Error("Expected reveal to succeed");
     }
 
-    expect(result.items).toEqual([
-      { playerId: "user-1", number: 1 },
-      { playerId: "user-2", number: 2 },
-      { playerId: "user-3", number: 3 }
-    ]);
+    expect(result.items.map((item) => item.playerId)).toEqual(["user-1", "user-2", "user-3"]);
+    const numbers = result.items.map((item) => item.number);
+    expect(new Set(numbers).size).toBe(3);
+    expect(
+      numbers.every((number) => typeof number === "number" && number >= 1 && number <= 100)
+    ).toBe(true);
     expect(result.session.state).toMatchObject({
       phase: "orderSubmitted",
       submittedOrder: ["user-1", "user-2", "user-3"]
@@ -109,10 +110,12 @@ describe("revealItoDiscordResult", () => {
       throw new Error("Expected reveal to succeed");
     }
 
-    expect(result.items).toEqual([
-      { playerId: "user-1", number: 1 },
-      { playerId: "user-2", number: 2 }
-    ]);
+    expect(result.items.map((item) => item.playerId)).toEqual(["user-1", "user-2"]);
+    const numbers = result.items.map((item) => item.number);
+    expect(new Set(numbers).size).toBe(2);
+    expect(
+      numbers.every((number) => typeof number === "number" && number >= 1 && number <= 100)
+    ).toBe(true);
     expect(result.session.state).toMatchObject({
       phase: "numbersAssigned"
     });
