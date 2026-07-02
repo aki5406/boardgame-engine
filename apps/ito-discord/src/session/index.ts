@@ -6,6 +6,7 @@ export { getItoNumberDeliveryView } from "./number-delivery.js";
 export { getItoState } from "./ito-state.js";
 export { joinItoDiscordSessionForChannel } from "./join.js";
 export { createItoDiscordSessionRegistry } from "./registry.js";
+export { resetItoDiscordSessionForChannel } from "./reset.js";
 export { setItoDiscordSessionTheme } from "./theme.js";
 export { startItoDiscordDiscussion } from "./discuss.js";
 export { startItoDiscordSession } from "./start.js";
@@ -28,6 +29,7 @@ export type {
   ItoNumberDeliveryItem
 } from "./number-delivery.js";
 export type { JoinItoDiscordSessionInput, JoinItoDiscordSessionResult } from "./join.js";
+export type { ResetItoDiscordSessionInput, ResetItoDiscordSessionResult } from "./reset.js";
 export type { SetItoDiscordThemeInput, SetItoDiscordThemeResult } from "./theme.js";
 export type { StartItoDiscordSessionInput, StartItoDiscordSessionResult } from "./start.js";
 export type {
