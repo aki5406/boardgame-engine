@@ -5,9 +5,12 @@ import {
   createItoAssignedReply,
   createItoCreatedReply,
   createItoDeliverButtonRow,
+  createItoDeliveredReply,
+  createItoDiscussionButtonRow,
   createItoProgressionButtonRow,
   createItoSetupButtonRow,
   createItoStartedReply,
+  ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
@@ -39,6 +42,16 @@ describe("createItoAssignedReply", () => {
     expect(reply.content).toBe("ITO numbers assigned.\nPlayers: 3");
     expect(reply.components).toHaveLength(1);
     expect(reply.components?.[0]).toEqual(createItoDeliverButtonRow());
+  });
+});
+
+describe("createItoDeliveredReply", () => {
+  it("formats the delivered reply with the discussion row", () => {
+    const reply = createItoDeliveredReply(3, 0);
+
+    expect(reply.content).toBe("ITO numbers delivered.\nSucceeded: 3\nFailed: 0");
+    expect(reply.components).toHaveLength(1);
+    expect(reply.components?.[0]).toEqual(createItoDiscussionButtonRow());
   });
 });
 
@@ -95,6 +108,22 @@ describe("createItoDeliverButtonRow", () => {
           type: 2,
           custom_id: ITO_DELIVER_BUTTON_CUSTOM_ID,
           label: "Deliver Numbers",
+          style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoDiscussionButtonRow", () => {
+  it("builds the discussion action button row", () => {
+    expect(createItoDiscussionButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: ITO_DISCUSS_BUTTON_CUSTOM_ID,
+          label: "Start Discussion",
           style: 2
         }
       ]

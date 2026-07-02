@@ -21,7 +21,9 @@ import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoAssignedReply,
   createItoCreatedReply,
+  createItoDeliveredReply,
   createItoStartedReply,
+  ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
@@ -92,30 +94,7 @@ async function handleItoCommand(
   }
 
   if (subcommand === "discuss") {
-    const result = startItoDiscordDiscussion({
-      channelId: interaction.channelId,
-      engine: input.engine,
-      registry: input.sessionRegistry
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
-      return;
-    }
-
-    if (result.status === "noTheme") {
-      await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
-      return;
-    }
-
-    if (result.status === "notAssigned") {
-      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
-      return;
-    }
-
-    await interaction.reply(
-      `ITO discussion started.\nTheme:\n${result.theme}\nEveryone, discuss without revealing your number.\nPlayers: ${result.playerCount}`
-    );
+    await handleItoDiscuss(interaction, input);
     return;
   }
 
@@ -339,8 +318,36 @@ async function handleItoDeliver(
     return;
   }
 
+  await interaction.reply(createItoDeliveredReply(result.succeeded, result.failed));
+}
+
+async function handleItoDiscuss(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = startItoDiscordDiscussion({
+    channelId: interaction.channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (result.status === "noTheme") {
+    await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
+    return;
+  }
+
+  if (result.status === "notAssigned") {
+    await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+    return;
+  }
+
   await interaction.reply(
-    `ITO numbers delivery finished.\nSucceeded: ${result.succeeded}\nFailed: ${result.failed}`
+    `ITO discussion started.\nTheme:\n${result.theme}\nEveryone, discuss without revealing your number.\nPlayers: ${result.playerCount}`
   );
 }
 
@@ -348,5 +355,6 @@ const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
   [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
   [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign,
-  [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver
+  [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver,
+  [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss
 };
