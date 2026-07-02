@@ -1,5 +1,6 @@
-import type { Engine, ItoDiscussionStartedEvent, ItoState } from "@boardgame/game-ito";
+import type { Engine, ItoDiscussionStartedEvent } from "@boardgame/game-ito";
 
+import { getItoState } from "./ito-state.js";
 import type { ItoDiscordSession, ItoDiscordSessionRegistry } from "./registry.js";
 
 export type StartItoDiscordDiscussionResult =
@@ -28,7 +29,7 @@ export function startItoDiscordDiscussion(
     return { status: "notFound" };
   }
 
-  const state = session.state as ItoState;
+  const state = getItoState(session);
 
   if (!state.theme) {
     return { status: "noTheme" };
