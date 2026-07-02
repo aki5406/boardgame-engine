@@ -20,6 +20,7 @@ import {
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
+  ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
 } from "../views/ito-create.js";
@@ -84,28 +85,7 @@ async function handleItoCommand(
   }
 
   if (subcommand === "deliver") {
-    const result = await deliverItoDiscordNumbers({
-      channelId: interaction.channelId,
-      registry: input.sessionRegistry,
-      sendDirectMessage: async ({ playerId, message }) => {
-        const user = await interaction.client.users.fetch(playerId);
-        await user.send(message);
-      }
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
-      return;
-    }
-
-    if (result.status === "notAssigned") {
-      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
-      return;
-    }
-
-    await interaction.reply(
-      `ITO numbers delivery finished.\nSucceeded: ${result.succeeded}\nFailed: ${result.failed}`
-    );
+    await handleItoDeliver(interaction, input);
     return;
   }
 
@@ -334,8 +314,37 @@ async function handleItoAssign(
   await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
 }
 
+async function handleItoDeliver(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = await deliverItoDiscordNumbers({
+    channelId: interaction.channelId,
+    registry: input.sessionRegistry,
+    sendDirectMessage: async ({ playerId, message }) => {
+      const user = await interaction.client.users.fetch(playerId);
+      await user.send(message);
+    }
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (result.status === "notAssigned") {
+    await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+    return;
+  }
+
+  await interaction.reply(
+    `ITO numbers delivery finished.\nSucceeded: ${result.succeeded}\nFailed: ${result.failed}`
+  );
+}
+
 const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
   [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
-  [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign
+  [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign,
+  [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver
 };
