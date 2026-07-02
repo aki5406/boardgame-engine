@@ -53,6 +53,7 @@ Use the following commands in a Discord channel to manually test the current ITO
 /ito assign
 /ito deliver
 /ito discuss
+/ito status
 /ito submit order:"user-1,user-2,user-3"
 /ito reveal
 ```
@@ -60,6 +61,7 @@ Use the following commands in a Discord channel to manually test the current ITO
 Notes:
 
 - `/ito join` should be run by each participating Discord user.
+- Use `/ito status` to check Player IDs before `/ito submit`.
 - `/ito submit` currently expects a comma-separated list of Discord user ids in the submitted order.
 - `/ito reveal` judges the submitted order and shows the revealed numbers with success or failure.
 
