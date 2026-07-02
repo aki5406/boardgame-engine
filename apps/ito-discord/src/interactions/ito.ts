@@ -17,7 +17,11 @@ import {
   submitItoDiscordOrder,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
-import { createItoCreatedReply, ITO_JOIN_BUTTON_CUSTOM_ID } from "../views/ito-create.js";
+import {
+  createItoCreatedReply,
+  ITO_JOIN_BUTTON_CUSTOM_ID,
+  ITO_START_BUTTON_CUSTOM_ID
+} from "../views/ito-create.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoRevealMessage } from "../views/ito-reveal.js";
 import { formatItoStatusMessage } from "../views/ito-status.js";
@@ -53,11 +57,14 @@ async function handleItoButton(
   interaction: ButtonInteraction,
   input: RegisterItoInteractionHandlersInput
 ): Promise<void> {
-  if (interaction.customId !== ITO_JOIN_BUTTON_CUSTOM_ID) {
+  if (interaction.customId === ITO_JOIN_BUTTON_CUSTOM_ID) {
+    await handleItoJoin(interaction, input);
     return;
   }
 
-  await handleItoJoin(interaction, input);
+  if (interaction.customId === ITO_START_BUTTON_CUSTOM_ID) {
+    await handleItoStart(interaction, input);
+  }
 }
 
 async function handleItoCommand(
@@ -224,22 +231,7 @@ async function handleItoCommand(
   }
 
   if (subcommand === "start") {
-    const result = startItoDiscordSession({
-      channelId: interaction.channelId,
-      registry: input.sessionRegistry
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
-      return;
-    }
-
-    if (result.status === "noPlayers") {
-      await interaction.reply("No players have joined this ITO game. Use /ito join first.");
-      return;
-    }
-
-    await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
+    await handleItoStart(interaction, input);
     return;
   }
 
@@ -306,4 +298,26 @@ async function handleItoJoin(
   }
 
   await interaction.reply(`Joined the ITO game.\nPlayers: ${result.playerCount}`);
+}
+
+async function handleItoStart(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = startItoDiscordSession({
+    channelId: interaction.channelId,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (result.status === "noPlayers") {
+    await interaction.reply("No players have joined this ITO game. Use /ito join first.");
+    return;
+  }
+
+  await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
 }
