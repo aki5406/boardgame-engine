@@ -131,11 +131,11 @@ async function handleItoCommand(
     });
 
     if (result.status === "alreadyExists") {
-      await interaction.reply("An ITO session already exists in this channel.");
+      await interaction.reply("ITO game already exists in this channel.");
       return;
     }
 
-    await interaction.reply("ITO session created for this channel.");
+    await interaction.reply("ITO game created for this channel.");
     return;
   }
 
