@@ -27,6 +27,7 @@ import {
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
+  ITO_REVEAL_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
 } from "../views/ito-create.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
@@ -131,28 +132,7 @@ async function handleItoCommand(
   }
 
   if (subcommand === "reveal") {
-    const result = revealItoDiscordResult({
-      channelId: interaction.channelId,
-      engine: input.engine,
-      registry: input.sessionRegistry
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel.");
-      return;
-    }
-
-    if (result.status === "notAssigned") {
-      await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
-      return;
-    }
-
-    if (result.status === "notSubmitted") {
-      await interaction.reply("No ITO order has been submitted yet. Use /ito submit first.");
-      return;
-    }
-
-    await interaction.reply(formatItoRevealMessage(result));
+    await handleItoReveal(interaction, input);
     return;
   }
 
@@ -350,10 +330,39 @@ async function handleItoDiscuss(
   await interaction.reply(createItoDiscussionStartedReply(result.theme, result.playerCount));
 }
 
+async function handleItoReveal(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = revealItoDiscordResult({
+    channelId: interaction.channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel.");
+    return;
+  }
+
+  if (result.status === "notAssigned") {
+    await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+    return;
+  }
+
+  if (result.status === "notSubmitted") {
+    await interaction.reply("No ITO order has been submitted yet. Use /ito submit first.");
+    return;
+  }
+
+  await interaction.reply(formatItoRevealMessage(result));
+}
+
 const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
   [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
   [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign,
   [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver,
-  [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss
+  [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss,
+  [ITO_REVEAL_BUTTON_CUSTOM_ID]: handleItoReveal
 };

@@ -10,6 +10,7 @@ export const ITO_START_BUTTON_CUSTOM_ID = "ito.start";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
 export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 export const ITO_DISCUSS_BUTTON_CUSTOM_ID = "ito.discuss";
+export const ITO_REVEAL_BUTTON_CUSTOM_ID = "ito.reveal";
 
 export function createItoSetupButtonRow(): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -55,6 +56,15 @@ export function createItoDiscussionButtonRow(): ActionRowBuilder<ButtonBuilder> 
   );
 }
 
+export function createItoRevealButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(ITO_REVEAL_BUTTON_CUSTOM_ID)
+      .setLabel("Reveal Result")
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
 export function createItoCreatedReply(): InteractionReplyOptions {
   return {
     content: "ITO game created!",
@@ -95,6 +105,7 @@ export function createItoDiscussionStartedReply(
       `ITO discussion started.\nTheme:\n${theme}\n` +
       `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
       `Next:\nUse /ito status to check Player IDs.\n` +
-      `Use /ito submit order:"user-1,user-2,user-3"\nThen use /ito reveal`
+      `Use /ito submit order:"user-1,user-2,user-3"\nThen press Reveal Result.`,
+    components: [createItoRevealButtonRow()]
   };
 }
