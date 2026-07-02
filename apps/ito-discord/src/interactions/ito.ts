@@ -1,7 +1,9 @@
 import type {
+  AnyThreadChannel,
   ButtonInteraction,
   ChatInputCommandInteraction,
   Client,
+  GuildTextBasedChannel,
   ModalSubmitInteraction
 } from "discord.js";
 import { Events } from "discord.js";
@@ -13,6 +15,7 @@ import {
   createItoDiscordSessionForChannel,
   deliverItoDiscordNumbers,
   getItoDiscordSessionStatus,
+  getItoState,
   joinItoDiscordSessionForChannel,
   revealItoDiscordResult,
   resetItoDiscordSessionForChannel,
@@ -42,6 +45,11 @@ import {
   ITO_THEME_MODAL_CUSTOM_ID,
   ITO_THEME_TOPIC_INPUT_CUSTOM_ID
 } from "../views/ito-create.js";
+import {
+  createItoAnswerStatusMessage,
+  createItoAnswersThreadIntro,
+  createItoAnswersThreadName
+} from "../views/ito-answers.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoRevealMessage } from "../views/ito-reveal.js";
 import { formatItoStatusMessage } from "../views/ito-status.js";
@@ -361,11 +369,30 @@ async function handleItoAssignDeliver(
     return;
   }
 
+  const state = getItoState(assignResult.session);
+
+  if (!state.theme) {
+    await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
+    return;
+  }
+
+  const thread = await createItoAnswersThread(interaction, state.theme);
+  await thread.send(createItoAnswersThreadIntro(state.theme));
+
+  const threadUrl = createDiscordChannelUrl(interaction.guildId, thread.id);
+
   await interaction.reply(
     createItoAssignedAndDeliveredReply(
       assignResult.playerCount,
       deliverResult.succeeded,
       deliverResult.failed
+    )
+  );
+
+  await interaction.followUp(
+    createItoAnswerStatusMessage(
+      assignResult.session.players.map((player) => player.id),
+      threadUrl
     )
   );
 }
@@ -461,3 +488,34 @@ const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss,
   [ITO_REVEAL_BUTTON_CUSTOM_ID]: handleItoReveal
 };
+
+async function createItoAnswersThread(
+  interaction: ButtonInteraction,
+  theme: string
+): Promise<AnyThreadChannel> {
+  const channel = interaction.channel;
+
+  if (!channel || !hasThreadCreation(channel)) {
+    throw new Error("Current channel does not support thread creation");
+  }
+
+  return channel.threads.create({
+    name: createItoAnswersThreadName(theme)
+  });
+}
+
+function hasThreadCreation(
+  channel: ButtonInteraction["channel"]
+): channel is GuildTextBasedChannel & {
+  threads: { create: (options: { name: string }) => Promise<AnyThreadChannel> };
+} {
+  return channel !== null && "threads" in channel;
+}
+
+function createDiscordChannelUrl(guildId: string | null, channelId: string): string {
+  if (!guildId) {
+    return `https://discord.com/channels/@me/${channelId}`;
+  }
+
+  return `https://discord.com/channels/${guildId}/${channelId}`;
+}
