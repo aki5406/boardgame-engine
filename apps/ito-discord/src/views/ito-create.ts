@@ -36,6 +36,15 @@ export function createItoProgressionButtonRow(): ActionRowBuilder<ButtonBuilder>
   );
 }
 
+export function createItoDeliverButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(ITO_DELIVER_BUTTON_CUSTOM_ID)
+      .setLabel("Deliver Numbers")
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
 export function createItoCreatedReply(): InteractionReplyOptions {
   return {
     content: "ITO game created!",
@@ -47,5 +56,12 @@ export function createItoStartedReply(playerCount: number): InteractionReplyOpti
   return {
     content: `ITO game started.\nPlayers: ${playerCount}`,
     components: [createItoProgressionButtonRow()]
+  };
+}
+
+export function createItoAssignedReply(playerCount: number): InteractionReplyOptions {
+  return {
+    content: `ITO numbers assigned.\nPlayers: ${playerCount}`,
+    components: [createItoDeliverButtonRow()]
   };
 }

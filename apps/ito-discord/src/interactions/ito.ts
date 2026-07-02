@@ -19,6 +19,7 @@ import {
 } from "../session/index.js";
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
+  createItoAssignedReply,
   createItoCreatedReply,
   createItoStartedReply,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
@@ -312,7 +313,7 @@ async function handleItoAssign(
     return;
   }
 
-  await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
+  await interaction.reply(createItoAssignedReply(result.playerCount));
 }
 
 async function handleItoDeliver(
