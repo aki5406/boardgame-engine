@@ -3,24 +3,25 @@ import { describe, expect, it } from "vitest";
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
-  createItoCreateButtonRow,
+  createItoProgressionButtonRow,
+  createItoSetupButtonRow,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
-  it("formats the create reply with join, start, assign, and deliver buttons", () => {
+  it("formats the create reply with setup and progression rows", () => {
     const reply = createItoCreatedReply();
 
     expect(reply.content).toBe("ITO game created!");
-    expect(reply.components).toHaveLength(1);
+    expect(reply.components).toHaveLength(2);
   });
 });
 
-describe("createItoCreateButtonRow", () => {
-  it("builds the create action buttons row", () => {
-    expect(createItoCreateButtonRow().toJSON()).toEqual({
+describe("createItoSetupButtonRow", () => {
+  it("builds the setup action buttons row", () => {
+    expect(createItoSetupButtonRow().toJSON()).toEqual({
       type: 1,
       components: [
         {
@@ -34,7 +35,17 @@ describe("createItoCreateButtonRow", () => {
           custom_id: ITO_START_BUTTON_CUSTOM_ID,
           label: "Start ITO Game",
           style: 2
-        },
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoProgressionButtonRow", () => {
+  it("builds the progression action buttons row", () => {
+    expect(createItoProgressionButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
         {
           type: 2,
           custom_id: ITO_ASSIGN_BUTTON_CUSTOM_ID,

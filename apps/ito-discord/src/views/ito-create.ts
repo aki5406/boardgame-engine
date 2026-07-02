@@ -10,7 +10,7 @@ export const ITO_START_BUTTON_CUSTOM_ID = "ito.start";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
 export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 
-export function createItoCreateButtonRow(): ActionRowBuilder<ButtonBuilder> {
+export function createItoSetupButtonRow(): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(ITO_JOIN_BUTTON_CUSTOM_ID)
@@ -19,7 +19,12 @@ export function createItoCreateButtonRow(): ActionRowBuilder<ButtonBuilder> {
     new ButtonBuilder()
       .setCustomId(ITO_START_BUTTON_CUSTOM_ID)
       .setLabel("Start ITO Game")
-      .setStyle(ButtonStyle.Secondary),
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
+export function createItoProgressionButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(ITO_ASSIGN_BUTTON_CUSTOM_ID)
       .setLabel("Assign Numbers")
@@ -34,6 +39,6 @@ export function createItoCreateButtonRow(): ActionRowBuilder<ButtonBuilder> {
 export function createItoCreatedReply(): InteractionReplyOptions {
   return {
     content: "ITO game created!",
-    components: [createItoCreateButtonRow()]
+    components: [createItoSetupButtonRow(), createItoProgressionButtonRow()]
   };
 }
