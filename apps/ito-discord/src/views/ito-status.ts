@@ -5,7 +5,7 @@ export function formatItoStatusMessage(result: GetItoDiscordSessionStatusResult)
     return "No ITO game exists in this channel.";
   }
 
-  return `ITO game status\nPhase: ${result.phase}\nTheme: ${formatThemeStatus(result.themeStatus)}\nPlayers: ${result.playerCount}\nHints: ${result.hintCount}\nNumbers: ${formatNumbersStatus(result.numbersStatus)}\nOrder: ${formatOrderStatus(result.orderStatus)}\nResult: ${formatResultStatus(result.resultStatus)}`;
+  return `ITO game status\nPhase: ${result.phase}\nTheme: ${formatThemeStatus(result.themeStatus)}\nPlayers: ${result.playerCount}\n${formatPlayerIds(result.playerIds)}\nHints: ${result.hintCount}\nNumbers: ${formatNumbersStatus(result.numbersStatus)}\nOrder: ${formatOrderStatus(result.orderStatus)}\nResult: ${formatResultStatus(result.resultStatus)}`;
 }
 
 function formatOrderStatus(orderStatus: "submitted" | "notSubmitted"): string {
@@ -30,4 +30,12 @@ function formatResultStatus(resultStatus: "failure" | "notRevealed" | "success")
   }
 
   return "not revealed";
+}
+
+function formatPlayerIds(playerIds: readonly string[]): string {
+  if (playerIds.length === 0) {
+    return "Player IDs: none";
+  }
+
+  return ["Player IDs:", ...playerIds.map((playerId) => `- ${playerId}`)].join("\n");
 }

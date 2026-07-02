@@ -9,6 +9,7 @@ export type GetItoDiscordSessionStatusResult =
       phase: ItoPhase;
       themeStatus: "set" | "notSet";
       playerCount: number;
+      playerIds: readonly string[];
       hintCount: number;
       numbersStatus: "assigned" | "notAssigned";
       orderStatus: "submitted" | "notSubmitted";
@@ -37,6 +38,7 @@ export function getItoDiscordSessionStatus(
     phase: state.phase,
     themeStatus: state.theme ? "set" : "notSet",
     playerCount: session.players.length,
+    playerIds: session.players.map((player) => player.id),
     hintCount: state.hints?.length ?? 0,
     numbersStatus:
       state.assignedNumbers && state.assignedNumbers.length > 0 ? "assigned" : "notAssigned",
