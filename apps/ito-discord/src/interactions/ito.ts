@@ -18,6 +18,7 @@ import {
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
 import {
+  ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoCreatedReply,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
@@ -78,23 +79,7 @@ async function handleItoCommand(
   const subcommand = interaction.options.getSubcommand(false);
 
   if (subcommand === "assign") {
-    const result = assignItoDiscordNumbers({
-      channelId: interaction.channelId,
-      engine: input.engine,
-      registry: input.sessionRegistry
-    });
-
-    if (result.status === "notFound") {
-      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
-      return;
-    }
-
-    if (result.status === "noPlayers") {
-      await interaction.reply("No players have joined this ITO game. Use /ito join first.");
-      return;
-    }
-
-    await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
+    await handleItoAssign(interaction, input);
     return;
   }
 
@@ -326,7 +311,31 @@ async function handleItoStart(
   await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
 }
 
+async function handleItoAssign(
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const result = assignItoDiscordNumbers({
+    channelId: interaction.channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (result.status === "noPlayers") {
+    await interaction.reply("No players have joined this ITO game. Use /ito join first.");
+    return;
+  }
+
+  await interaction.reply(`ITO numbers assigned.\nPlayers: ${result.playerCount}`);
+}
+
 const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
-  [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart
+  [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
+  [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign
 };
