@@ -25,12 +25,14 @@ import {
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoAssignedReply,
+  createItoAssignedAndDeliveredReply,
   createItoCreatedReply,
   createItoDeliveredReply,
   createItoDiscussionStartedReply,
   createItoStartedReply,
   createItoThemeModal,
   createItoThemeSetReply,
+  ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
@@ -320,6 +322,54 @@ async function handleItoAssign(
   await interaction.reply(createItoAssignedReply(result.playerCount));
 }
 
+async function handleItoAssignDeliver(
+  interaction: ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  const assignResult = assignItoDiscordNumbers({
+    channelId: interaction.channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (assignResult.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (assignResult.status === "noPlayers") {
+    await interaction.reply("No players have joined this ITO game. Use /ito join first.");
+    return;
+  }
+
+  const deliverResult = await deliverItoDiscordNumbers({
+    channelId: interaction.channelId,
+    registry: input.sessionRegistry,
+    sendDirectMessage: async ({ playerId, message }) => {
+      const user = await interaction.client.users.fetch(playerId);
+      await user.send(message);
+    }
+  });
+
+  if (deliverResult.status === "notFound") {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  if (deliverResult.status === "notAssigned") {
+    await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
+    return;
+  }
+
+  await interaction.reply(
+    createItoAssignedAndDeliveredReply(
+      assignResult.playerCount,
+      deliverResult.succeeded,
+      deliverResult.failed
+    )
+  );
+}
+
 async function handleItoThemeButton(interaction: ButtonInteraction): Promise<void> {
   await interaction.showModal(createItoThemeModal());
 }
@@ -405,6 +455,7 @@ const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
   [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
   [ITO_THEME_BUTTON_CUSTOM_ID]: handleItoThemeButton,
+  [ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID]: handleItoAssignDeliver,
   [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign,
   [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver,
   [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss,

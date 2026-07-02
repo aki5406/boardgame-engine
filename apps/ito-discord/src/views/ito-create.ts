@@ -14,6 +14,7 @@ export const ITO_THEME_BUTTON_CUSTOM_ID = "ito.theme";
 export const ITO_THEME_MODAL_CUSTOM_ID = "ito.theme.modal";
 export const ITO_THEME_TOPIC_INPUT_CUSTOM_ID = "ito.theme.topic";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
+export const ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID = "ito.assign-deliver";
 export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 export const ITO_DISCUSS_BUTTON_CUSTOM_ID = "ito.discuss";
 export const ITO_REVEAL_BUTTON_CUSTOM_ID = "ito.reveal";
@@ -58,6 +59,15 @@ export function createItoAssignButtonRow(): ActionRowBuilder<ButtonBuilder> {
     new ButtonBuilder()
       .setCustomId(ITO_ASSIGN_BUTTON_CUSTOM_ID)
       .setLabel("Assign Numbers")
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
+export function createItoAssignDeliverButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID)
+      .setLabel("Assign & Deliver Numbers")
       .setStyle(ButtonStyle.Secondary)
   );
 }
@@ -129,7 +139,20 @@ export function createItoAssignedReply(playerCount: number): InteractionReplyOpt
 export function createItoThemeSetReply(theme: string): InteractionReplyOptions {
   return {
     content: `Theme set.\nTheme:\n${theme}`,
-    components: [createItoAssignButtonRow()]
+    components: [createItoAssignDeliverButtonRow()]
+  };
+}
+
+export function createItoAssignedAndDeliveredReply(
+  playerCount: number,
+  succeeded: number,
+  failed: number
+): InteractionReplyOptions {
+  return {
+    content:
+      `Numbers assigned and delivered.\nPlayers: ${playerCount}\n` +
+      `Delivered:\nSucceeded: ${succeeded}\nFailed: ${failed}`,
+    components: [createItoDiscussionButtonRow()]
   };
 }
 

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
   createItoAssignedReply,
+  createItoAssignedAndDeliveredReply,
   createItoAssignButtonRow,
+  createItoAssignDeliverButtonRow,
   createItoCreatedReply,
   createItoDeliverButtonRow,
   createItoDeliveredReply,
@@ -15,6 +17,7 @@ import {
   createItoStartedReply,
   createItoThemeModal,
   createItoThemeSetReply,
+  ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
@@ -56,12 +59,24 @@ describe("createItoAssignedReply", () => {
 });
 
 describe("createItoThemeSetReply", () => {
-  it("formats the theme set reply with the assign row", () => {
+  it("formats the theme set reply with the assign and deliver row", () => {
     const reply = createItoThemeSetReply("Favorite convenience store item");
 
     expect(reply.content).toBe("Theme set.\nTheme:\nFavorite convenience store item");
     expect(reply.components).toHaveLength(1);
-    expect(reply.components?.[0]).toEqual(createItoAssignButtonRow());
+    expect(reply.components?.[0]).toEqual(createItoAssignDeliverButtonRow());
+  });
+});
+
+describe("createItoAssignedAndDeliveredReply", () => {
+  it("formats the combined assign and deliver reply with the discussion row", () => {
+    const reply = createItoAssignedAndDeliveredReply(3, 3, 0);
+
+    expect(reply.content).toBe(
+      "Numbers assigned and delivered.\nPlayers: 3\nDelivered:\nSucceeded: 3\nFailed: 0"
+    );
+    expect(reply.components).toHaveLength(1);
+    expect(reply.components?.[0]).toEqual(createItoDiscussionButtonRow());
   });
 });
 
@@ -164,6 +179,22 @@ describe("createItoAssignButtonRow", () => {
           type: 2,
           custom_id: ITO_ASSIGN_BUTTON_CUSTOM_ID,
           label: "Assign Numbers",
+          style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoAssignDeliverButtonRow", () => {
+  it("builds the assign and deliver action button row", () => {
+    expect(createItoAssignDeliverButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID,
+          label: "Assign & Deliver Numbers",
           style: 2
         }
       ]
