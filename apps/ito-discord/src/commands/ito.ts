@@ -7,7 +7,7 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("assign").setDescription("Assign ITO numbers to joined players")
   )
   .addSubcommand((subcommand) =>
-    subcommand.setName("create").setDescription("Create an ITO session for this channel")
+    subcommand.setName("create").setDescription("Create an ITO game for this channel")
   )
   .addSubcommand((subcommand) =>
     subcommand.setName("deliver").setDescription("Deliver assigned ITO numbers by DM")
@@ -19,19 +19,19 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("help").setDescription("Show available ITO commands")
   )
   .addSubcommand((subcommand) =>
-    subcommand.setName("join").setDescription("Join the ITO session in this channel")
+    subcommand.setName("join").setDescription("Join the ITO game in this channel")
   )
   .addSubcommand((subcommand) =>
     subcommand.setName("reveal").setDescription("Reveal the ITO result for this channel")
   )
   .addSubcommand((subcommand) =>
-    subcommand.setName("reset").setDescription("Reset the ITO session in this channel")
+    subcommand.setName("reset").setDescription("Reset the ITO game in this channel")
   )
   .addSubcommand((subcommand) =>
-    subcommand.setName("status").setDescription("Show the ITO session status in this channel")
+    subcommand.setName("status").setDescription("Show the ITO game status in this channel")
   )
   .addSubcommand((subcommand) =>
-    subcommand.setName("start").setDescription("Start the ITO session in this channel")
+    subcommand.setName("start").setDescription("Start the ITO game in this channel")
   )
   .addSubcommand((subcommand) =>
     subcommand
@@ -47,12 +47,9 @@ export const itoCommand = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName("theme")
-      .setDescription("Set the ITO theme for this session")
+      .setDescription("Set the ITO theme for this game")
       .addStringOption((option) =>
-        option
-          .setName("topic")
-          .setDescription("Set the ITO theme for this session")
-          .setRequired(true)
+        option.setName("topic").setDescription("Set the ITO theme for this game").setRequired(true)
       )
   )
   .addSubcommand((subcommand) =>

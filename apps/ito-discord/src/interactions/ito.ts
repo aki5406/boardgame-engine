@@ -57,12 +57,12 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
     if (result.status === "noPlayers") {
-      await interaction.reply("No players have joined this ITO session. Use /ito join first.");
+      await interaction.reply("No players have joined this ITO game. Use /ito join first.");
       return;
     }
 
@@ -81,7 +81,7 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
@@ -104,7 +104,7 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
@@ -159,16 +159,16 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
     if (result.status === "alreadyJoined") {
-      await interaction.reply("You have already joined this ITO session.");
+      await interaction.reply("You have already joined this ITO game.");
       return;
     }
 
-    await interaction.reply("Joined the ITO session.");
+    await interaction.reply("Joined the ITO game.");
     return;
   }
 
@@ -230,16 +230,16 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
     if (result.status === "noPlayers") {
-      await interaction.reply("No players have joined this ITO session. Use /ito join first.");
+      await interaction.reply("No players have joined this ITO game. Use /ito join first.");
       return;
     }
 
-    await interaction.reply(`ITO session started.\nPlayers: ${result.playerCount}`);
+    await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
     return;
   }
 
@@ -253,7 +253,7 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
@@ -276,7 +276,7 @@ async function handleItoCommand(
     });
 
     if (result.status === "notFound") {
-      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
       return;
     }
 
