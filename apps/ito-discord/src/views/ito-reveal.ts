@@ -12,7 +12,7 @@ function formatRevealedItem(
   item: Readonly<{ playerId: string; number: number | undefined }>,
   index: number
 ): string {
-  return `${index + 1}. ${item.playerId} - ${formatRevealedNumber(item.number)}`;
+  return `${index + 1}. <@${item.playerId}> - ${formatRevealedNumber(item.number)}`;
 }
 
 function formatRevealedNumber(number: number | undefined): string {

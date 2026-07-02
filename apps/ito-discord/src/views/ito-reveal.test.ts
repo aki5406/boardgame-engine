@@ -14,7 +14,7 @@ describe("formatItoRevealMessage", () => {
           { playerId: "user-3", number: 88 }
         ]
       })
-    ).toBe("ITO Reveal\n\nNumbers:\n1. user-1 - 42\n2. user-2 - 71\n3. user-3 - 88");
+    ).toBe("ITO Reveal\n\nNumbers:\n1. <@user-1> - 42\n2. <@user-2> - 71\n3. <@user-3> - 88");
   });
 
   it("formats unknown numbers without showing a fake value", () => {
@@ -24,6 +24,6 @@ describe("formatItoRevealMessage", () => {
         session: {} as never,
         items: [{ playerId: "user-1", number: undefined }]
       })
-    ).toBe("ITO Reveal\n\nNumbers:\n1. user-1 - unknown");
+    ).toBe("ITO Reveal\n\nNumbers:\n1. <@user-1> - unknown");
   });
 });
