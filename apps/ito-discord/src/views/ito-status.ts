@@ -5,7 +5,7 @@ export function formatItoStatusMessage(result: GetItoDiscordSessionStatusResult)
     return "No ITO game exists in this channel.";
   }
 
-  return `ITO game status\nPhase: ${result.phase}\nTheme: ${formatThemeStatus(result.themeStatus)}\nPlayers: ${result.playerCount}\n${formatPlayerIds(result.playerIds)}\nHints: ${result.hintCount}\nNumbers: ${formatNumbersStatus(result.numbersStatus)}\nOrder: ${formatOrderStatus(result.orderStatus)}\nResult: ${formatResultStatus(result.resultStatus)}`;
+  return `ITO game status\nPhase: ${result.phase}\nTheme: ${formatThemeStatus(result.themeStatus)}\nPlayers: ${result.playerCount}\n${formatPlayerIds(result.playerIds)}\nHints: ${result.hintCount}\nNumbers: ${formatNumbersStatus(result.numbersStatus)}\nOrder: ${formatOrderStatus(result.orderStatus)}\nResult: ${formatResultStatus(result.resultStatus)}${formatSubmitExample(result.playerIds)}`;
 }
 
 function formatOrderStatus(orderStatus: "submitted" | "notSubmitted"): string {
@@ -38,4 +38,12 @@ function formatPlayerIds(playerIds: readonly string[]): string {
   }
 
   return ["Player IDs:", ...playerIds.map((playerId) => `- ${playerId}`)].join("\n");
+}
+
+function formatSubmitExample(playerIds: readonly string[]): string {
+  if (playerIds.length === 0) {
+    return "";
+  }
+
+  return `\nSubmit example:\n/ito submit order:"${playerIds.join(",")}"`;
 }
