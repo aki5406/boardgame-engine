@@ -1,5 +1,5 @@
 import type { Engine } from "@boardgame/game-ito";
-import { judgeItoOrder, type ItoAssignedNumber } from "@boardgame/game-ito";
+import type { ItoAssignedNumber } from "@boardgame/game-ito";
 
 import { getItoState } from "./ito-state.js";
 import type { ItoDiscordSession, ItoDiscordSessionRegistry } from "./registry.js";
@@ -14,11 +14,9 @@ export type RevealItoDiscordResultResult =
       status: "revealed";
       session: ItoDiscordSession;
       items: readonly ItoRevealedOrderItem[];
-      success: boolean;
     }>
   | Readonly<{ status: "notAssigned" }>
-  | Readonly<{ status: "notFound" }>
-  | Readonly<{ status: "notSubmitted" }>;
+  | Readonly<{ status: "notFound" }>;
 
 export interface RevealItoDiscordResultInput {
   readonly channelId: string;
@@ -43,30 +41,15 @@ export function revealItoDiscordResult(
   }
 
   const submittedOrder = state.submittedOrder;
-
-  if (!submittedOrder || submittedOrder.length === 0) {
-    return { status: "notSubmitted" };
-  }
-
-  const resultEvent = judgeItoOrder({
-    assignedNumbers,
-    submittedOrder
-  });
-  const nextSession = input.engine.applyEvent({
-    session,
-    event: resultEvent
-  });
-
-  input.registry.register({
-    channelId: input.channelId,
-    session: nextSession
-  });
+  const playerIds =
+    submittedOrder && submittedOrder.length > 0
+      ? submittedOrder
+      : assignedNumbers.map((assignment) => assignment.playerId);
 
   return {
     status: "revealed",
-    session: nextSession,
-    items: submittedOrder.map((playerId) => toRevealedOrderItem(playerId, assignedNumbers)),
-    success: resultEvent.success
+    session,
+    items: playerIds.map((playerId) => toRevealedOrderItem(playerId, assignedNumbers))
   };
 }
 

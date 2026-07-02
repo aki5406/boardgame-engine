@@ -350,11 +350,6 @@ async function handleItoReveal(
     return;
   }
 
-  if (result.status === "notSubmitted") {
-    await interaction.reply("No ITO order has been submitted yet. Use /ito submit first.");
-    return;
-  }
-
   await interaction.reply(formatItoRevealMessage(result));
 }
 
