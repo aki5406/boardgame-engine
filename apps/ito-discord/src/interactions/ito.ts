@@ -15,6 +15,7 @@ import {
   startItoDiscordSession,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
+import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoStatusMessage } from "../views/ito-status.js";
 
 export interface RegisterItoInteractionHandlersInput {
@@ -122,6 +123,11 @@ async function handleItoCommand(
 
   if (subcommand === "ping") {
     await interaction.reply("Pong! ITO adapter is ready.");
+    return;
+  }
+
+  if (subcommand === "help") {
+    await interaction.reply(formatItoHelpMessage());
     return;
   }
 
