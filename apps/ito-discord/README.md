@@ -1,36 +1,37 @@
 # @boardgame/ito-discord
 
-Discord Adapter app package for ITO.
+Discord adapter for running and manually testing ITO from a Discord server during local development.
 
-This package is the future home for Discord-specific input, output, user mapping, and session handling around `@boardgame/game-ito`.
+## Environment Variables
 
-Current scope:
+Set these values in your shell or a local `.env` before registering commands or starting the bot.
 
-- Establish the app package location.
-- Depend on `@boardgame/game-ito`.
-- Read `DISCORD_BOT_TOKEN` from the environment.
-- Create a Discord client and log in.
-- Define the `/ito ping` slash command data.
-- Reply to `/ito ping`.
-- Keep an in-memory channel-to-session registry.
-- Create an ITO session for a channel with `/ito create`.
-- Join an existing channel session with `/ito join`.
-- Show the current channel session status with `/ito status`.
-- Start an existing channel session with `/ito start`.
-- Set the current channel session theme with `/ito theme`.
-- Assign ITO numbers to joined players with `/ito assign` without displaying secret numbers in the channel.
-- Build a private delivery view for assigned ITO numbers without sending DMs yet.
-- Deliver assigned ITO numbers to players by DM with `/ito deliver`.
-- Start the discussion phase with `/ito discuss` without displaying secret numbers.
-- Keep Discord-specific code out of `@boardgame/engine` and `@boardgame/game-ito`.
-
-Create a local `.env` or set the variable in your shell before starting the adapter:
-
-```sh
+```env
 DISCORD_BOT_TOKEN=
 DISCORD_CLIENT_ID=
 DISCORD_GUILD_ID=
 ```
+
+- `DISCORD_BOT_TOKEN`
+  Discord bot token used to log in the bot client.
+- `DISCORD_CLIENT_ID`
+  Discord application client id used when registering slash commands.
+- `DISCORD_GUILD_ID`
+  Discord server id used for guild command registration during local development.
+
+Do not commit real secret values.
+
+## Register Slash Commands
+
+Run from the repository root:
+
+```sh
+pnpm --filter @boardgame/ito-discord register-commands
+```
+
+This registers the current `/ito` guild commands for the server identified by `DISCORD_GUILD_ID`.
+
+## Start Bot
 
 Run from the repository root:
 
@@ -38,10 +39,58 @@ Run from the repository root:
 pnpm --filter @boardgame/ito-discord start
 ```
 
-Register guild slash commands from the repository root:
+When startup succeeds, the bot logs in and waits for Discord interactions.
 
-```sh
-pnpm --filter @boardgame/ito-discord register-commands
+## Basic ITO Flow
+
+Use the following commands in a Discord channel to manually test the current ITO flow:
+
+```text
+/ito create
+/ito join
+/ito join
+/ito theme topic:"..."
+/ito assign
+/ito deliver
+/ito discuss
+/ito submit order:"user-1,user-2,user-3"
+/ito reveal
 ```
 
-It intentionally does not include global slash command registration, ITO game flow, persistence, Docker, or deployment settings yet.
+Notes:
+
+- `/ito join` should be run by each participating Discord user.
+- `/ito submit` currently expects a comma-separated list of Discord user ids in the submitted order.
+- `/ito reveal` judges the submitted order and shows the revealed numbers with success or failure.
+
+## Utility Commands
+
+These commands are useful while testing:
+
+```text
+/ito status
+/ito help
+/ito reset
+/ito ping
+```
+
+- `/ito status`
+  Shows the current game status summary for the channel.
+- `/ito help`
+  Shows the available ITO commands.
+- `/ito reset`
+  Removes the current channel game so the flow can be retried from scratch.
+- `/ito ping`
+  Confirms that the bot is running and responding.
+
+## Scope
+
+This README is only for local development and manual verification.
+
+It does not describe:
+
+- production deployment
+- global slash command registration
+- Docker setup
+- Discord Developer Portal details
+- long-term operations
