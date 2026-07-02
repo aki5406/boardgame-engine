@@ -39,6 +39,6 @@ export function createItoProgressionButtonRow(): ActionRowBuilder<ButtonBuilder>
 export function createItoCreatedReply(): InteractionReplyOptions {
   return {
     content: "ITO game created!",
-    components: [createItoSetupButtonRow(), createItoProgressionButtonRow()]
+    components: [createItoSetupButtonRow()]
   };
 }

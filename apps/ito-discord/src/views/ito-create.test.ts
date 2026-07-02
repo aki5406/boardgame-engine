@@ -11,11 +11,11 @@ import {
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
-  it("formats the create reply with setup and progression rows", () => {
+  it("formats the create reply with only the setup row", () => {
     const reply = createItoCreatedReply();
 
     expect(reply.content).toBe("ITO game created!");
-    expect(reply.components).toHaveLength(2);
+    expect(reply.components).toHaveLength(1);
   });
 });
 
