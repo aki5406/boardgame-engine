@@ -12,6 +12,7 @@ export type GetItoDiscordSessionStatusResult =
       hintCount: number;
       numbersStatus: "assigned" | "notAssigned";
       orderStatus: "submitted" | "notSubmitted";
+      resultStatus: "failure" | "notRevealed" | "success";
     }>
   | Readonly<{ status: "notFound" }>;
 
@@ -40,6 +41,12 @@ export function getItoDiscordSessionStatus(
     numbersStatus:
       state.assignedNumbers && state.assignedNumbers.length > 0 ? "assigned" : "notAssigned",
     orderStatus:
-      state.submittedOrder && state.submittedOrder.length > 0 ? "submitted" : "notSubmitted"
+      state.submittedOrder && state.submittedOrder.length > 0 ? "submitted" : "notSubmitted",
+    resultStatus:
+      state.result?.success === true
+        ? "success"
+        : state.result?.success === false
+          ? "failure"
+          : "notRevealed"
   };
 }

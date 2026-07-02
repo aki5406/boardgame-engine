@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   createItoEngine,
   type ItoHintSubmittedEvent,
-  type ItoOrderSubmittedEvent
+  type ItoOrderSubmittedEvent,
+  type ItoResultRevealedEvent
 } from "@boardgame/game-ito";
 
 import { assignItoDiscordNumbers } from "./assign.js";
@@ -97,7 +98,108 @@ describe("getItoDiscordSessionStatus", () => {
       playerCount: 2,
       hintCount: 1,
       numbersStatus: "assigned",
-      orderStatus: "submitted"
+      orderStatus: "submitted",
+      resultStatus: "notRevealed"
+    });
+  });
+
+  it("returns success result status after reveal", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-2",
+      engine,
+      registry
+    });
+
+    const createdSession = registry.get("channel-1");
+    if (!createdSession) {
+      throw new Error("Expected session to be registered");
+    }
+
+    const resultRevealedEvent: ItoResultRevealedEvent = {
+      type: "ito.resultRevealed",
+      success: true
+    };
+    const revealedSession = engine.applyEvent({
+      session: createdSession,
+      event: resultRevealedEvent
+    });
+    registry.register({
+      channelId: "channel-1",
+      session: revealedSession
+    });
+
+    const result = getItoDiscordSessionStatus({
+      channelId: "channel-1",
+      registry
+    });
+
+    expect(result).toEqual({
+      status: "found",
+      phase: "resultRevealed",
+      themeStatus: "notSet",
+      playerCount: 2,
+      hintCount: 0,
+      numbersStatus: "notAssigned",
+      orderStatus: "notSubmitted",
+      resultStatus: "success"
+    });
+  });
+
+  it("returns failure result status after reveal", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    const createdSession = registry.get("channel-1");
+    if (!createdSession) {
+      throw new Error("Expected session to be registered");
+    }
+
+    const resultRevealedEvent: ItoResultRevealedEvent = {
+      type: "ito.resultRevealed",
+      success: false
+    };
+    const revealedSession = engine.applyEvent({
+      session: createdSession,
+      event: resultRevealedEvent
+    });
+    registry.register({
+      channelId: "channel-1",
+      session: revealedSession
+    });
+
+    const result = getItoDiscordSessionStatus({
+      channelId: "channel-1",
+      registry
+    });
+
+    expect(result).toEqual({
+      status: "found",
+      phase: "resultRevealed",
+      themeStatus: "notSet",
+      playerCount: 0,
+      hintCount: 0,
+      numbersStatus: "notAssigned",
+      orderStatus: "notSubmitted",
+      resultStatus: "failure"
     });
   });
 });
