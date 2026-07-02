@@ -19,4 +19,15 @@ describe("formatItoRevealMessage", () => {
       "ITO Result\n\nSubmitted:\n1. user-1 - 42\n2. user-2 - 71\n3. user-3 - 88\n\nSuccess: ✅"
     );
   });
+
+  it("formats unknown numbers without showing a fake value", () => {
+    expect(
+      formatItoRevealMessage({
+        status: "revealed",
+        session: {} as never,
+        items: [{ playerId: "user-1", number: undefined }],
+        success: false
+      })
+    ).toBe("ITO Result\n\nSubmitted:\n1. user-1 - unknown\n\nSuccess: ❌");
+  });
 });

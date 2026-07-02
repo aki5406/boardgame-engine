@@ -152,4 +152,49 @@ describe("revealItoDiscordResult", () => {
 
     expect(result).toEqual({ status: "notFound" });
   });
+
+  it("keeps unknown submitted players visible without inventing a number", () => {
+    const engine = createItoEngine();
+    const registry = createItoDiscordSessionRegistry();
+    createItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    joinItoDiscordSessionForChannel({
+      channelId: "channel-1",
+      playerId: "user-1",
+      engine,
+      registry
+    });
+    assignItoDiscordNumbers({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+    submitItoDiscordOrder({
+      channelId: "channel-1",
+      engine,
+      order: "user-1,user-unknown",
+      registry
+    });
+
+    const result = revealItoDiscordResult({
+      channelId: "channel-1",
+      engine,
+      registry
+    });
+
+    expect(result.status).toBe("revealed");
+
+    if (result.status !== "revealed") {
+      throw new Error("Expected reveal to succeed");
+    }
+
+    expect(result.items).toEqual([
+      { playerId: "user-1", number: 1 },
+      { playerId: "user-unknown", number: undefined }
+    ]);
+    expect(result.success).toBe(false);
+  });
 });

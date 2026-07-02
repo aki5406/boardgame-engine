@@ -6,7 +6,7 @@ import type { ItoDiscordSession, ItoDiscordSessionRegistry } from "./registry.js
 
 export type ItoRevealedOrderItem = Readonly<{
   playerId: string;
-  number: number;
+  number: number | undefined;
 }>;
 
 export type RevealItoDiscordResultResult =
@@ -78,6 +78,6 @@ function toRevealedOrderItem(
 
   return {
     playerId,
-    number: assignment?.number ?? 0
+    number: assignment?.number
   };
 }
