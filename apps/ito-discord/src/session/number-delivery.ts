@@ -1,5 +1,6 @@
-import type { ItoAssignedNumber, ItoState } from "@boardgame/game-ito";
+import type { ItoAssignedNumber } from "@boardgame/game-ito";
 
+import { getItoState } from "./ito-state.js";
 import type { ItoDiscordSessionRegistry } from "./registry.js";
 
 export type ItoNumberDeliveryItem = Readonly<{
@@ -26,7 +27,7 @@ export function getItoNumberDeliveryView(
     return { status: "notFound" };
   }
 
-  const assignedNumbers = (session.state as ItoState).assignedNumbers;
+  const assignedNumbers = getItoState(session).assignedNumbers;
 
   if (!assignedNumbers || assignedNumbers.length === 0) {
     return { status: "notAssigned" };
