@@ -31,6 +31,11 @@ export interface RegisterItoInteractionHandlersInput {
   readonly sessionRegistry: ItoDiscordSessionRegistry;
 }
 
+type ItoButtonHandler = (
+  interaction: ButtonInteraction,
+  input: RegisterItoInteractionHandlersInput
+) => Promise<void>;
+
 export function registerItoInteractionHandlers(
   client: Client,
   input: RegisterItoInteractionHandlersInput
@@ -57,14 +62,13 @@ async function handleItoButton(
   interaction: ButtonInteraction,
   input: RegisterItoInteractionHandlersInput
 ): Promise<void> {
-  if (interaction.customId === ITO_JOIN_BUTTON_CUSTOM_ID) {
-    await handleItoJoin(interaction, input);
+  const buttonHandler = itoButtonHandlers[interaction.customId];
+
+  if (!buttonHandler) {
     return;
   }
 
-  if (interaction.customId === ITO_START_BUTTON_CUSTOM_ID) {
-    await handleItoStart(interaction, input);
-  }
+  await buttonHandler(interaction, input);
 }
 
 async function handleItoCommand(
@@ -321,3 +325,8 @@ async function handleItoStart(
 
   await interaction.reply(`ITO game started.\nPlayers: ${result.playerCount}`);
 }
+
+const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
+  [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
+  [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart
+};
