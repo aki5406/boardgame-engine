@@ -9,11 +9,13 @@ import {
   createItoDiscussionStartedReply,
   createItoDiscussionButtonRow,
   createItoProgressionButtonRow,
+  createItoRevealButtonRow,
   createItoSetupButtonRow,
   createItoStartedReply,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
+  ITO_REVEAL_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID
 } from "./ito-create.js";
 
@@ -58,19 +60,20 @@ describe("createItoDeliveredReply", () => {
 
 describe("createItoDiscussionStartedReply", () => {
   it("formats the discussion started reply with next-step guidance", () => {
-    const reply = createItoDiscussionStartedReply("好きなコンビニ商品", 3);
+    const reply = createItoDiscussionStartedReply("Favorite convenience store item", 3);
 
     expect(reply).toEqual({
       content:
         "ITO discussion started.\n" +
         "Theme:\n" +
-        "好きなコンビニ商品\n" +
+        "Favorite convenience store item\n" +
         "Everyone, discuss without revealing your number.\n" +
         "Players: 3\n" +
         "Next:\n" +
         "Use /ito status to check Player IDs.\n" +
         'Use /ito submit order:"user-1,user-2,user-3"\n' +
-        "Then use /ito reveal"
+        "Then press Reveal Result.",
+      components: [createItoRevealButtonRow()]
     });
   });
 });
@@ -144,6 +147,22 @@ describe("createItoDiscussionButtonRow", () => {
           type: 2,
           custom_id: ITO_DISCUSS_BUTTON_CUSTOM_ID,
           label: "Start Discussion",
+          style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoRevealButtonRow", () => {
+  it("builds the reveal action button row", () => {
+    expect(createItoRevealButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: ITO_REVEAL_BUTTON_CUSTOM_ID,
+          label: "Reveal Result",
           style: 2
         }
       ]
