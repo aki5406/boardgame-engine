@@ -16,7 +16,9 @@ import {
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_REVEAL_BUTTON_CUSTOM_ID,
-  ITO_START_BUTTON_CUSTOM_ID
+  ITO_START_BUTTON_CUSTOM_ID,
+  ITO_THEME_BUTTON_CUSTOM_ID,
+  createItoThemeButtonRow
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
@@ -29,12 +31,12 @@ describe("createItoCreatedReply", () => {
 });
 
 describe("createItoStartedReply", () => {
-  it("formats the started reply with the progression row", () => {
+  it("formats the started reply with the theme guidance row", () => {
     const reply = createItoStartedReply(3);
 
-    expect(reply.content).toBe("ITO game started.\nPlayers: 3");
+    expect(reply.content).toBe("ITO game started.\nPlayers: 3\n\nNext:\nSet the theme.");
     expect(reply.components).toHaveLength(1);
-    expect(reply.components?.[0]).toEqual(createItoProgressionButtonRow());
+    expect(reply.components?.[0]).toEqual(createItoThemeButtonRow());
   });
 });
 
@@ -115,6 +117,22 @@ describe("createItoProgressionButtonRow", () => {
           type: 2,
           custom_id: ITO_DELIVER_BUTTON_CUSTOM_ID,
           label: "Deliver Numbers",
+          style: 2
+        }
+      ]
+    });
+  });
+});
+
+describe("createItoThemeButtonRow", () => {
+  it("builds the theme action button row", () => {
+    expect(createItoThemeButtonRow().toJSON()).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: ITO_THEME_BUTTON_CUSTOM_ID,
+          label: "Set Theme",
           style: 2
         }
       ]

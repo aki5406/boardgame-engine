@@ -7,6 +7,7 @@ import {
 
 export const ITO_JOIN_BUTTON_CUSTOM_ID = "ito.join";
 export const ITO_START_BUTTON_CUSTOM_ID = "ito.start";
+export const ITO_THEME_BUTTON_CUSTOM_ID = "ito.theme";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
 export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 export const ITO_DISCUSS_BUTTON_CUSTOM_ID = "ito.discuss";
@@ -34,6 +35,15 @@ export function createItoProgressionButtonRow(): ActionRowBuilder<ButtonBuilder>
     new ButtonBuilder()
       .setCustomId(ITO_DELIVER_BUTTON_CUSTOM_ID)
       .setLabel("Deliver Numbers")
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
+export function createItoThemeButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(ITO_THEME_BUTTON_CUSTOM_ID)
+      .setLabel("Set Theme")
       .setStyle(ButtonStyle.Secondary)
   );
 }
@@ -74,8 +84,8 @@ export function createItoCreatedReply(): InteractionReplyOptions {
 
 export function createItoStartedReply(playerCount: number): InteractionReplyOptions {
   return {
-    content: `ITO game started.\nPlayers: ${playerCount}`,
-    components: [createItoProgressionButtonRow()]
+    content: `ITO game started.\nPlayers: ${playerCount}\n\nNext:\nSet the theme.`,
+    components: [createItoThemeButtonRow()]
   };
 }
 

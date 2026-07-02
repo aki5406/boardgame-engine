@@ -28,7 +28,8 @@ import {
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
   ITO_REVEAL_BUTTON_CUSTOM_ID,
-  ITO_START_BUTTON_CUSTOM_ID
+  ITO_START_BUTTON_CUSTOM_ID,
+  ITO_THEME_BUTTON_CUSTOM_ID
 } from "../views/ito-create.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
 import { formatItoRevealMessage } from "../views/ito-reveal.js";
@@ -276,6 +277,10 @@ async function handleItoAssign(
   await interaction.reply(createItoAssignedReply(result.playerCount));
 }
 
+async function handleItoThemeButton(interaction: ButtonInteraction): Promise<void> {
+  await interaction.reply('Use /ito theme topic:"..." to set the theme.');
+}
+
 async function handleItoDeliver(
   interaction: ChatInputCommandInteraction | ButtonInteraction,
   input: RegisterItoInteractionHandlersInput
@@ -356,6 +361,7 @@ async function handleItoReveal(
 const itoButtonHandlers: Readonly<Record<string, ItoButtonHandler>> = {
   [ITO_JOIN_BUTTON_CUSTOM_ID]: handleItoJoin,
   [ITO_START_BUTTON_CUSTOM_ID]: handleItoStart,
+  [ITO_THEME_BUTTON_CUSTOM_ID]: handleItoThemeButton,
   [ITO_ASSIGN_BUTTON_CUSTOM_ID]: handleItoAssign,
   [ITO_DELIVER_BUTTON_CUSTOM_ID]: handleItoDeliver,
   [ITO_DISCUSS_BUTTON_CUSTOM_ID]: handleItoDiscuss,
