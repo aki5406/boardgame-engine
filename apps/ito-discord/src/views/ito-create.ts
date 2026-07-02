@@ -2,12 +2,17 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   type InteractionReplyOptions
 } from "discord.js";
 
 export const ITO_JOIN_BUTTON_CUSTOM_ID = "ito.join";
 export const ITO_START_BUTTON_CUSTOM_ID = "ito.start";
 export const ITO_THEME_BUTTON_CUSTOM_ID = "ito.theme";
+export const ITO_THEME_MODAL_CUSTOM_ID = "ito.theme.modal";
+export const ITO_THEME_TOPIC_INPUT_CUSTOM_ID = "ito.theme.topic";
 export const ITO_ASSIGN_BUTTON_CUSTOM_ID = "ito.assign";
 export const ITO_DELIVER_BUTTON_CUSTOM_ID = "ito.deliver";
 export const ITO_DISCUSS_BUTTON_CUSTOM_ID = "ito.discuss";
@@ -46,6 +51,31 @@ export function createItoThemeButtonRow(): ActionRowBuilder<ButtonBuilder> {
       .setLabel("Set Theme")
       .setStyle(ButtonStyle.Secondary)
   );
+}
+
+export function createItoAssignButtonRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(ITO_ASSIGN_BUTTON_CUSTOM_ID)
+      .setLabel("Assign Numbers")
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
+export function createItoThemeModal(): ModalBuilder {
+  return new ModalBuilder()
+    .setCustomId(ITO_THEME_MODAL_CUSTOM_ID)
+    .setTitle("Set Theme")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId(ITO_THEME_TOPIC_INPUT_CUSTOM_ID)
+          .setLabel("Theme")
+          .setPlaceholder("好きなコンビニ商品")
+          .setRequired(true)
+          .setStyle(TextInputStyle.Short)
+      )
+    );
 }
 
 export function createItoDeliverButtonRow(): ActionRowBuilder<ButtonBuilder> {
@@ -93,6 +123,13 @@ export function createItoAssignedReply(playerCount: number): InteractionReplyOpt
   return {
     content: `ITO numbers assigned.\nPlayers: ${playerCount}`,
     components: [createItoDeliverButtonRow()]
+  };
+}
+
+export function createItoThemeSetReply(theme: string): InteractionReplyOptions {
+  return {
+    content: `Theme set.\nTheme:\n${theme}`,
+    components: [createItoAssignButtonRow()]
   };
 }
 
