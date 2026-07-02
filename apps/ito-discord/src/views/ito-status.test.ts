@@ -18,10 +18,45 @@ describe("formatItoStatusMessage", () => {
         playerCount: 4,
         hintCount: 3,
         numbersStatus: "assigned",
-        orderStatus: "notSubmitted"
+        orderStatus: "notSubmitted",
+        resultStatus: "notRevealed"
       })
     ).toBe(
-      "ITO game status\nPhase: discussion\nTheme: set\nPlayers: 4\nHints: 3\nNumbers: assigned\nOrder: not submitted"
+      "ITO game status\nPhase: discussion\nTheme: set\nPlayers: 4\nHints: 3\nNumbers: assigned\nOrder: not submitted\nResult: not revealed"
+    );
+  });
+
+  it("formats a successful ITO result status", () => {
+    expect(
+      formatItoStatusMessage({
+        status: "found",
+        phase: "resultRevealed",
+        themeStatus: "set",
+        playerCount: 3,
+        hintCount: 0,
+        numbersStatus: "assigned",
+        orderStatus: "submitted",
+        resultStatus: "success"
+      })
+    ).toBe(
+      "ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: success"
+    );
+  });
+
+  it("formats a failed ITO result status", () => {
+    expect(
+      formatItoStatusMessage({
+        status: "found",
+        phase: "resultRevealed",
+        themeStatus: "set",
+        playerCount: 3,
+        hintCount: 0,
+        numbersStatus: "assigned",
+        orderStatus: "submitted",
+        resultStatus: "failure"
+      })
+    ).toBe(
+      "ITO game status\nPhase: resultRevealed\nTheme: set\nPlayers: 3\nHints: 0\nNumbers: assigned\nOrder: submitted\nResult: failure"
     );
   });
 });
