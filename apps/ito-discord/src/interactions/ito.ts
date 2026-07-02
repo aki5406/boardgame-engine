@@ -9,6 +9,7 @@ import {
   deliverItoDiscordNumbers,
   getItoDiscordSessionStatus,
   joinItoDiscordSessionForChannel,
+  resetItoDiscordSessionForChannel,
   setItoDiscordSessionTheme,
   startItoDiscordDiscussion,
   startItoDiscordSession,
@@ -169,6 +170,21 @@ async function handleItoCommand(
     });
 
     await interaction.reply(formatItoStatusMessage(result));
+    return;
+  }
+
+  if (subcommand === "reset") {
+    const result = resetItoDiscordSessionForChannel({
+      channelId: interaction.channelId,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO game exists in this channel.");
+      return;
+    }
+
+    await interaction.reply("ITO game reset for this channel.");
     return;
   }
 

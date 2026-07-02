@@ -19,6 +19,9 @@ export const itoCommand = new SlashCommandBuilder()
     subcommand.setName("join").setDescription("Join the ITO session in this channel")
   )
   .addSubcommand((subcommand) =>
+    subcommand.setName("reset").setDescription("Reset the ITO session in this channel")
+  )
+  .addSubcommand((subcommand) =>
     subcommand.setName("status").setDescription("Show the ITO session status in this channel")
   )
   .addSubcommand((subcommand) =>
