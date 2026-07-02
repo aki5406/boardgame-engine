@@ -168,7 +168,7 @@ async function handleItoCommand(
       return;
     }
 
-    await interaction.reply("Joined the ITO game.");
+    await interaction.reply(`Joined the ITO game.\nPlayers: ${result.playerCount}`);
     return;
   }
 

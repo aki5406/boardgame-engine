@@ -42,6 +42,7 @@ describe("joinItoDiscordSessionForChannel", () => {
       throw new Error("Expected player to join the session");
     }
 
+    expect(result.playerCount).toBe(1);
     expect(result.session).toEqual({
       id: "ito:channel-1",
       game: engine.game,
@@ -78,6 +79,7 @@ describe("joinItoDiscordSessionForChannel", () => {
       throw new Error("Expected duplicate join to return the existing session");
     }
 
+    expect(firstResult.playerCount).toBe(1);
     expect(secondResult.session).toBe(firstResult.session);
     expect(secondResult.session.players).toEqual([{ id: "user-1" }]);
     expect(registry.get("channel-1")).toBe(firstResult.session);
