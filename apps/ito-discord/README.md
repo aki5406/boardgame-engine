@@ -65,6 +65,54 @@ Notes:
 - `/ito submit` currently expects a comma-separated list of Discord user ids in the submitted order.
 - `/ito reveal` judges the submitted order and shows the revealed numbers with success or failure.
 
+## Submit UX Notes
+
+The current `/ito submit` flow works for manual testing, but entering player ids by hand is still a rough Discord experience.
+
+The following options are the current candidates for improving submit UX in future PRs.
+
+### Option 1: Keep Slash Command
+
+- Pros:
+  - simplest implementation
+  - fully compatible with the current flow
+  - easy to keep testing from text examples in `/ito status`
+- Cons:
+  - player id input is still cumbersome
+  - easy to make ordering or typing mistakes
+
+### Option 2: Modal
+
+- Pros:
+  - can open a Discord input form in place
+  - fits the current comma-separated order format fairly well
+  - smaller change than introducing a fully guided flow
+- Cons:
+  - still not a true reorder UI
+  - users still need to copy or type ids manually
+
+### Option 3: Select Menu
+
+- Pros:
+  - lets users choose player ids instead of typing them
+  - reduces input mistakes
+  - feels more Discord-native than raw text entry
+- Cons:
+  - ordering is not naturally expressed by a single select menu
+  - may require multiple steps or extra conventions
+
+### Option 4: Button-based Step Submission
+
+- Pros:
+  - could let players build the submitted order one player at a time
+  - seems like a good fit for ITO's reveal-order workflow
+  - can reduce raw text input significantly
+- Cons:
+  - session-side state handling becomes more complex
+  - partial submission and correction flows need careful design
+
+For now, the project keeps the Slash Command approach and treats these options as design notes rather than a fixed implementation plan.
+
 ## Utility Commands
 
 These commands are useful while testing:
