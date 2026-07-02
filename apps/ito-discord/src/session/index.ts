@@ -10,6 +10,7 @@ export { resetItoDiscordSessionForChannel } from "./reset.js";
 export { setItoDiscordSessionTheme } from "./theme.js";
 export { startItoDiscordDiscussion } from "./discuss.js";
 export { startItoDiscordSession } from "./start.js";
+export { submitItoDiscordOrder } from "./submit.js";
 export type { AssignItoDiscordNumbersInput, AssignItoDiscordNumbersResult } from "./assign.js";
 export type { CreateItoDiscordSessionInput, CreateItoDiscordSessionResult } from "./create.js";
 export type {
@@ -32,6 +33,7 @@ export type { JoinItoDiscordSessionInput, JoinItoDiscordSessionResult } from "./
 export type { ResetItoDiscordSessionInput, ResetItoDiscordSessionResult } from "./reset.js";
 export type { SetItoDiscordThemeInput, SetItoDiscordThemeResult } from "./theme.js";
 export type { StartItoDiscordSessionInput, StartItoDiscordSessionResult } from "./start.js";
+export type { SubmitItoDiscordOrderInput, SubmitItoDiscordOrderResult } from "./submit.js";
 export type {
   ItoDiscordSession,
   ItoDiscordSessionRegistry,

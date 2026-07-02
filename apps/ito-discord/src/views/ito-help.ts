@@ -7,6 +7,7 @@ export function formatItoHelpMessage(): string {
     "/ito status - Show the current ITO game status.",
     "/ito reset - Reset the current ITO game.",
     "/ito start - Start the current ITO game.",
+    "/ito submit - Submit the player order.",
     "/ito theme - Set the game theme.",
     "/ito assign - Assign numbers to players.",
     "/ito deliver - Deliver assigned numbers by DM.",

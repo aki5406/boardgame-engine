@@ -32,6 +32,17 @@ export const itoCommand = new SlashCommandBuilder()
   )
   .addSubcommand((subcommand) =>
     subcommand
+      .setName("submit")
+      .setDescription("Submit the ITO player order")
+      .addStringOption((option) =>
+        option
+          .setName("order")
+          .setDescription("Comma-separated Discord user ids in submitted order")
+          .setRequired(true)
+      )
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
       .setName("theme")
       .setDescription("Set the ITO theme for this session")
       .addStringOption((option) =>

@@ -13,6 +13,7 @@ import {
   setItoDiscordSessionTheme,
   startItoDiscordDiscussion,
   startItoDiscordSession,
+  submitItoDiscordOrder,
   type ItoDiscordSessionRegistry
 } from "../session/index.js";
 import { formatItoHelpMessage } from "../views/ito-help.js";
@@ -211,6 +212,29 @@ async function handleItoCommand(
     }
 
     await interaction.reply(`ITO session started.\nPlayers: ${result.playerCount}`);
+    return;
+  }
+
+  if (subcommand === "submit") {
+    const order = interaction.options.getString("order", true);
+    const result = submitItoDiscordOrder({
+      channelId: interaction.channelId,
+      engine: input.engine,
+      order,
+      registry: input.sessionRegistry
+    });
+
+    if (result.status === "notFound") {
+      await interaction.reply("No ITO session exists in this channel. Use /ito create first.");
+      return;
+    }
+
+    if (result.status === "emptyOrder") {
+      await interaction.reply("No player order was provided.");
+      return;
+    }
+
+    await interaction.reply(`ITO order submitted.\nPlayers: ${result.playerCount}`);
     return;
   }
 
