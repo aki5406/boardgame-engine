@@ -3,7 +3,7 @@ import type { Engine } from "@boardgame/game-ito";
 import type { ItoDiscordSession, ItoDiscordSessionRegistry } from "./registry.js";
 
 export type JoinItoDiscordSessionResult =
-  | Readonly<{ status: "joined"; session: ItoDiscordSession }>
+  | Readonly<{ status: "joined"; playerCount: number; session: ItoDiscordSession }>
   | Readonly<{ status: "alreadyJoined"; session: ItoDiscordSession }>
   | Readonly<{ status: "notFound" }>;
 
@@ -38,5 +38,9 @@ export function joinItoDiscordSessionForChannel(
     session: nextSession
   });
 
-  return { status: "joined", session: nextSession };
+  return {
+    status: "joined",
+    playerCount: nextSession.players.length,
+    session: nextSession
+  };
 }
