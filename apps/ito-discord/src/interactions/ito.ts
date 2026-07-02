@@ -334,6 +334,20 @@ async function handleItoAssignDeliver(
   interaction: ButtonInteraction,
   input: RegisterItoInteractionHandlersInput
 ): Promise<void> {
+  const session = input.sessionRegistry.get(interaction.channelId);
+
+  if (!session) {
+    await interaction.reply("No ITO game exists in this channel. Use /ito create first.");
+    return;
+  }
+
+  const state = getItoState(session);
+
+  if (!state.theme) {
+    await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
+    return;
+  }
+
   const assignResult = assignItoDiscordNumbers({
     channelId: interaction.channelId,
     engine: input.engine,
@@ -366,13 +380,6 @@ async function handleItoAssignDeliver(
 
   if (deliverResult.status === "notAssigned") {
     await interaction.reply("No ITO numbers have been assigned yet. Use /ito assign first.");
-    return;
-  }
-
-  const state = getItoState(assignResult.session);
-
-  if (!state.theme) {
-    await interaction.reply("No ITO theme has been set yet. Use /ito theme first.");
     return;
   }
 
