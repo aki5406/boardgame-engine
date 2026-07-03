@@ -413,7 +413,8 @@ async function handleItoAssignDeliver(
     answerTracking: {
       answerThreadId: thread.id,
       answerStatusMessageId: statusMessage.id,
-      answeredPlayerIds: []
+      answeredPlayerIds: [],
+      answersByPlayerId: {}
     }
   });
 }
@@ -445,9 +446,11 @@ async function handleItoAnswerMessage(
     return;
   }
 
-  const didUpdate = input.sessionRegistry.markPlayerAnswered({
+  const answer = message.content.trim();
+  const didUpdate = input.sessionRegistry.recordPlayerAnswer({
     channelId,
-    playerId: message.author.id
+    playerId: message.author.id,
+    answer
   });
 
   if (!didUpdate) {

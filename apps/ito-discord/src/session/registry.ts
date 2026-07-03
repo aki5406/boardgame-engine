@@ -6,6 +6,7 @@ export interface ItoDiscordAnswerTracking {
   readonly answerThreadId: string;
   readonly answerStatusMessageId: string;
   readonly answeredPlayerIds: readonly string[];
+  readonly answersByPlayerId: Readonly<Record<string, string>>;
 }
 
 export interface ItoDiscordSessionRegistry {
@@ -16,7 +17,7 @@ export interface ItoDiscordSessionRegistry {
   readonly setAnswerTracking: (input: SetItoDiscordAnswerTrackingInput) => void;
   readonly getAnswerTracking: (channelId: string) => ItoDiscordAnswerTracking | undefined;
   readonly findChannelIdByAnswerThreadId: (answerThreadId: string) => string | undefined;
-  readonly markPlayerAnswered: (input: MarkItoDiscordAnsweredPlayerInput) => boolean;
+  readonly recordPlayerAnswer: (input: RecordItoDiscordPlayerAnswerInput) => boolean;
 }
 
 export interface RegisterItoDiscordSessionInput {
@@ -29,9 +30,10 @@ export interface SetItoDiscordAnswerTrackingInput {
   readonly answerTracking: ItoDiscordAnswerTracking;
 }
 
-export interface MarkItoDiscordAnsweredPlayerInput {
+export interface RecordItoDiscordPlayerAnswerInput {
   readonly channelId: string;
   readonly playerId: string;
+  readonly answer: string;
 }
 
 export function createItoDiscordSessionRegistry(): ItoDiscordSessionRegistry {
@@ -82,19 +84,27 @@ export function createItoDiscordSessionRegistry(): ItoDiscordSessionRegistry {
       return channelIdByAnswerThreadId.get(answerThreadId);
     },
 
-    markPlayerAnswered(input) {
+    recordPlayerAnswer(input) {
       const answerTracking = answerTrackingByChannelId.get(input.channelId);
 
-      if (!answerTracking || answerTracking.answeredPlayerIds.includes(input.playerId)) {
+      if (!answerTracking) {
         return false;
       }
 
+      const hasAnswered = answerTracking.answeredPlayerIds.includes(input.playerId);
+
       answerTrackingByChannelId.set(input.channelId, {
         ...answerTracking,
-        answeredPlayerIds: [...answerTracking.answeredPlayerIds, input.playerId]
+        answeredPlayerIds: hasAnswered
+          ? answerTracking.answeredPlayerIds
+          : [...answerTracking.answeredPlayerIds, input.playerId],
+        answersByPlayerId: {
+          ...answerTracking.answersByPlayerId,
+          [input.playerId]: input.answer
+        }
       });
 
-      return true;
+      return !hasAnswered;
     }
   };
 }

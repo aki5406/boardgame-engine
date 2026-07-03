@@ -7,6 +7,7 @@ import type { ItoDiscordSession, ItoDiscordSessionRegistry } from "./registry.js
 export type ItoRevealedOrderItem = Readonly<{
   playerId: string;
   number: number | undefined;
+  answer: string | undefined;
 }>;
 
 export type RevealItoDiscordResultResult =
@@ -45,22 +46,27 @@ export function revealItoDiscordResult(
     submittedOrder && submittedOrder.length > 0
       ? submittedOrder
       : assignedNumbers.map((assignment) => assignment.playerId);
+  const answerTracking = input.registry.getAnswerTracking(input.channelId);
 
   return {
     status: "revealed",
     session,
-    items: playerIds.map((playerId) => toRevealedOrderItem(playerId, assignedNumbers))
+    items: playerIds.map((playerId) =>
+      toRevealedOrderItem(playerId, assignedNumbers, answerTracking?.answersByPlayerId[playerId])
+    )
   };
 }
 
 function toRevealedOrderItem(
   playerId: string,
-  assignedNumbers: readonly ItoAssignedNumber[]
+  assignedNumbers: readonly ItoAssignedNumber[],
+  answer: string | undefined
 ): ItoRevealedOrderItem {
   const assignment = assignedNumbers.find((item) => item.playerId === playerId);
 
   return {
     playerId,
-    number: assignment?.number
+    number: assignment?.number,
+    answer
   };
 }

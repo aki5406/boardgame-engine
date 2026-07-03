@@ -9,12 +9,19 @@ export function formatItoRevealMessage(result: RevealItoDiscordResultResult): st
 }
 
 function formatRevealedItem(
-  item: Readonly<{ playerId: string; number: number | undefined }>,
+  item: Readonly<{ playerId: string; number: number | undefined; answer: string | undefined }>,
   index: number
 ): string {
-  return `${index + 1}. <@${item.playerId}> - ${formatRevealedNumber(item.number)}`;
+  return (
+    `${index + 1}. <@${item.playerId}> - ${formatRevealedNumber(item.number)}\n` +
+    formatRevealedAnswer(item.answer)
+  );
 }
 
 function formatRevealedNumber(number: number | undefined): string {
   return number === undefined ? "unknown" : String(number);
+}
+
+function formatRevealedAnswer(answer: string | undefined): string {
+  return answer && answer.length > 0 ? answer : "(No answer)";
 }

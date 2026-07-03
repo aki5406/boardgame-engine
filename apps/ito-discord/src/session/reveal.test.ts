@@ -47,6 +47,18 @@ describe("revealItoDiscordResult", () => {
       order: "user-1,user-2,user-3",
       registry
     });
+    registry.setAnswerTracking({
+      channelId: "channel-1",
+      answerTracking: {
+        answerThreadId: "thread-1",
+        answerStatusMessageId: "message-1",
+        answeredPlayerIds: ["user-1", "user-2"],
+        answersByPlayerId: {
+          "user-1": "Umaibo",
+          "user-2": "Karaage-kun"
+        }
+      }
+    });
 
     const result = revealItoDiscordResult({
       channelId: "channel-1",
@@ -61,6 +73,7 @@ describe("revealItoDiscordResult", () => {
     }
 
     expect(result.items.map((item) => item.playerId)).toEqual(["user-1", "user-2", "user-3"]);
+    expect(result.items.map((item) => item.answer)).toEqual(["Umaibo", "Karaage-kun", undefined]);
     const numbers = result.items.map((item) => item.number);
     expect(new Set(numbers).size).toBe(3);
     expect(
@@ -97,6 +110,17 @@ describe("revealItoDiscordResult", () => {
       engine,
       registry
     });
+    registry.setAnswerTracking({
+      channelId: "channel-1",
+      answerTracking: {
+        answerThreadId: "thread-1",
+        answerStatusMessageId: "message-1",
+        answeredPlayerIds: ["user-2"],
+        answersByPlayerId: {
+          "user-2": "Premium sushi"
+        }
+      }
+    });
 
     const result = revealItoDiscordResult({
       channelId: "channel-1",
@@ -111,6 +135,7 @@ describe("revealItoDiscordResult", () => {
     }
 
     expect(result.items.map((item) => item.playerId)).toEqual(["user-1", "user-2"]);
+    expect(result.items.map((item) => item.answer)).toEqual([undefined, "Premium sushi"]);
     const numbers = result.items.map((item) => item.number);
     expect(new Set(numbers).size).toBe(2);
     expect(
