@@ -168,12 +168,14 @@ export function createItoDeliveredReply(
 
 export function createItoDiscussionStartedReply(
   theme: string,
-  playerCount: number
+  playerCount: number,
+  answerThreadUrl?: string
 ): InteractionReplyOptions {
   return {
     content:
       `ITO discussion started.\nTheme:\n${theme}\n` +
       `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
+      (answerThreadUrl ? `回答スレッド:\n${answerThreadUrl}\n` : "") +
       `Next:\nUse /ito status to check Player IDs.\n` +
       `Use /ito submit order:"user-1,user-2,user-3"\nThen press Reveal Result.`,
     components: [createItoRevealButtonRow()]
