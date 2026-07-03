@@ -1,5 +1,7 @@
 import type { RevealItoDiscordResultResult } from "../session/index.js";
 
+const MAX_REVEAL_ANSWER_LENGTH = 100;
+
 export function formatItoRevealMessage(result: RevealItoDiscordResultResult): string {
   if (result.status !== "revealed") {
     throw new Error("Expected a revealed result");
@@ -23,5 +25,19 @@ function formatRevealedNumber(number: number | undefined): string {
 }
 
 function formatRevealedAnswer(answer: string | undefined): string {
-  return answer && answer.length > 0 ? answer : "(No answer)";
+  if (!answer) {
+    return "(No answer)";
+  }
+
+  const normalizedAnswer = answer.trim().replace(/\s+/g, " ");
+
+  if (normalizedAnswer.length === 0) {
+    return "(No answer)";
+  }
+
+  if (normalizedAnswer.length <= MAX_REVEAL_ANSWER_LENGTH) {
+    return normalizedAnswer;
+  }
+
+  return `${normalizedAnswer.slice(0, MAX_REVEAL_ANSWER_LENGTH - 3)}...`;
 }
