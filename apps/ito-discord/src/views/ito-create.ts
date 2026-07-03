@@ -176,7 +176,9 @@ export function createItoDiscussionStartedReply(
       `ITO discussion started.\nTheme:\n${theme}\n` +
       `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
       (answerThreadUrl ? `回答スレッド:\n${answerThreadUrl}\n\n` : "\n") +
-      `Next:\nDiscuss using the answers thread.\nWhen everyone is ready, press Reveal Result.`,
+      `Next:\n` +
+      `${answerThreadUrl ? "Discuss using the answers thread." : "Discuss together without revealing your number."}\n` +
+      `When everyone is ready, press Reveal Result.`,
     components: [createItoRevealButtonRow()]
   };
 }
