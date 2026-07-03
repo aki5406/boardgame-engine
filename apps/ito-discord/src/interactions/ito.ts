@@ -4,6 +4,7 @@ import type {
   ChatInputCommandInteraction,
   Client,
   GuildTextBasedChannel,
+  Message,
   ModalSubmitInteraction
 } from "discord.js";
 import { Events } from "discord.js";
@@ -88,6 +89,10 @@ export function registerItoInteractionHandlers(
     }
 
     await handleItoCommand(interaction, input);
+  });
+
+  client.on(Events.MessageCreate, async (message) => {
+    await handleItoAnswerMessage(message, input);
   });
 }
 
@@ -396,10 +401,81 @@ async function handleItoAssignDeliver(
     )
   );
 
-  await interaction.followUp(
-    createItoAnswerStatusMessage(
+  const statusMessage = await interaction.followUp({
+    content: createItoAnswerStatusMessage(
       assignResult.session.players.map((player) => player.id),
       threadUrl
+    )
+  });
+
+  input.sessionRegistry.setAnswerTracking({
+    channelId: interaction.channelId,
+    answerTracking: {
+      answerThreadId: thread.id,
+      answerStatusMessageId: statusMessage.id,
+      answeredPlayerIds: []
+    }
+  });
+}
+
+async function handleItoAnswerMessage(
+  message: Message,
+  input: RegisterItoInteractionHandlersInput
+): Promise<void> {
+  if (message.author.bot) {
+    return;
+  }
+
+  const channelId = input.sessionRegistry.findChannelIdByAnswerThreadId(message.channelId);
+
+  if (!channelId) {
+    return;
+  }
+
+  const session = input.sessionRegistry.get(channelId);
+  const answerTracking = input.sessionRegistry.getAnswerTracking(channelId);
+
+  if (!session || !answerTracking) {
+    return;
+  }
+
+  const isParticipant = session.players.some((player) => player.id === message.author.id);
+
+  if (!isParticipant) {
+    return;
+  }
+
+  const didUpdate = input.sessionRegistry.markPlayerAnswered({
+    channelId,
+    playerId: message.author.id
+  });
+
+  if (!didUpdate) {
+    return;
+  }
+
+  const updatedAnswerTracking = input.sessionRegistry.getAnswerTracking(channelId);
+
+  if (!updatedAnswerTracking) {
+    return;
+  }
+
+  const statusChannel = await message.client.channels.fetch(channelId);
+
+  if (!statusChannel || !hasMessageEditing(statusChannel)) {
+    return;
+  }
+
+  const statusMessage = await statusChannel.messages.fetch(
+    updatedAnswerTracking.answerStatusMessageId
+  );
+  const threadUrl = createDiscordChannelUrl(message.guildId, updatedAnswerTracking.answerThreadId);
+
+  await statusMessage.edit(
+    createItoAnswerStatusMessage(
+      session.players.map((player) => player.id),
+      threadUrl,
+      updatedAnswerTracking.answeredPlayerIds
     )
   );
 }
@@ -517,6 +593,18 @@ function hasThreadCreation(
   threads: { create: (options: { name: string }) => Promise<AnyThreadChannel> };
 } {
   return channel !== null && "threads" in channel;
+}
+
+function hasMessageEditing(
+  channel: Awaited<ReturnType<Client["channels"]["fetch"]>>
+): channel is GuildTextBasedChannel & {
+  messages: {
+    fetch: (messageId: string) => Promise<{
+      edit: (content: string) => Promise<unknown>;
+    }>;
+  };
+} {
+  return channel !== null && "messages" in channel;
 }
 
 function createDiscordChannelUrl(guildId: string | null, channelId: string): string {

@@ -34,7 +34,7 @@ describe("createItoAnswersThreadIntro", () => {
 });
 
 describe("createItoAnswerStatusMessage", () => {
-  it("formats the answer status message", () => {
+  it("formats the initial answer status message", () => {
     expect(
       createItoAnswerStatusMessage(
         ["123456789", "987654321"],
@@ -44,6 +44,22 @@ describe("createItoAnswerStatusMessage", () => {
       "回答状況\n" +
         "⬜ <@123456789>\n" +
         "⬜ <@987654321>\n" +
+        "回答スレッド:\n" +
+        "https://discord.com/channels/guild/thread"
+    );
+  });
+
+  it("formats answered players with check marks", () => {
+    expect(
+      createItoAnswerStatusMessage(
+        ["123456789", "987654321"],
+        "https://discord.com/channels/guild/thread",
+        ["987654321"]
+      )
+    ).toBe(
+      "回答状況\n" +
+        "⬜ <@123456789>\n" +
+        "✅ <@987654321>\n" +
         "回答スレッド:\n" +
         "https://discord.com/channels/guild/thread"
     );
