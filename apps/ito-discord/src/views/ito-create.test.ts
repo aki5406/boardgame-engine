@@ -91,7 +91,7 @@ describe("createItoDeliveredReply", () => {
 });
 
 describe("createItoDiscussionStartedReply", () => {
-  it("formats the discussion started reply with reveal-focused guidance", () => {
+  it("formats the discussion started reply with generic reveal-focused guidance", () => {
     const reply = createItoDiscussionStartedReply("Favorite convenience store item", 3);
 
     expect(reply).toEqual({
@@ -103,13 +103,13 @@ describe("createItoDiscussionStartedReply", () => {
         "Players: 3\n" +
         "\n" +
         "Next:\n" +
-        "Discuss using the answers thread.\n" +
+        "Discuss together without revealing your number.\n" +
         "When everyone is ready, press Reveal Result.",
       components: [createItoRevealButtonRow()]
     });
   });
 
-  it("includes the answer thread url when provided", () => {
+  it("includes the answer thread url and thread-specific guidance when provided", () => {
     const reply = createItoDiscussionStartedReply(
       "Favorite convenience store item",
       3,
@@ -123,7 +123,7 @@ describe("createItoDiscussionStartedReply", () => {
         "Favorite convenience store item\n" +
         "Everyone, discuss without revealing your number.\n" +
         "Players: 3\n" +
-        "回答スレッド:\n" +
+        "Answers thread:\n" +
         "https://discord.com/channels/guild/thread\n" +
         "\n" +
         "Next:\n" +
@@ -240,7 +240,7 @@ describe("createItoThemeModal", () => {
               custom_id: ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
               label: "Theme",
               style: 1,
-              placeholder: "好きなコンビニ商品",
+              placeholder: "Favorite convenience store item",
               required: true
             }
           ]
