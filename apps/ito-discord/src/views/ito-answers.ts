@@ -23,11 +23,18 @@ export function createItoAnswersThreadIntro(theme: string): string {
 
 export function createItoAnswerStatusMessage(
   playerIds: readonly string[],
-  threadUrl: string
+  threadUrl: string,
+  answeredPlayerIds: readonly string[] = []
 ): string {
+  const answeredCount = playerIds.filter((playerId) => answeredPlayerIds.includes(playerId)).length;
+
   return [
-    "回答状況",
-    ...playerIds.map((playerId) => `⬜ <@${playerId}>`),
+    `回答状況: ${answeredCount} / ${playerIds.length}`,
+    "",
+    ...playerIds.map(
+      (playerId) => `${answeredPlayerIds.includes(playerId) ? "✅" : "⬜"} <@${playerId}>`
+    ),
+    "",
     `回答スレッド:\n${threadUrl}`
   ].join("\n");
 }
