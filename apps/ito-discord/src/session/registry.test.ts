@@ -37,7 +37,8 @@ describe("createItoDiscordSessionRegistry", () => {
       answerTracking: {
         answerThreadId: "thread-1",
         answerStatusMessageId: "message-1",
-        answeredPlayerIds: []
+        answeredPlayerIds: [],
+        answersByPlayerId: {}
       }
     });
 
@@ -45,26 +46,32 @@ describe("createItoDiscordSessionRegistry", () => {
     expect(registry.getAnswerTracking("channel-1")).toEqual({
       answerThreadId: "thread-1",
       answerStatusMessageId: "message-1",
-      answeredPlayerIds: []
+      answeredPlayerIds: [],
+      answersByPlayerId: {}
     });
 
     expect(
-      registry.markPlayerAnswered({
+      registry.recordPlayerAnswer({
         channelId: "channel-1",
-        playerId: "player-1"
+        playerId: "player-1",
+        answer: "first answer"
       })
     ).toBe(true);
     expect(
-      registry.markPlayerAnswered({
+      registry.recordPlayerAnswer({
         channelId: "channel-1",
-        playerId: "player-1"
+        playerId: "player-1",
+        answer: "latest answer"
       })
     ).toBe(false);
 
     expect(registry.getAnswerTracking("channel-1")).toEqual({
       answerThreadId: "thread-1",
       answerStatusMessageId: "message-1",
-      answeredPlayerIds: ["player-1"]
+      answeredPlayerIds: ["player-1"],
+      answersByPlayerId: {
+        "player-1": "latest answer"
+      }
     });
   });
 
@@ -81,7 +88,8 @@ describe("createItoDiscordSessionRegistry", () => {
       answerTracking: {
         answerThreadId: "thread-1",
         answerStatusMessageId: "message-1",
-        answeredPlayerIds: []
+        answeredPlayerIds: [],
+        answersByPlayerId: {}
       }
     });
 

@@ -40,7 +40,7 @@ export type {
   ItoDiscordAnswerTracking,
   ItoDiscordSession,
   ItoDiscordSessionRegistry,
-  MarkItoDiscordAnsweredPlayerInput,
+  RecordItoDiscordPlayerAnswerInput,
   RegisterItoDiscordSessionInput,
   SetItoDiscordAnswerTrackingInput
 } from "./registry.js";
