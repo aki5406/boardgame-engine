@@ -27,9 +27,11 @@ export function createItoAnswerStatusMessage(
   answeredPlayerIds: readonly string[] = []
 ): string {
   const answeredCount = playerIds.filter((playerId) => answeredPlayerIds.includes(playerId)).length;
+  const isAllAnswered = playerIds.length > 0 && answeredCount === playerIds.length;
 
   return [
     `回答状況: ${answeredCount} / ${playerIds.length}`,
+    ...(isAllAnswered ? ["全員回答済みです。話し合いを始めましょう。"] : []),
     "",
     ...playerIds.map(
       (playerId) => `${answeredPlayerIds.includes(playerId) ? "✅" : "⬜"} <@${playerId}>`
