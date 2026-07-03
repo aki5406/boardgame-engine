@@ -81,7 +81,7 @@ export function createItoThemeModal(): ModalBuilder {
         new TextInputBuilder()
           .setCustomId(ITO_THEME_TOPIC_INPUT_CUSTOM_ID)
           .setLabel("Theme")
-          .setPlaceholder("好きなコンビニ商品")
+          .setPlaceholder("Favorite convenience store item")
           .setRequired(true)
           .setStyle(TextInputStyle.Short)
       )
@@ -175,7 +175,7 @@ export function createItoDiscussionStartedReply(
     content:
       `ITO discussion started.\nTheme:\n${theme}\n` +
       `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
-      (answerThreadUrl ? `回答スレッド:\n${answerThreadUrl}\n\n` : "\n") +
+      (answerThreadUrl ? `Answers thread:\n${answerThreadUrl}\n\n` : "\n") +
       `Next:\n` +
       `${answerThreadUrl ? "Discuss using the answers thread." : "Discuss together without revealing your number."}\n` +
       `When everyone is ready, press Reveal Result.`,

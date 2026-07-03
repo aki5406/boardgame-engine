@@ -123,7 +123,7 @@ describe("createItoDiscussionStartedReply", () => {
         "Favorite convenience store item\n" +
         "Everyone, discuss without revealing your number.\n" +
         "Players: 3\n" +
-        "回答スレッド:\n" +
+        "Answers thread:\n" +
         "https://discord.com/channels/guild/thread\n" +
         "\n" +
         "Next:\n" +
@@ -240,7 +240,7 @@ describe("createItoThemeModal", () => {
               custom_id: ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
               label: "Theme",
               style: 1,
-              placeholder: "好きなコンビニ商品",
+              placeholder: "Favorite convenience store item",
               required: true
             }
           ]
