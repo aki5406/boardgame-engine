@@ -1,3 +1,7 @@
+import type { BaseMessageOptions } from "discord.js";
+
+import { createItoDiscussionButtonRow } from "./ito-create.js";
+
 export function createItoAnswersThreadName(theme: string): string {
   const normalizedTheme = theme.trim();
   const prefix = "ITO answers - ";
@@ -32,11 +36,24 @@ export function createItoAnswerStatusMessage(
   return [
     `回答状況: ${answeredCount} / ${playerIds.length}`,
     ...(isAllAnswered ? ["全員回答済みです。話し合いを始めましょう。"] : []),
-    "",
     ...playerIds.map(
       (playerId) => `${answeredPlayerIds.includes(playerId) ? "✅" : "⬜"} <@${playerId}>`
     ),
     "",
     `回答スレッド:\n${threadUrl}`
   ].join("\n");
+}
+
+export function createItoAnswerStatusReply(
+  playerIds: readonly string[],
+  threadUrl: string,
+  answeredPlayerIds: readonly string[] = []
+): BaseMessageOptions {
+  const answeredCount = playerIds.filter((playerId) => answeredPlayerIds.includes(playerId)).length;
+  const isAllAnswered = playerIds.length > 0 && answeredCount === playerIds.length;
+
+  return {
+    content: createItoAnswerStatusMessage(playerIds, threadUrl, answeredPlayerIds),
+    components: isAllAnswered ? [createItoDiscussionButtonRow()] : []
+  };
 }

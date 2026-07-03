@@ -47,7 +47,7 @@ import {
   ITO_THEME_TOPIC_INPUT_CUSTOM_ID
 } from "../views/ito-create.js";
 import {
-  createItoAnswerStatusMessage,
+  createItoAnswerStatusReply,
   createItoAnswersThreadIntro,
   createItoAnswersThreadName
 } from "../views/ito-answers.js";
@@ -401,12 +401,12 @@ async function handleItoAssignDeliver(
     )
   );
 
-  const statusMessage = await interaction.followUp({
-    content: createItoAnswerStatusMessage(
+  const statusMessage = await interaction.followUp(
+    createItoAnswerStatusReply(
       assignResult.session.players.map((player) => player.id),
       threadUrl
     )
-  });
+  );
 
   input.sessionRegistry.setAnswerTracking({
     channelId: interaction.channelId,
@@ -472,7 +472,7 @@ async function handleItoAnswerMessage(
   const threadUrl = createDiscordChannelUrl(message.guildId, updatedAnswerTracking.answerThreadId);
 
   await statusMessage.edit(
-    createItoAnswerStatusMessage(
+    createItoAnswerStatusReply(
       session.players.map((player) => player.id),
       threadUrl,
       updatedAnswerTracking.answeredPlayerIds

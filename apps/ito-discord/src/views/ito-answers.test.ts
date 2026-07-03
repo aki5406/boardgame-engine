@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createItoAnswerStatusMessage,
+  createItoAnswerStatusReply,
   createItoAnswersThreadIntro,
   createItoAnswersThreadName
 } from "./ito-answers.js";
@@ -42,7 +43,6 @@ describe("createItoAnswerStatusMessage", () => {
       )
     ).toBe(
       "回答状況: 0 / 2\n" +
-        "\n" +
         "⬜ <@123456789>\n" +
         "⬜ <@987654321>\n" +
         "\n" +
@@ -60,7 +60,6 @@ describe("createItoAnswerStatusMessage", () => {
       )
     ).toBe(
       "回答状況: 1 / 2\n" +
-        "\n" +
         "⬜ <@123456789>\n" +
         "✅ <@987654321>\n" +
         "\n" +
@@ -79,7 +78,6 @@ describe("createItoAnswerStatusMessage", () => {
     ).toBe(
       "回答状況: 2 / 2\n" +
         "全員回答済みです。話し合いを始めましょう。\n" +
-        "\n" +
         "✅ <@123456789>\n" +
         "✅ <@987654321>\n" +
         "\n" +
@@ -90,11 +88,61 @@ describe("createItoAnswerStatusMessage", () => {
 
   it("does not treat zero players as all answered", () => {
     expect(createItoAnswerStatusMessage([], "https://discord.com/channels/guild/thread", [])).toBe(
-      "回答状況: 0 / 0\n" +
+      "回答状況: 0 / 0\n" + "\n" + "回答スレッド:\n" + "https://discord.com/channels/guild/thread"
+    );
+  });
+});
+
+describe("createItoAnswerStatusReply", () => {
+  it("does not include a discussion button while unanswered players remain", () => {
+    expect(
+      createItoAnswerStatusReply(
+        ["123456789", "987654321"],
+        "https://discord.com/channels/guild/thread",
+        ["123456789"]
+      )
+    ).toEqual({
+      content:
+        "回答状況: 1 / 2\n" +
+        "✅ <@123456789>\n" +
+        "⬜ <@987654321>\n" +
         "\n" +
+        "回答スレッド:\n" +
+        "https://discord.com/channels/guild/thread",
+      components: []
+    });
+  });
+
+  it("includes the existing discussion button when everyone has answered", () => {
+    const reply = createItoAnswerStatusReply(
+      ["123456789", "987654321"],
+      "https://discord.com/channels/guild/thread",
+      ["123456789", "987654321"]
+    );
+    const firstComponent = reply.components?.[0];
+    const serializedComponent =
+      firstComponent && "toJSON" in firstComponent ? firstComponent.toJSON() : firstComponent;
+
+    expect(reply.content).toBe(
+      "回答状況: 2 / 2\n" +
+        "全員回答済みです。話し合いを始めましょう。\n" +
+        "✅ <@123456789>\n" +
+        "✅ <@987654321>\n" +
         "\n" +
         "回答スレッド:\n" +
         "https://discord.com/channels/guild/thread"
     );
+    expect(reply.components).toHaveLength(1);
+    expect(serializedComponent).toEqual({
+      type: 1,
+      components: [
+        {
+          type: 2,
+          custom_id: "ito.discuss",
+          label: "Start Discussion",
+          style: 2
+        }
+      ]
+    });
   });
 });
