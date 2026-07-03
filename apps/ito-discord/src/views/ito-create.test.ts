@@ -108,6 +108,30 @@ describe("createItoDiscussionStartedReply", () => {
       components: [createItoRevealButtonRow()]
     });
   });
+
+  it("includes the answer thread url when provided", () => {
+    const reply = createItoDiscussionStartedReply(
+      "Favorite convenience store item",
+      3,
+      "https://discord.com/channels/guild/thread"
+    );
+
+    expect(reply).toEqual({
+      content:
+        "ITO discussion started.\n" +
+        "Theme:\n" +
+        "Favorite convenience store item\n" +
+        "Everyone, discuss without revealing your number.\n" +
+        "Players: 3\n" +
+        "回答スレッド:\n" +
+        "https://discord.com/channels/guild/thread\n" +
+        "Next:\n" +
+        "Use /ito status to check Player IDs.\n" +
+        'Use /ito submit order:"user-1,user-2,user-3"\n' +
+        "Then press Reveal Result.",
+      components: [createItoRevealButtonRow()]
+    });
+  });
 });
 
 describe("createItoSetupButtonRow", () => {

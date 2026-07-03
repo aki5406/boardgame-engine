@@ -535,7 +535,14 @@ async function handleItoDiscuss(
     return;
   }
 
-  await interaction.reply(createItoDiscussionStartedReply(result.theme, result.playerCount));
+  const answerTracking = input.sessionRegistry.getAnswerTracking(interaction.channelId);
+  const answerThreadUrl = answerTracking
+    ? createDiscordChannelUrl(interaction.guildId, answerTracking.answerThreadId)
+    : undefined;
+
+  await interaction.reply(
+    createItoDiscussionStartedReply(result.theme, result.playerCount, answerThreadUrl)
+  );
 }
 
 async function handleItoReveal(
