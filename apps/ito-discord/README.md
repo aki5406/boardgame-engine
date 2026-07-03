@@ -67,6 +67,30 @@ Notes:
 - `/ito submit` currently expects a comma-separated list of Discord user ids in the submitted order.
 - `/ito reveal` judges the submitted order and shows the revealed numbers with success or failure.
 
+## ITO v1 Gameplay
+
+1. Create a game.
+2. Players join.
+3. Press Start.
+4. Enter a theme.
+5. Press Assign & Deliver.
+6. Each player receives a number via DM.
+7. Each player posts an answer in the public answers thread.
+8. Wait until everyone has answered.
+9. Press Start Discussion.
+10. Discuss without revealing your numbers.
+11. Press Reveal Result.
+12. Compare numbers and answers together.
+
+### Current Behavior
+
+- Numbers are delivered via DM.
+- Answers are posted in a public answers thread.
+- Answer progress is shown in the status message.
+- A Start Discussion button appears when everyone has answered.
+- Reveal shows both numbers and answers.
+- Success / failure is judged by the players.
+
 ## Submit UX Notes
 
 The current `/ito submit` flow works for manual testing, but entering player ids by hand is still a rough Discord experience.
