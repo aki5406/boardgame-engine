@@ -7,7 +7,7 @@ import { createItoDiscordSessionRegistry } from "./session/index.js";
 
 export function createItoDiscordClient(): Client {
   const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
   });
   const engine = createItoEngine();
   const sessionRegistry = createItoDiscordSessionRegistry();

@@ -37,7 +37,10 @@ export type { SetItoDiscordThemeInput, SetItoDiscordThemeResult } from "./theme.
 export type { StartItoDiscordSessionInput, StartItoDiscordSessionResult } from "./start.js";
 export type { SubmitItoDiscordOrderInput, SubmitItoDiscordOrderResult } from "./submit.js";
 export type {
+  ItoDiscordAnswerTracking,
   ItoDiscordSession,
   ItoDiscordSessionRegistry,
-  RegisterItoDiscordSessionInput
+  MarkItoDiscordAnsweredPlayerInput,
+  RegisterItoDiscordSessionInput,
+  SetItoDiscordAnswerTrackingInput
 } from "./registry.js";
