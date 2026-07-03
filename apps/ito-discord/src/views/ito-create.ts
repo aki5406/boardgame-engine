@@ -175,9 +175,8 @@ export function createItoDiscussionStartedReply(
     content:
       `ITO discussion started.\nTheme:\n${theme}\n` +
       `Everyone, discuss without revealing your number.\nPlayers: ${playerCount}\n` +
-      (answerThreadUrl ? `回答スレッド:\n${answerThreadUrl}\n` : "") +
-      `Next:\nUse /ito status to check Player IDs.\n` +
-      `Use /ito submit order:"user-1,user-2,user-3"\nThen press Reveal Result.`,
+      (answerThreadUrl ? `回答スレッド:\n${answerThreadUrl}\n\n` : "\n") +
+      `Next:\nDiscuss using the answers thread.\nWhen everyone is ready, press Reveal Result.`,
     components: [createItoRevealButtonRow()]
   };
 }

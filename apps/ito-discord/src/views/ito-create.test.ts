@@ -2,31 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import {
   ITO_ASSIGN_BUTTON_CUSTOM_ID,
-  createItoAssignedReply,
-  createItoAssignedAndDeliveredReply,
-  createItoAssignButtonRow,
-  createItoAssignDeliverButtonRow,
-  createItoCreatedReply,
-  createItoDeliverButtonRow,
-  createItoDeliveredReply,
-  createItoDiscussionStartedReply,
-  createItoDiscussionButtonRow,
-  createItoProgressionButtonRow,
-  createItoRevealButtonRow,
-  createItoSetupButtonRow,
-  createItoStartedReply,
-  createItoThemeModal,
-  createItoThemeSetReply,
   ITO_ASSIGN_DELIVER_BUTTON_CUSTOM_ID,
   ITO_DISCUSS_BUTTON_CUSTOM_ID,
   ITO_DELIVER_BUTTON_CUSTOM_ID,
   ITO_JOIN_BUTTON_CUSTOM_ID,
-  ITO_THEME_MODAL_CUSTOM_ID,
-  ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
   ITO_REVEAL_BUTTON_CUSTOM_ID,
   ITO_START_BUTTON_CUSTOM_ID,
   ITO_THEME_BUTTON_CUSTOM_ID,
-  createItoThemeButtonRow
+  ITO_THEME_MODAL_CUSTOM_ID,
+  ITO_THEME_TOPIC_INPUT_CUSTOM_ID,
+  createItoAssignedAndDeliveredReply,
+  createItoAssignedReply,
+  createItoAssignButtonRow,
+  createItoAssignDeliverButtonRow,
+  createItoCreatedReply,
+  createItoDeliveredReply,
+  createItoDeliverButtonRow,
+  createItoDiscussionButtonRow,
+  createItoDiscussionStartedReply,
+  createItoProgressionButtonRow,
+  createItoRevealButtonRow,
+  createItoSetupButtonRow,
+  createItoStartedReply,
+  createItoThemeButtonRow,
+  createItoThemeModal,
+  createItoThemeSetReply
 } from "./ito-create.js";
 
 describe("createItoCreatedReply", () => {
@@ -91,7 +91,7 @@ describe("createItoDeliveredReply", () => {
 });
 
 describe("createItoDiscussionStartedReply", () => {
-  it("formats the discussion started reply with next-step guidance", () => {
+  it("formats the discussion started reply with reveal-focused guidance", () => {
     const reply = createItoDiscussionStartedReply("Favorite convenience store item", 3);
 
     expect(reply).toEqual({
@@ -101,10 +101,10 @@ describe("createItoDiscussionStartedReply", () => {
         "Favorite convenience store item\n" +
         "Everyone, discuss without revealing your number.\n" +
         "Players: 3\n" +
+        "\n" +
         "Next:\n" +
-        "Use /ito status to check Player IDs.\n" +
-        'Use /ito submit order:"user-1,user-2,user-3"\n' +
-        "Then press Reveal Result.",
+        "Discuss using the answers thread.\n" +
+        "When everyone is ready, press Reveal Result.",
       components: [createItoRevealButtonRow()]
     });
   });
@@ -125,10 +125,10 @@ describe("createItoDiscussionStartedReply", () => {
         "Players: 3\n" +
         "回答スレッド:\n" +
         "https://discord.com/channels/guild/thread\n" +
+        "\n" +
         "Next:\n" +
-        "Use /ito status to check Player IDs.\n" +
-        'Use /ito submit order:"user-1,user-2,user-3"\n' +
-        "Then press Reveal Result.",
+        "Discuss using the answers thread.\n" +
+        "When everyone is ready, press Reveal Result.",
       components: [createItoRevealButtonRow()]
     });
   });
