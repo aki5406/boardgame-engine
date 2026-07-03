@@ -41,6 +41,8 @@ pnpm --filter @boardgame/ito-discord start
 
 When startup succeeds, the bot logs in and waits for Discord interactions.
 
+To capture answer text posted in the public answers thread, enable Message Content Intent for the bot in the Discord Developer Portal as well.
+
 ## Basic ITO Flow
 
 Use the following commands in a Discord channel to manually test the current ITO flow:
