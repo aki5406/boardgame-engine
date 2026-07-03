@@ -85,7 +85,7 @@ describe("Just One game", () => {
     expect(nextSession).toBe(session);
   });
 
-  it("starts the game by switching the phase to hinting", () => {
+  it("starts the game by switching the phase to hinting and choosing a guesser", () => {
     const engine = createJustOneEngine();
     const session = createGame({
       engine,
@@ -95,13 +95,56 @@ describe("Just One game", () => {
 
     const nextSession = startGame({
       engine,
-      session
+      session,
+      random: () => 0
     });
 
     expect(nextSession.state).toEqual({
       phase: "hinting",
       players: ["player-1", "player-2"],
-      guesserId: null,
+      guesserId: "player-1",
+      secretWord: null
+    });
+  });
+
+  it("always chooses a guesser from joined players", () => {
+    const engine = createJustOneEngine();
+    const session = createGame({
+      engine,
+      id: "just-one-session-1",
+      playerIds: ["player-1", "player-2", "player-3"]
+    });
+
+    const nextSession = startGame({
+      engine,
+      session,
+      random: () => 0.6
+    });
+
+    expect(nextSession.state.phase).toBe("hinting");
+    expect(nextSession.state.guesserId).toBeDefined();
+    expect(nextSession.state.guesserId).not.toBeNull();
+    expect(["player-1", "player-2", "player-3"]).toContain(nextSession.state.guesserId);
+  });
+
+  it("supports deterministic guesser selection with injected random", () => {
+    const engine = createJustOneEngine();
+    const session = createGame({
+      engine,
+      id: "just-one-session-1",
+      playerIds: ["player-1", "player-2", "player-3"]
+    });
+
+    const nextSession = startGame({
+      engine,
+      session,
+      random: () => 0.99
+    });
+
+    expect(nextSession.state).toEqual({
+      phase: "hinting",
+      players: ["player-1", "player-2", "player-3"],
+      guesserId: "player-3",
       secretWord: null
     });
   });

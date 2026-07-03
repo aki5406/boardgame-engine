@@ -16,5 +16,6 @@ export {
   justOneInitialState,
   startGame
 } from "./game.js";
+export type { JustOneRandom } from "./game.js";
 export { justOneReducer, reduceJustOneState } from "./reducer.js";
 export type { JustOnePhase, JustOneState, PlayerId } from "./state.js";
