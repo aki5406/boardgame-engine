@@ -68,4 +68,33 @@ describe("createItoAnswerStatusMessage", () => {
         "https://discord.com/channels/guild/thread"
     );
   });
+
+  it("shows an all answered message when everyone has answered", () => {
+    expect(
+      createItoAnswerStatusMessage(
+        ["123456789", "987654321"],
+        "https://discord.com/channels/guild/thread",
+        ["123456789", "987654321"]
+      )
+    ).toBe(
+      "回答状況: 2 / 2\n" +
+        "全員回答済みです。話し合いを始めましょう。\n" +
+        "\n" +
+        "✅ <@123456789>\n" +
+        "✅ <@987654321>\n" +
+        "\n" +
+        "回答スレッド:\n" +
+        "https://discord.com/channels/guild/thread"
+    );
+  });
+
+  it("does not treat zero players as all answered", () => {
+    expect(createItoAnswerStatusMessage([], "https://discord.com/channels/guild/thread", [])).toBe(
+      "回答状況: 0 / 0\n" +
+        "\n" +
+        "\n" +
+        "回答スレッド:\n" +
+        "https://discord.com/channels/guild/thread"
+    );
+  });
 });
