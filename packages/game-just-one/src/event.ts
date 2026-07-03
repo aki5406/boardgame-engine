@@ -11,6 +11,7 @@ export type JustOnePlayerJoinedEvent = EngineEvent &
 export type JustOneGameStartedEvent = EngineEvent &
   Readonly<{
     type: "just-one.gameStarted";
+    guesserId: PlayerId;
   }>;
 
 export type JustOneEvent = JustOnePlayerJoinedEvent | JustOneGameStartedEvent;

@@ -21,7 +21,8 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
     case "just-one.gameStarted":
       return {
         ...state,
-        phase: "hinting"
+        phase: "hinting",
+        guesserId: event.guesserId
       };
 
     default:
