@@ -19,3 +19,4 @@ export {
 export type { JustOneRandom } from "./game.js";
 export { justOneReducer, reduceJustOneState } from "./reducer.js";
 export type { JustOnePhase, JustOneState, PlayerId } from "./state.js";
+export { defaultWords } from "./words.js";

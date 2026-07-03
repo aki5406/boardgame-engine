@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createGame,
   createJustOneEngine,
+  defaultWords,
   joinGame,
   justOneGame,
   justOneInitialState,
@@ -96,14 +97,14 @@ describe("Just One game", () => {
     const nextSession = startGame({
       engine,
       session,
-      random: () => 0
+      random: createSequenceRandom([0, 0])
     });
 
     expect(nextSession.state).toEqual({
       phase: "hinting",
       players: ["player-1", "player-2"],
       guesserId: "player-1",
-      secretWord: null
+      secretWord: "Apple"
     });
   });
 
@@ -118,16 +119,18 @@ describe("Just One game", () => {
     const nextSession = startGame({
       engine,
       session,
-      random: () => 0.6
+      random: createSequenceRandom([0.6, 0.2])
     });
 
     expect(nextSession.state.phase).toBe("hinting");
     expect(nextSession.state.guesserId).toBeDefined();
     expect(nextSession.state.guesserId).not.toBeNull();
     expect(["player-1", "player-2", "player-3"]).toContain(nextSession.state.guesserId);
+    expect(nextSession.state.secretWord).not.toBeNull();
+    expect(defaultWords).toContain(nextSession.state.secretWord as (typeof defaultWords)[number]);
   });
 
-  it("supports deterministic guesser selection with injected random", () => {
+  it("supports deterministic guesser and secret word selection with injected random", () => {
     const engine = createJustOneEngine();
     const session = createGame({
       engine,
@@ -138,14 +141,29 @@ describe("Just One game", () => {
     const nextSession = startGame({
       engine,
       session,
-      random: () => 0.99
+      random: createSequenceRandom([0.99, 0.8])
     });
 
     expect(nextSession.state).toEqual({
       phase: "hinting",
       players: ["player-1", "player-2", "player-3"],
       guesserId: "player-3",
-      secretWord: null
+      secretWord: "Coffee"
     });
   });
 });
+
+function createSequenceRandom(values: readonly number[]): () => number {
+  let index = 0;
+
+  return () => {
+    const value = values[index];
+
+    if (value === undefined) {
+      throw new Error("Missing random value for test");
+    }
+
+    index += 1;
+    return value;
+  };
+}

@@ -12,6 +12,7 @@ export type JustOneGameStartedEvent = EngineEvent &
   Readonly<{
     type: "just-one.gameStarted";
     guesserId: PlayerId;
+    secretWord: string;
   }>;
 
 export type JustOneEvent = JustOnePlayerJoinedEvent | JustOneGameStartedEvent;

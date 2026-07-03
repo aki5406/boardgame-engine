@@ -9,6 +9,7 @@ import {
 import type { JustOneEvent } from "./event.js";
 import { justOneReducer } from "./reducer.js";
 import type { PlayerId, JustOneState } from "./state.js";
+import { defaultWords } from "./words.js";
 
 export type JustOneRandom = () => number;
 
@@ -40,6 +41,7 @@ export interface StartGameInput {
   readonly engine: Engine;
   readonly session: EngineGameSession;
   readonly random?: JustOneRandom;
+  readonly words?: readonly string[];
 }
 
 export function createJustOneEngine(): Engine {
@@ -81,10 +83,13 @@ export function joinGame(input: JoinGameInput): EngineGameSession {
 }
 
 export function startGame(input: StartGameInput): EngineGameSession {
-  const guesserId = chooseRandomGuesserId(input.session.players, input.random ?? Math.random);
+  const random = input.random ?? Math.random;
+  const guesserId = chooseRandomGuesserId(input.session.players, random);
+  const secretWord = chooseRandomWord(input.words ?? defaultWords, random);
   const event: JustOneEvent = {
     type: "just-one.gameStarted",
-    guesserId
+    guesserId,
+    secretWord
   };
 
   return input.engine.applyEvent({
@@ -98,18 +103,32 @@ function toEnginePlayers(playerIds: readonly PlayerId[]): readonly EnginePlayer[
 }
 
 function chooseRandomGuesserId(players: readonly EnginePlayer[], random: JustOneRandom): PlayerId {
-  const playerCount = players.length;
-
-  if (playerCount === 0) {
+  if (players.length === 0) {
     throw new Error("Cannot start Just One without players");
   }
-
-  const index = Math.min(Math.floor(random() * playerCount), playerCount - 1);
-  const guesser = players[index];
+  const guesser = players[chooseRandomIndex(players.length, random)];
 
   if (!guesser) {
     throw new Error("Failed to choose a Just One guesser");
   }
 
   return guesser.id;
+}
+
+function chooseRandomWord(words: readonly string[], random: JustOneRandom): string {
+  if (words.length === 0) {
+    throw new Error("Cannot start Just One without secret words");
+  }
+
+  const secretWord = words[chooseRandomIndex(words.length, random)];
+
+  if (!secretWord) {
+    throw new Error("Failed to choose a Just One secret word");
+  }
+
+  return secretWord;
+}
+
+function chooseRandomIndex(length: number, random: JustOneRandom): number {
+  return Math.min(Math.floor(random() * length), length - 1);
 }
