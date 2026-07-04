@@ -26,12 +26,15 @@ Each Hint Player has exactly one private thread.
 Example
 
 Player A
+
 - Private Thread
 
 Player B
+
 - Private Thread
 
 Player C
+
 - Private Thread
 
 The Guesser does not receive a hint thread.
