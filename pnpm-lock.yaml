@@ -44,6 +44,15 @@ importers:
         specifier: ^14.26.4
         version: 14.26.4
 
+  apps/just-one-discord:
+    dependencies:
+      "@boardgame/game-just-one":
+        specifier: workspace:*
+        version: link:../../packages/game-just-one
+      discord.js:
+        specifier: ^14.26.4
+        version: 14.26.4
+
   packages/counter-sample:
     dependencies:
       "@boardgame/engine":

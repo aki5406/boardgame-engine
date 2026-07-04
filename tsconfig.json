@@ -8,6 +8,7 @@
     { "path": "./packages/game-just-one" },
     { "path": "./apps/ito-cli" },
     { "path": "./apps/ito-discord" },
+    { "path": "./apps/just-one-discord" },
     { "path": "./scripts/bea-reviewer" }
   ]
 }
