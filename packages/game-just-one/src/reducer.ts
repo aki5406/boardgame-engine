@@ -22,7 +22,8 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
       return {
         ...state,
         phase: "hinting",
-        guesserId: event.guesserId
+        guesserId: event.guesserId,
+        secretWord: event.secretWord
       };
 
     default:
