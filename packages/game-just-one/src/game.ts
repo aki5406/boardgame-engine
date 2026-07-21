@@ -17,7 +17,8 @@ export const justOneInitialState: JustOneState = {
   phase: "waiting",
   players: [],
   guesserId: null,
-  secretWord: null
+  secretWord: null,
+  hintsByPlayerId: {}
 };
 
 export const justOneGame: EngineGame = {
@@ -42,6 +43,21 @@ export interface StartGameInput {
   readonly session: EngineGameSession;
   readonly random?: JustOneRandom;
   readonly words?: readonly string[];
+}
+
+export type SubmitHintResult =
+  | Readonly<{ status: "submitted"; session: EngineGameSession }>
+  | Readonly<{ status: "updated"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "notPlayer" }>
+  | Readonly<{ status: "guesserCannotSubmit" }>
+  | Readonly<{ status: "emptyHint" }>;
+
+export interface SubmitHintInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly playerId: PlayerId;
+  readonly hint: string;
 }
 
 export function createJustOneEngine(): Engine {
@@ -96,6 +112,43 @@ export function startGame(input: StartGameInput): EngineGameSession {
     session: input.session,
     event
   });
+}
+
+export function submitHint(input: SubmitHintInput): SubmitHintResult {
+  const state = input.session.state as JustOneState;
+  const normalizedHint = input.hint.trim();
+
+  if (state.phase !== "hinting") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!input.session.players.some((player) => player.id === input.playerId)) {
+    return { status: "notPlayer" };
+  }
+
+  if (state.guesserId === input.playerId) {
+    return { status: "guesserCannotSubmit" };
+  }
+
+  if (normalizedHint.length === 0) {
+    return { status: "emptyHint" };
+  }
+
+  const hadHint = state.hintsByPlayerId[input.playerId] !== undefined;
+  const event: JustOneEvent = {
+    type: "just-one.hintSubmitted",
+    playerId: input.playerId,
+    hint: normalizedHint
+  };
+  const nextSession = input.engine.applyEvent({
+    session: input.session,
+    event
+  });
+
+  return {
+    status: hadHint ? "updated" : "submitted",
+    session: nextSession
+  };
 }
 
 function toEnginePlayers(playerIds: readonly PlayerId[]): readonly EnginePlayer[] {

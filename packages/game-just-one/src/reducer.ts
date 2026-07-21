@@ -23,7 +23,17 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         ...state,
         phase: "hinting",
         guesserId: event.guesserId,
-        secretWord: event.secretWord
+        secretWord: event.secretWord,
+        hintsByPlayerId: {}
+      };
+
+    case "just-one.hintSubmitted":
+      return {
+        ...state,
+        hintsByPlayerId: {
+          ...state.hintsByPlayerId,
+          [event.playerId]: event.hint
+        }
       };
 
     default:

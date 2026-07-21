@@ -17,6 +17,11 @@ export {
   type CreateJustOnePrivateHintThreadsResult
 } from "./private-threads.js";
 export {
+  submitJustOneHintFromThread,
+  type SubmitJustOneHintFromThreadInput,
+  type SubmitJustOneHintFromThreadResult
+} from "./hint.js";
+export {
   createJustOneDiscordSessionRegistry,
   type JustOneDiscordHintThread,
   type JustOneDiscordSession,

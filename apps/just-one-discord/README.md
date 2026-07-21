@@ -14,6 +14,12 @@ Each thread contains the secret word and the input instructions for that player 
 - Manage Threads
 - Read Message History
 
+### Required Gateway Intents
+
+- Guilds
+- GuildMessages
+- MessageContent
+
 ### Limitations
 
 - Private threads can only be created in regular guild text channels
