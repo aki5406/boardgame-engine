@@ -7,11 +7,7 @@ import { createJustOneDiscordSessionRegistry } from "./session/index.js";
 
 export function createJustOneDiscordClient(): Client {
   const client = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent
-    ]
+    intents: [GatewayIntentBits.Guilds]
   });
   const engine = createJustOneEngine();
   const sessionRegistry = createJustOneDiscordSessionRegistry();

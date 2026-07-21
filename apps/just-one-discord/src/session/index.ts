@@ -5,17 +5,20 @@ export {
   type CreateJustOneDiscordSessionResult
 } from "./create.js";
 export {
-  deliverJustOneRoles,
-  type DeliverJustOneRolesInput,
-  type SendJustOneDirectMessageInput
-} from "./deliver-roles.js";
-export {
   joinJustOneDiscordSessionForChannel,
   type JoinJustOneDiscordSessionInput,
   type JoinJustOneDiscordSessionResult
 } from "./join.js";
 export {
+  createJustOnePrivateHintThreads,
+  type CreateJustOnePrivateHintThreadInput,
+  type CreateJustOnePrivateHintThreadResult,
+  type CreateJustOnePrivateHintThreadsInput,
+  type CreateJustOnePrivateHintThreadsResult
+} from "./private-threads.js";
+export {
   createJustOneDiscordSessionRegistry,
+  type JustOneDiscordHintThread,
   type JustOneDiscordSession,
   type JustOneDiscordSessionRegistry
 } from "./registry.js";

@@ -1,20 +1,12 @@
-export function createJustOneGuesserRoleMessage(): string {
-  return [
-    "You are the Guesser.",
-    "",
-    "Wait for hints from the other players.",
-    "Do not look at the secret word."
-  ].join("\n");
-}
-
-export function createJustOneHintPlayerRoleMessage(secretWord: string): string {
+export function createJustOneHintPlayerThreadIntro(secretWord: string): string {
   return [
     "You are a Hint Player.",
     "",
     "Secret Word:",
     secretWord,
     "",
-    "Submit one hint without using the secret word itself."
+    "Reply with exactly one hint.",
+    "Do not use the secret word itself."
   ].join("\n");
 }
 
@@ -25,6 +17,28 @@ export function createJustOneStartedReply(guesserId: string, hintPlayerCount: nu
     `Guesser: <@${guesserId}>`,
     `Hint players: ${hintPlayerCount}`,
     "",
-    "Roles have been sent by DM."
+    "Private hint threads have been created."
   ].join("\n");
+}
+
+export function createJustOneStartPartialFailureReply(
+  guesserId: string,
+  hintPlayerCount: number,
+  createdCount: number,
+  failedCount: number
+): string {
+  return [
+    "Just One started, but failed to create one or more private hint threads.",
+    "",
+    `Guesser: <@${guesserId}>`,
+    `Hint players: ${hintPlayerCount}`,
+    `Threads created: ${createdCount}`,
+    `Threads failed: ${failedCount}`
+  ].join("\n");
+}
+
+export function createJustOneHintThreadName(playerId: string): string {
+  const suffix = playerId.slice(-4);
+
+  return `just-one-hint-${suffix}`;
 }

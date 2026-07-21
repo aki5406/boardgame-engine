@@ -2,7 +2,6 @@ import type {
   ChatInputCommandInteraction,
   Client,
   GuildTextBasedChannel,
-  Message,
   PrivateThreadChannel
 } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
@@ -11,21 +10,18 @@ import type { Engine } from "@boardgame/game-just-one";
 
 import {
   createJustOneDiscordSessionForChannel,
-  deliverJustOneRoles,
   joinJustOneDiscordSessionForChannel,
+  createJustOnePrivateHintThreads,
   startJustOneDiscordSession,
   type JustOneDiscordSessionRegistry
 } from "../session/index.js";
 import {
-  createJustOnePrivateThreadPocRegistry,
-  type JustOnePrivateThreadPocRegistry
-} from "../poc/registry.js";
-import { createJustOneStartedReply } from "../views/just-one-start.js";
-import {
-  JUST_ONE_PRIVATE_THREAD_POC_DEFAULT_SECRET_WORD,
-  createJustOnePrivateThreadPocIntro,
-  createJustOnePrivateThreadPocReply
-} from "../views/just-one-private-thread-poc.js";
+  createJustOneHintPlayerThreadIntro,
+  createJustOneHintThreadName,
+  createJustOneStartPartialFailureReply,
+  createJustOneStartedReply
+} from "../views/just-one-start.js";
+import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
   readonly engine: Engine;
@@ -36,8 +32,6 @@ export function registerJustOneInteractionHandlers(
   client: Client,
   input: RegisterJustOneInteractionHandlersInput
 ): void {
-  const privateThreadPocRegistry = createJustOnePrivateThreadPocRegistry();
-
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) {
       return;
@@ -47,18 +41,13 @@ export function registerJustOneInteractionHandlers(
       return;
     }
 
-    await handleJustOneCommand(interaction, input, privateThreadPocRegistry);
-  });
-
-  client.on(Events.MessageCreate, async (message) => {
-    await handleJustOnePrivateThreadPocReplyMessage(message, privateThreadPocRegistry);
+    await handleJustOneCommand(interaction, input);
   });
 }
 
 async function handleJustOneCommand(
   interaction: ChatInputCommandInteraction,
-  input: RegisterJustOneInteractionHandlersInput,
-  privateThreadPocRegistry: JustOnePrivateThreadPocRegistry
+  input: RegisterJustOneInteractionHandlersInput
 ): Promise<void> {
   const subcommand = interaction.options.getSubcommand(true);
 
@@ -103,6 +92,7 @@ async function handleJustOneCommand(
   }
 
   if (subcommand === "start") {
+    const channel = interaction.channel;
     const result = startJustOneDiscordSession({
       channelId: interaction.channelId,
       engine: input.engine,
@@ -123,86 +113,54 @@ async function handleJustOneCommand(
       return;
     }
 
-    try {
-      await deliverJustOneRoles({
-        session: result.session,
-        sendDirectMessage: async ({ playerId, message }) => {
-          const user = await interaction.client.users.fetch(playerId);
-          await user.send(message);
-        }
-      });
-    } catch {
-      await interaction.reply("Just One started, but failed to send one or more role DMs.");
+    if (!channel || !hasPrivateThreadCreation(channel)) {
+      await interaction.reply(
+        "Just One start requires a regular guild text channel that supports private threads."
+      );
+      return;
+    }
+
+    const threadResult = await createJustOnePrivateHintThreads({
+      channelId: interaction.channelId,
+      session: result.session,
+      registry: input.sessionRegistry,
+      createThreadName: ({ playerId }) => createJustOneHintThreadName(playerId),
+      createPrivateHintThread: async ({
+        playerId,
+        secretWord,
+        threadName
+      }): Promise<CreateJustOnePrivateHintThreadResult> => {
+        const thread = await channel.threads.create({
+          name: threadName,
+          autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+          type: ChannelType.PrivateThread,
+          invitable: false
+        });
+
+        await thread.members.add(playerId);
+        await thread.send(createJustOneHintPlayerThreadIntro(secretWord));
+
+        return {
+          threadId: thread.id
+        };
+      }
+    });
+
+    if (threadResult.status === "partialFailure") {
+      await interaction.reply(
+        createJustOneStartPartialFailureReply(
+          result.guesserId,
+          result.hintPlayerCount,
+          threadResult.createdCount,
+          threadResult.failedCount
+        )
+      );
       return;
     }
 
     await interaction.reply(createJustOneStartedReply(result.guesserId, result.hintPlayerCount));
     return;
   }
-
-  if (subcommand === "thread-poc") {
-    const player = interaction.options.getUser("player", true);
-    const secretWord =
-      interaction.options.getString("word", false) ??
-      JUST_ONE_PRIVATE_THREAD_POC_DEFAULT_SECRET_WORD;
-    const channel = interaction.channel;
-
-    if (!channel || !hasPrivateThreadCreation(channel)) {
-      await interaction.reply(
-        "Private thread PoC only works in a regular guild text channel that supports private threads."
-      );
-      return;
-    }
-
-    const thread = await channel.threads.create({
-      name: `just-one-hint-${player.username}`,
-      autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
-      type: ChannelType.PrivateThread,
-      invitable: false
-    });
-
-    await thread.members.add(player.id);
-    await thread.send(createJustOnePrivateThreadPocIntro(secretWord));
-
-    privateThreadPocRegistry.track({
-      threadId: thread.id,
-      parentChannelId: interaction.channelId,
-      invitedPlayerId: player.id,
-      secretWord
-    });
-
-    await interaction.reply(createJustOnePrivateThreadPocReply(thread.id, player.id));
-  }
-}
-
-async function handleJustOnePrivateThreadPocReplyMessage(
-  message: Message,
-  privateThreadPocRegistry: JustOnePrivateThreadPocRegistry
-): Promise<void> {
-  if (message.author.bot || !message.channel.isThread()) {
-    return;
-  }
-
-  const entry = privateThreadPocRegistry.get(message.channel.id);
-
-  if (!entry) {
-    return;
-  }
-
-  privateThreadPocRegistry.recordReply({
-    threadId: message.channel.id,
-    content: message.content,
-    authorId: message.author.id
-  });
-
-  console.log(
-    JSON.stringify({
-      type: "just-one.private-thread-poc.reply",
-      threadId: message.channel.id,
-      authorId: message.author.id,
-      content: message.content
-    })
-  );
 }
 
 function hasPrivateThreadCreation(
