@@ -8,6 +8,7 @@ import {
   justOneGame,
   justOneInitialState,
   reduceJustOneState,
+  submitHint,
   startGame
 } from "./index.js";
 
@@ -17,7 +18,8 @@ describe("Just One game", () => {
       phase: "waiting",
       players: [],
       guesserId: null,
-      secretWord: null
+      secretWord: null,
+      hintsByPlayerId: {}
     });
   });
 
@@ -31,7 +33,8 @@ describe("Just One game", () => {
       phase: "waiting",
       players: ["player-1"],
       guesserId: null,
-      secretWord: null
+      secretWord: null,
+      hintsByPlayerId: {}
     });
   });
 
@@ -65,7 +68,8 @@ describe("Just One game", () => {
       phase: "waiting",
       players: ["player-1"],
       guesserId: null,
-      secretWord: null
+      secretWord: null,
+      hintsByPlayerId: {}
     });
   });
 
@@ -104,7 +108,8 @@ describe("Just One game", () => {
       phase: "hinting",
       players: ["player-1", "player-2"],
       guesserId: "player-1",
-      secretWord: "Apple"
+      secretWord: "Apple",
+      hintsByPlayerId: {}
     });
   });
 
@@ -148,8 +153,165 @@ describe("Just One game", () => {
       phase: "hinting",
       players: ["player-1", "player-2", "player-3"],
       guesserId: "player-3",
-      secretWord: "Coffee"
+      secretWord: "Coffee",
+      hintsByPlayerId: {}
     });
+  });
+
+  it("stores a hint from a hint player", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+
+    const result = submitHint({
+      engine,
+      session,
+      playerId: "player-2",
+      hint: "  red fruit  "
+    });
+
+    expect(result).toEqual({
+      status: "submitted",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          hintsByPlayerId: {
+            "player-2": "red fruit"
+          }
+        })
+      })
+    });
+  });
+
+  it("overwrites the hint when the same player submits again", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+    const firstResult = submitHint({
+      engine,
+      session,
+      playerId: "player-2",
+      hint: "fruit"
+    });
+
+    if (firstResult.status !== "submitted") {
+      throw new Error("Expected first hint submission to succeed");
+    }
+
+    const secondResult = submitHint({
+      engine,
+      session: firstResult.session,
+      playerId: "player-2",
+      hint: "red"
+    });
+
+    expect(secondResult).toEqual({
+      status: "updated",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          hintsByPlayerId: {
+            "player-2": "red"
+          }
+        })
+      })
+    });
+  });
+
+  it("rejects guesser hint submissions", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+
+    expect(
+      submitHint({
+        engine,
+        session,
+        playerId: "player-1",
+        hint: "fruit"
+      })
+    ).toEqual({ status: "guesserCannotSubmit" });
+  });
+
+  it("rejects hints from players who have not joined", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+
+    expect(
+      submitHint({
+        engine,
+        session,
+        playerId: "player-3",
+        hint: "fruit"
+      })
+    ).toEqual({ status: "notPlayer" });
+  });
+
+  it("rejects hints outside the hinting phase", () => {
+    const engine = createJustOneEngine();
+    const session = createGame({
+      engine,
+      id: "just-one-session-1",
+      playerIds: ["player-1", "player-2"]
+    });
+
+    expect(
+      submitHint({
+        engine,
+        session,
+        playerId: "player-2",
+        hint: "fruit"
+      })
+    ).toEqual({ status: "invalidPhase" });
+  });
+
+  it("rejects empty hints", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+
+    expect(
+      submitHint({
+        engine,
+        session,
+        playerId: "player-2",
+        hint: "   "
+      })
+    ).toEqual({ status: "emptyHint" });
   });
 });
 

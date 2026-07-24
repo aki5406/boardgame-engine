@@ -87,7 +87,8 @@ describe("startJustOneDiscordSession", () => {
       phase: "hinting",
       players: ["user-1", "user-2"],
       guesserId: "user-1",
-      secretWord: "Train"
+      secretWord: "Train",
+      hintsByPlayerId: {}
     });
   });
 });

@@ -15,4 +15,14 @@ export type JustOneGameStartedEvent = EngineEvent &
     secretWord: string;
   }>;
 
-export type JustOneEvent = JustOnePlayerJoinedEvent | JustOneGameStartedEvent;
+export type JustOneHintSubmittedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.hintSubmitted";
+    playerId: PlayerId;
+    hint: string;
+  }>;
+
+export type JustOneEvent =
+  | JustOnePlayerJoinedEvent
+  | JustOneGameStartedEvent
+  | JustOneHintSubmittedEvent;

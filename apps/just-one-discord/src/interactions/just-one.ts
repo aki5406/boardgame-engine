@@ -2,6 +2,7 @@ import type {
   ChatInputCommandInteraction,
   Client,
   GuildTextBasedChannel,
+  Message,
   PrivateThreadChannel
 } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
@@ -13,6 +14,7 @@ import {
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
   startJustOneDiscordSession,
+  submitJustOneHintFromThread,
   type JustOneDiscordSessionRegistry
 } from "../session/index.js";
 import {
@@ -21,6 +23,7 @@ import {
   createJustOneStartPartialFailureReply,
   createJustOneStartedReply
 } from "../views/just-one-start.js";
+import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
 import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
@@ -42,6 +45,10 @@ export function registerJustOneInteractionHandlers(
     }
 
     await handleJustOneCommand(interaction, input);
+  });
+
+  client.on(Events.MessageCreate, async (message) => {
+    await handleJustOneThreadMessage(message, input);
   });
 }
 
@@ -160,6 +167,33 @@ async function handleJustOneCommand(
 
     await interaction.reply(createJustOneStartedReply(result.guesserId, result.hintPlayerCount));
     return;
+  }
+}
+
+async function handleJustOneThreadMessage(
+  message: Message,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  if (!message.channel.isThread()) {
+    return;
+  }
+
+  const result = submitJustOneHintFromThread({
+    threadId: message.channel.id,
+    authorId: message.author.id,
+    authorIsBot: message.author.bot,
+    content: message.content,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "submitted") {
+    await message.channel.send(createJustOneHintConfirmationReply(result.status));
+    return;
+  }
+
+  if (result.status === "updated") {
+    await message.channel.send(createJustOneHintConfirmationReply(result.status));
   }
 }
 
