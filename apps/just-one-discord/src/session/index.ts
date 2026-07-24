@@ -22,8 +22,14 @@ export {
   type SubmitJustOneHintFromThreadResult
 } from "./hint.js";
 export {
+  updateJustOneHintProgress,
+  type UpdateJustOneHintProgressInput,
+  type UpdateJustOneHintProgressResult
+} from "./hint-progress.js";
+export {
   createJustOneDiscordSessionRegistry,
   type JustOneDiscordHintThread,
+  type JustOneDiscordHintProgressMessage,
   type JustOneDiscordSession,
   type JustOneDiscordSessionRegistry
 } from "./registry.js";

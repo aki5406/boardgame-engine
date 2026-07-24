@@ -4,6 +4,7 @@ import {
   createGame,
   createJustOneEngine,
   defaultWords,
+  getHintSubmissionProgress,
   joinGame,
   justOneGame,
   justOneInitialState,
@@ -11,6 +12,7 @@ import {
   submitHint,
   startGame
 } from "./index.js";
+import type { JustOneState } from "./state.js";
 
 describe("Just One game", () => {
   it("provides the minimal initial state", () => {
@@ -312,6 +314,102 @@ describe("Just One game", () => {
         hint: "   "
       })
     ).toEqual({ status: "emptyHint" });
+  });
+
+  it("derives hint submission progress without counting the guesser", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2", "player-3"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+    const firstResult = submitHint({
+      engine,
+      session,
+      playerId: "player-2",
+      hint: "fruit"
+    });
+
+    if (firstResult.status !== "submitted") {
+      throw new Error("Expected hint submission to succeed");
+    }
+
+    expect(getHintSubmissionProgress(firstResult.session.state as JustOneState)).toEqual({
+      submittedCount: 1,
+      totalCount: 2,
+      allSubmitted: false
+    });
+  });
+
+  it("keeps the submission count stable when a hint is updated", () => {
+    const engine = createJustOneEngine();
+    const session = startGame({
+      engine,
+      session: createGame({
+        engine,
+        id: "just-one-session-1",
+        playerIds: ["player-1", "player-2"]
+      }),
+      random: createSequenceRandom([0, 0])
+    });
+    const firstResult = submitHint({
+      engine,
+      session,
+      playerId: "player-2",
+      hint: "fruit"
+    });
+
+    if (firstResult.status !== "submitted") {
+      throw new Error("Expected hint submission to succeed");
+    }
+
+    const updatedResult = submitHint({
+      engine,
+      session: firstResult.session,
+      playerId: "player-2",
+      hint: "red"
+    });
+
+    if (updatedResult.status !== "updated") {
+      throw new Error("Expected hint update to succeed");
+    }
+
+    expect(getHintSubmissionProgress(updatedResult.session.state as JustOneState)).toEqual({
+      submittedCount: 1,
+      totalCount: 1,
+      allSubmitted: true
+    });
+  });
+
+  it("reports allSubmitted only when every hint player has submitted", () => {
+    expect(
+      getHintSubmissionProgress({
+        phase: "hinting",
+        players: ["player-1", "player-2", "player-3"],
+        guesserId: "player-1",
+        secretWord: "Apple",
+        hintsByPlayerId: {
+          "player-2": "fruit",
+          "player-3": "red"
+        }
+      })
+    ).toEqual({
+      submittedCount: 2,
+      totalCount: 2,
+      allSubmitted: true
+    });
+  });
+
+  it("does not report an empty game as all submitted", () => {
+    expect(getHintSubmissionProgress(justOneInitialState)).toEqual({
+      submittedCount: 0,
+      totalCount: 0,
+      allSubmitted: false
+    });
   });
 });
 
