@@ -7,7 +7,7 @@ import type {
 } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
-import type { Engine } from "@boardgame/game-just-one";
+import { getHintSubmissionProgress, type Engine } from "@boardgame/game-just-one";
 
 import {
   createJustOneDiscordSessionForChannel,
@@ -15,6 +15,8 @@ import {
   createJustOnePrivateHintThreads,
   startJustOneDiscordSession,
   submitJustOneHintFromThread,
+  updateJustOneHintProgress,
+  getJustOneState,
   type JustOneDiscordSessionRegistry
 } from "../session/index.js";
 import {
@@ -24,6 +26,7 @@ import {
   createJustOneStartedReply
 } from "../views/just-one-start.js";
 import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
+import { createJustOneHintProgressMessage } from "../views/just-one-hint-progress.js";
 import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
@@ -166,6 +169,18 @@ async function handleJustOneCommand(
     }
 
     await interaction.reply(createJustOneStartedReply(result.guesserId, result.hintPlayerCount));
+
+    const progressMessage = await interaction.followUp({
+      content: createJustOneHintProgressMessage(
+        getHintSubmissionProgress(getJustOneState(result.session))
+      ),
+      fetchReply: true
+    });
+    input.sessionRegistry.registerHintProgressMessage({
+      channelId: interaction.channelId,
+      sessionId: result.session.id,
+      messageId: progressMessage.id
+    });
     return;
   }
 }
@@ -189,11 +204,43 @@ async function handleJustOneThreadMessage(
 
   if (result.status === "submitted") {
     await message.channel.send(createJustOneHintConfirmationReply(result.status));
+    await updateHintProgressMessage(message, input);
     return;
   }
 
   if (result.status === "updated") {
     await message.channel.send(createJustOneHintConfirmationReply(result.status));
+    await updateHintProgressMessage(message, input);
+  }
+}
+
+async function updateHintProgressMessage(
+  message: Message,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const hintThread = input.sessionRegistry.getHintThread(message.channel.id);
+
+  if (!hintThread) {
+    return;
+  }
+
+  try {
+    await updateJustOneHintProgress({
+      channelId: hintThread.channelId,
+      registry: input.sessionRegistry,
+      editProgressMessage: async ({ messageId, content }) => {
+        const channel = await message.client.channels.fetch(hintThread.channelId);
+
+        if (!channel?.isTextBased()) {
+          throw new Error("Just One progress channel is unavailable");
+        }
+
+        const progressMessage = await channel.messages.fetch(messageId);
+        await progressMessage.edit(content);
+      }
+    });
+  } catch {
+    console.error("Failed to update Just One hint progress message.");
   }
 }
 

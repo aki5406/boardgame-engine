@@ -11,6 +11,12 @@ export interface JustOneDiscordHintThread {
   readonly playerId: string;
 }
 
+export interface JustOneDiscordHintProgressMessage {
+  readonly channelId: string;
+  readonly sessionId: string;
+  readonly messageId: string;
+}
+
 export interface JustOneDiscordSessionRegistry {
   readonly register: (input: RegisterJustOneDiscordSessionInput) => void;
   readonly get: (channelId: string) => JustOneDiscordSession | undefined;
@@ -19,6 +25,10 @@ export interface JustOneDiscordSessionRegistry {
   readonly registerHintThread: (thread: JustOneDiscordHintThread) => void;
   readonly getHintThread: (threadId: string) => JustOneDiscordHintThread | undefined;
   readonly listHintThreadsByChannelId: (channelId: string) => readonly JustOneDiscordHintThread[];
+  readonly registerHintProgressMessage: (message: JustOneDiscordHintProgressMessage) => void;
+  readonly getHintProgressMessage: (
+    channelId: string
+  ) => JustOneDiscordHintProgressMessage | undefined;
 }
 
 export interface RegisterJustOneDiscordSessionInput {
@@ -29,6 +39,7 @@ export interface RegisterJustOneDiscordSessionInput {
 export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegistry {
   const sessionsByChannelId = new Map<string, JustOneDiscordSession>();
   const hintThreadsByThreadId = new Map<string, JustOneDiscordHintThread>();
+  const hintProgressMessagesByChannelId = new Map<string, JustOneDiscordHintProgressMessage>();
 
   return {
     register(input) {
@@ -45,6 +56,8 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
           hintThreadsByThreadId.delete(threadId);
         }
       }
+
+      hintProgressMessagesByChannelId.delete(channelId);
 
       return sessionsByChannelId.delete(channelId);
     },
@@ -63,6 +76,14 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
 
     listHintThreadsByChannelId(channelId) {
       return [...hintThreadsByThreadId.values()].filter((thread) => thread.channelId === channelId);
+    },
+
+    registerHintProgressMessage(message) {
+      hintProgressMessagesByChannelId.set(message.channelId, message);
+    },
+
+    getHintProgressMessage(channelId) {
+      return hintProgressMessagesByChannelId.get(channelId);
     }
   };
 }

@@ -60,6 +60,12 @@ export interface SubmitHintInput {
   readonly hint: string;
 }
 
+export interface HintSubmissionProgress {
+  readonly submittedCount: number;
+  readonly totalCount: number;
+  readonly allSubmitted: boolean;
+}
+
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
 }
@@ -148,6 +154,20 @@ export function submitHint(input: SubmitHintInput): SubmitHintResult {
   return {
     status: hadHint ? "updated" : "submitted",
     session: nextSession
+  };
+}
+
+export function getHintSubmissionProgress(state: JustOneState): HintSubmissionProgress {
+  const hintPlayerIds = state.players.filter((playerId) => playerId !== state.guesserId);
+  const submittedCount = hintPlayerIds.filter(
+    (playerId) => state.hintsByPlayerId[playerId] !== undefined
+  ).length;
+  const totalCount = hintPlayerIds.length;
+
+  return {
+    submittedCount,
+    totalCount,
+    allSubmitted: totalCount > 0 && submittedCount === totalCount
   };
 }
 
