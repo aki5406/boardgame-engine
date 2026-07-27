@@ -17,6 +17,12 @@ export interface JustOneDiscordHintProgressMessage {
   readonly messageId: string;
 }
 
+export interface JustOneDiscordDuplicateReviewThread {
+  readonly threadId: string;
+  readonly sessionId: string;
+  readonly channelId: string;
+}
+
 export interface JustOneDiscordSessionRegistry {
   readonly register: (input: RegisterJustOneDiscordSessionInput) => void;
   readonly get: (channelId: string) => JustOneDiscordSession | undefined;
@@ -29,6 +35,13 @@ export interface JustOneDiscordSessionRegistry {
   readonly getHintProgressMessage: (
     channelId: string
   ) => JustOneDiscordHintProgressMessage | undefined;
+  readonly registerDuplicateReviewThread: (thread: JustOneDiscordDuplicateReviewThread) => void;
+  readonly getDuplicateReviewThread: (
+    threadId: string
+  ) => JustOneDiscordDuplicateReviewThread | undefined;
+  readonly getDuplicateReviewThreadByChannelId: (
+    channelId: string
+  ) => JustOneDiscordDuplicateReviewThread | undefined;
 }
 
 export interface RegisterJustOneDiscordSessionInput {
@@ -40,6 +53,7 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
   const sessionsByChannelId = new Map<string, JustOneDiscordSession>();
   const hintThreadsByThreadId = new Map<string, JustOneDiscordHintThread>();
   const hintProgressMessagesByChannelId = new Map<string, JustOneDiscordHintProgressMessage>();
+  const duplicateReviewThreadsByThreadId = new Map<string, JustOneDiscordDuplicateReviewThread>();
 
   return {
     register(input) {
@@ -58,6 +72,12 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
       }
 
       hintProgressMessagesByChannelId.delete(channelId);
+
+      for (const [threadId, thread] of duplicateReviewThreadsByThreadId) {
+        if (thread.channelId === channelId) {
+          duplicateReviewThreadsByThreadId.delete(threadId);
+        }
+      }
 
       return sessionsByChannelId.delete(channelId);
     },
@@ -84,6 +104,20 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
 
     getHintProgressMessage(channelId) {
       return hintProgressMessagesByChannelId.get(channelId);
+    },
+
+    registerDuplicateReviewThread(thread) {
+      duplicateReviewThreadsByThreadId.set(thread.threadId, thread);
+    },
+
+    getDuplicateReviewThread(threadId) {
+      return duplicateReviewThreadsByThreadId.get(threadId);
+    },
+
+    getDuplicateReviewThreadByChannelId(channelId) {
+      return [...duplicateReviewThreadsByThreadId.values()].find(
+        (thread) => thread.channelId === channelId
+      );
     }
   };
 }

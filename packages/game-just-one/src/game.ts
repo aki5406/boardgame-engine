@@ -66,6 +66,17 @@ export interface HintSubmissionProgress {
   readonly allSubmitted: boolean;
 }
 
+export type StartDuplicateReviewResult =
+  | Readonly<{ status: "started"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "incompleteHints" }>
+  | Readonly<{ status: "guesserHasHint" }>;
+
+export interface StartDuplicateReviewInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+}
+
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
 }
@@ -168,6 +179,36 @@ export function getHintSubmissionProgress(state: JustOneState): HintSubmissionPr
     submittedCount,
     totalCount,
     allSubmitted: totalCount > 0 && submittedCount === totalCount
+  };
+}
+
+export function startDuplicateReview(input: StartDuplicateReviewInput): StartDuplicateReviewResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "hinting") {
+    return { status: "invalidPhase" };
+  }
+
+  if (state.guesserId && state.hintsByPlayerId[state.guesserId] !== undefined) {
+    return { status: "guesserHasHint" };
+  }
+
+  const progress = getHintSubmissionProgress(state);
+
+  if (!progress.allSubmitted || Object.keys(state.hintsByPlayerId).length !== progress.totalCount) {
+    return { status: "incompleteHints" };
+  }
+
+  const event: JustOneEvent = {
+    type: "just-one.duplicateReviewStarted"
+  };
+
+  return {
+    status: "started",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
   };
 }
 
