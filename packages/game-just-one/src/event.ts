@@ -22,7 +22,13 @@ export type JustOneHintSubmittedEvent = EngineEvent &
     hint: string;
   }>;
 
+export type JustOneDuplicateReviewStartedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.duplicateReviewStarted";
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
-  | JustOneHintSubmittedEvent;
+  | JustOneHintSubmittedEvent
+  | JustOneDuplicateReviewStartedEvent;

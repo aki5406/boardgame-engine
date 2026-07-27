@@ -9,6 +9,7 @@ import {
   justOneGame,
   justOneInitialState,
   reduceJustOneState,
+  startDuplicateReview,
   submitHint,
   startGame
 } from "./index.js";
@@ -411,7 +412,136 @@ describe("Just One game", () => {
       allSubmitted: false
     });
   });
+
+  it("starts duplicate review after every hint player has submitted", () => {
+    const { engine, session } = createHintingSession();
+    const firstHint = submitHint({ engine, session, playerId: "player-2", hint: "fruit" });
+
+    if (firstHint.status !== "submitted") {
+      throw new Error("Expected the first hint to be submitted");
+    }
+
+    const secondHint = submitHint({
+      engine,
+      session: firstHint.session,
+      playerId: "player-3",
+      hint: "red"
+    });
+
+    if (secondHint.status !== "submitted") {
+      throw new Error("Expected the second hint to be submitted");
+    }
+
+    const result = startDuplicateReview({
+      engine,
+      session: secondHint.session
+    });
+
+    expect(result).toEqual({
+      status: "started",
+      session: expect.objectContaining({
+        state: expect.objectContaining({ phase: "duplicateReview" })
+      })
+    });
+  });
+
+  it("does not start duplicate review while hints are incomplete", () => {
+    const { engine, session } = createHintingSession();
+    const hint = submitHint({ engine, session, playerId: "player-2", hint: "fruit" });
+
+    if (hint.status !== "submitted") {
+      throw new Error("Expected hint submission to succeed");
+    }
+
+    expect(startDuplicateReview({ engine, session: hint.session })).toEqual({
+      status: "incompleteHints"
+    });
+  });
+
+  it("does not start duplicate review outside the hinting phase", () => {
+    const engine = createJustOneEngine();
+    const session = createGame({
+      engine,
+      id: "just-one-session-1",
+      playerIds: ["player-1", "player-2"]
+    });
+
+    expect(startDuplicateReview({ engine, session })).toEqual({ status: "invalidPhase" });
+  });
+
+  it("rejects duplicate review when the guesser has a hint", () => {
+    const engine = createJustOneEngine();
+    const session = engine.startSession({
+      id: "just-one-session-1",
+      players: [{ id: "player-1" }, { id: "player-2" }],
+      initialState: {
+        phase: "hinting",
+        players: ["player-1", "player-2"],
+        guesserId: "player-1",
+        secretWord: "Apple",
+        hintsByPlayerId: {
+          "player-1": "not allowed",
+          "player-2": "fruit"
+        }
+      }
+    });
+
+    expect(startDuplicateReview({ engine, session })).toEqual({ status: "guesserHasHint" });
+  });
+
+  it("closes hint submission and prevents duplicate review from starting twice", () => {
+    const { engine, session } = createHintingSession();
+    const firstHint = submitHint({ engine, session, playerId: "player-2", hint: "fruit" });
+
+    if (firstHint.status !== "submitted") {
+      throw new Error("Expected the first hint to be submitted");
+    }
+
+    const secondHint = submitHint({
+      engine,
+      session: firstHint.session,
+      playerId: "player-3",
+      hint: "red"
+    });
+
+    if (secondHint.status !== "submitted") {
+      throw new Error("Expected the second hint to be submitted");
+    }
+
+    const started = startDuplicateReview({ engine, session: secondHint.session });
+
+    if (started.status !== "started") {
+      throw new Error("Expected duplicate review to start");
+    }
+
+    expect(
+      submitHint({
+        engine,
+        session: started.session,
+        playerId: "player-2",
+        hint: "updated"
+      })
+    ).toEqual({ status: "invalidPhase" });
+    expect(startDuplicateReview({ engine, session: started.session })).toEqual({
+      status: "invalidPhase"
+    });
+  });
 });
+
+function createHintingSession() {
+  const engine = createJustOneEngine();
+  const session = startGame({
+    engine,
+    session: createGame({
+      engine,
+      id: "just-one-session-1",
+      playerIds: ["player-1", "player-2", "player-3"]
+    }),
+    random: createSequenceRandom([0, 0])
+  });
+
+  return { engine, session };
+}
 
 function createSequenceRandom(values: readonly number[]): () => number {
   let index = 0;

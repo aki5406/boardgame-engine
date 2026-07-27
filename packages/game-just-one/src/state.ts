@@ -2,7 +2,13 @@ import type { EngineState } from "@boardgame/engine";
 
 export type PlayerId = string;
 
-export type JustOnePhase = "waiting" | "hinting" | "guessing" | "revealed" | "finished";
+export type JustOnePhase =
+  | "waiting"
+  | "hinting"
+  | "duplicateReview"
+  | "guessing"
+  | "revealed"
+  | "finished";
 
 export type JustOneState = EngineState &
   Readonly<{

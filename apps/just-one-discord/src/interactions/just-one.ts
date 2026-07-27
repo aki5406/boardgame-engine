@@ -1,19 +1,15 @@
-import type {
-  ChatInputCommandInteraction,
-  Client,
-  GuildTextBasedChannel,
-  Message,
-  PrivateThreadChannel
-} from "discord.js";
+import type { ChatInputCommandInteraction, Client, Message } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
 import { getHintSubmissionProgress, type Engine } from "@boardgame/game-just-one";
 
 import {
   createJustOneDiscordSessionForChannel,
+  createJustOneDuplicateReviewThread,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
   startJustOneDiscordSession,
+  startJustOneDuplicateReviewForChannel,
   submitJustOneHintFromThread,
   updateJustOneHintProgress,
   getJustOneState,
@@ -27,6 +23,11 @@ import {
 } from "../views/just-one-start.js";
 import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
 import { createJustOneHintProgressMessage } from "../views/just-one-hint-progress.js";
+import {
+  createJustOneDuplicateReviewFailureReply,
+  createJustOneDuplicateReviewIntro,
+  createJustOneDuplicateReviewThreadName
+} from "../views/just-one-duplicate-review.js";
 import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
@@ -123,7 +124,7 @@ async function handleJustOneCommand(
       return;
     }
 
-    if (!channel || !hasPrivateThreadCreation(channel)) {
+    if (!channel || channel.type !== ChannelType.GuildText) {
       await interaction.reply(
         "Just One start requires a regular guild text channel that supports private threads."
       );
@@ -205,12 +206,72 @@ async function handleJustOneThreadMessage(
   if (result.status === "submitted") {
     await message.channel.send(createJustOneHintConfirmationReply(result.status));
     await updateHintProgressMessage(message, input);
+    await startDuplicateReviewIfReady(message, input);
     return;
   }
 
   if (result.status === "updated") {
     await message.channel.send(createJustOneHintConfirmationReply(result.status));
     await updateHintProgressMessage(message, input);
+    await startDuplicateReviewIfReady(message, input);
+  }
+}
+
+async function startDuplicateReviewIfReady(
+  message: Message,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const hintThread = input.sessionRegistry.getHintThread(message.channel.id);
+
+  if (!hintThread) {
+    return;
+  }
+
+  const result = startJustOneDuplicateReviewForChannel({
+    channelId: hintThread.channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status !== "started") {
+    return;
+  }
+
+  try {
+    const channel = await message.client.channels.fetch(hintThread.channelId);
+
+    if (!channel || channel.type !== ChannelType.GuildText) {
+      throw new Error("Just One duplicate review requires a regular guild text channel");
+    }
+
+    await createJustOneDuplicateReviewThread({
+      channelId: hintThread.channelId,
+      session: result.session,
+      registry: input.sessionRegistry,
+      threadName: createJustOneDuplicateReviewThreadName(),
+      content: createJustOneDuplicateReviewIntro(getJustOneState(result.session)),
+      createPrivateThread: async ({ threadName, hintPlayerIds, content }) => {
+        const thread = await channel.threads.create({
+          name: threadName,
+          autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+          type: ChannelType.PrivateThread,
+          invitable: false
+        });
+
+        for (const playerId of hintPlayerIds) {
+          await thread.members.add(playerId);
+        }
+
+        await thread.send(content);
+
+        return {
+          threadId: thread.id
+        };
+      }
+    });
+  } catch {
+    console.error("Failed to start Just One duplicate review.");
+    await sendDuplicateReviewFailureReply(message, hintThread.channelId);
   }
 }
 
@@ -244,17 +305,16 @@ async function updateHintProgressMessage(
   }
 }
 
-function hasPrivateThreadCreation(
-  channel: ChatInputCommandInteraction["channel"]
-): channel is GuildTextBasedChannel & {
-  threads: {
-    create: (options: {
-      name: string;
-      autoArchiveDuration: ThreadAutoArchiveDuration;
-      type: ChannelType.PrivateThread;
-      invitable: boolean;
-    }) => Promise<PrivateThreadChannel>;
-  };
-} {
-  return channel !== null && "threads" in channel && channel.type === ChannelType.GuildText;
+async function sendDuplicateReviewFailureReply(message: Message, channelId: string): Promise<void> {
+  try {
+    const channel = await message.client.channels.fetch(channelId);
+
+    if (!channel?.isSendable()) {
+      throw new Error("Just One duplicate review channel is unavailable");
+    }
+
+    await channel.send(createJustOneDuplicateReviewFailureReply());
+  } catch {
+    console.error("Failed to send Just One duplicate review failure reply.");
+  }
 }

@@ -1,4 +1,12 @@
 export {
+  createJustOneDuplicateReviewThread,
+  startJustOneDuplicateReviewForChannel,
+  type CreateJustOneDuplicateReviewThreadInput,
+  type CreateJustOneDuplicateReviewThreadResult,
+  type StartJustOneDuplicateReviewInput,
+  type StartJustOneDuplicateReviewResult
+} from "./duplicate-review.js";
+export {
   createJustOneDiscordSessionForChannel,
   justOneInitialState,
   type CreateJustOneDiscordSessionInput,
@@ -31,7 +39,8 @@ export {
   type JustOneDiscordHintThread,
   type JustOneDiscordHintProgressMessage,
   type JustOneDiscordSession,
-  type JustOneDiscordSessionRegistry
+  type JustOneDiscordSessionRegistry,
+  type JustOneDiscordDuplicateReviewThread
 } from "./registry.js";
 export { getJustOneState } from "./state.js";
 export {

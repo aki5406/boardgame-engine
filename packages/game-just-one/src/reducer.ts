@@ -36,6 +36,12 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         }
       };
 
+    case "just-one.duplicateReviewStarted":
+      return {
+        ...state,
+        phase: "duplicateReview"
+      };
+
     default:
       return state;
   }

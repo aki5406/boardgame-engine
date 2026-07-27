@@ -9,6 +9,7 @@ export type {
 } from "@boardgame/engine";
 export type {
   JustOneEvent,
+  JustOneDuplicateReviewStartedEvent,
   JustOneGameStartedEvent,
   JustOneHintSubmittedEvent,
   JustOnePlayerJoinedEvent
@@ -20,6 +21,7 @@ export {
   joinGame,
   justOneGame,
   justOneInitialState,
+  startDuplicateReview,
   submitHint,
   startGame
 } from "./game.js";
@@ -27,7 +29,9 @@ export type {
   HintSubmissionProgress,
   JustOneRandom,
   SubmitHintInput,
-  SubmitHintResult
+  SubmitHintResult,
+  StartDuplicateReviewInput,
+  StartDuplicateReviewResult
 } from "./game.js";
 export { justOneReducer, reduceJustOneState } from "./reducer.js";
 export type { JustOnePhase, JustOneState, PlayerId } from "./state.js";
