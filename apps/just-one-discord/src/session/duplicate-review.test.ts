@@ -52,7 +52,6 @@ describe("createJustOneDuplicateReviewThread", () => {
     const createdInputs: {
       threadName: string;
       hintPlayerIds: readonly string[];
-      content: string;
     }[] = [];
 
     const result = await createJustOneDuplicateReviewThread({
@@ -60,10 +59,9 @@ describe("createJustOneDuplicateReviewThread", () => {
       session,
       registry,
       threadName: "just-one-duplicate-review",
-      content: "Duplicate review\n\n1. Fruit\n2. Red",
       createPrivateThread: async (input) => {
         createdInputs.push(input);
-        return { threadId: "duplicate-thread-1" };
+        return { threadId: "duplicate-thread-1", messageId: "review-message-1" };
       }
     });
 
@@ -71,14 +69,14 @@ describe("createJustOneDuplicateReviewThread", () => {
     expect(createdInputs).toEqual([
       {
         threadName: "just-one-duplicate-review",
-        hintPlayerIds: ["player-2", "player-3"],
-        content: "Duplicate review\n\n1. Fruit\n2. Red"
+        hintPlayerIds: ["player-2", "player-3"]
       }
     ]);
     expect(registry.getDuplicateReviewThread("duplicate-thread-1")).toEqual({
       threadId: "duplicate-thread-1",
       sessionId: session.id,
-      channelId: "channel-1"
+      channelId: "channel-1",
+      messageId: "review-message-1"
     });
   });
 
@@ -87,7 +85,8 @@ describe("createJustOneDuplicateReviewThread", () => {
     registry.registerDuplicateReviewThread({
       threadId: "duplicate-thread-1",
       sessionId: session.id,
-      channelId: "channel-1"
+      channelId: "channel-1",
+      messageId: "review-message-1"
     });
 
     const result = await createJustOneDuplicateReviewThread({
@@ -95,7 +94,6 @@ describe("createJustOneDuplicateReviewThread", () => {
       session,
       registry,
       threadName: "just-one-duplicate-review",
-      content: "Duplicate review",
       createPrivateThread: async () => {
         throw new Error("A second thread must not be created");
       }
@@ -113,7 +111,6 @@ describe("createJustOneDuplicateReviewThread", () => {
         session,
         registry,
         threadName: "just-one-duplicate-review",
-        content: "Duplicate review",
         createPrivateThread: async () => {
           throw new Error("thread creation failed");
         }

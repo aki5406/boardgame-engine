@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client, Message } from "discord.js";
+import type { ButtonInteraction, ChatInputCommandInteraction, Client, Message } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
 import { getHintSubmissionProgress, type Engine } from "@boardgame/game-just-one";
@@ -11,6 +11,7 @@ import {
   startJustOneDiscordSession,
   startJustOneDuplicateReviewForChannel,
   submitJustOneHintFromThread,
+  toggleJustOneReviewHint,
   updateJustOneHintProgress,
   getJustOneState,
   type JustOneDiscordSessionRegistry
@@ -25,8 +26,9 @@ import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
 import { createJustOneHintProgressMessage } from "../views/just-one-hint-progress.js";
 import {
   createJustOneDuplicateReviewFailureReply,
-  createJustOneDuplicateReviewIntro,
-  createJustOneDuplicateReviewThreadName
+  createJustOneDuplicateReviewMessage,
+  createJustOneDuplicateReviewThreadName,
+  parseJustOneHintToggleCustomId
 } from "../views/just-one-duplicate-review.js";
 import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
 
@@ -40,15 +42,20 @@ export function registerJustOneInteractionHandlers(
   input: RegisterJustOneInteractionHandlersInput
 ): void {
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) {
+    if (interaction.isChatInputCommand()) {
+      if (interaction.commandName !== "just-one") {
+        return;
+      }
+
+      await handleJustOneCommand(interaction, input);
       return;
     }
 
-    if (interaction.commandName !== "just-one") {
+    if (!interaction.isButton()) {
       return;
     }
 
-    await handleJustOneCommand(interaction, input);
+    await handleJustOneDuplicateReviewButton(interaction, input);
   });
 
   client.on(Events.MessageCreate, async (message) => {
@@ -249,8 +256,7 @@ async function startDuplicateReviewIfReady(
       session: result.session,
       registry: input.sessionRegistry,
       threadName: createJustOneDuplicateReviewThreadName(),
-      content: createJustOneDuplicateReviewIntro(getJustOneState(result.session)),
-      createPrivateThread: async ({ threadName, hintPlayerIds, content }) => {
+      createPrivateThread: async ({ threadName, hintPlayerIds }) => {
         const thread = await channel.threads.create({
           name: threadName,
           autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
@@ -262,16 +268,93 @@ async function startDuplicateReviewIfReady(
           await thread.members.add(playerId);
         }
 
-        await thread.send(content);
+        const managementMessage = await thread.send(
+          createJustOneDuplicateReviewMessage(getJustOneState(result.session))
+        );
 
         return {
-          threadId: thread.id
+          threadId: thread.id,
+          messageId: managementMessage.id
         };
       }
     });
   } catch {
     console.error("Failed to start Just One duplicate review.");
     await sendDuplicateReviewFailureReply(message, hintThread.channelId);
+  }
+}
+
+async function handleJustOneDuplicateReviewButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const playerId = parseJustOneHintToggleCustomId(interaction.customId);
+
+  if (!playerId) {
+    return;
+  }
+
+  const reviewThread = input.sessionRegistry.getDuplicateReviewThread(interaction.channelId);
+
+  if (!reviewThread || reviewThread.messageId !== interaction.message.id) {
+    await interaction.reply({
+      content: "This hint is no longer available.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot) {
+    await interaction.reply({
+      content: "Only Hint Players can review hints.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const result = toggleJustOneReviewHint({
+    threadId: interaction.channelId,
+    actorId: interaction.user.id,
+    playerId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notHintPlayer") {
+    await interaction.reply({
+      content: "Only Hint Players can review hints.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status === "invalidPhase") {
+    await interaction.reply({
+      content: "Duplicate review is not active.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status !== "updated") {
+    await interaction.reply({
+      content: "This hint is no longer available.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    await interaction.update(createJustOneDuplicateReviewMessage(getJustOneState(result.session)));
+  } catch {
+    console.error("Failed to update Just One duplicate review message.");
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "The hint was updated, but the review message could not be refreshed.",
+        ephemeral: true
+      });
+    }
   }
 }
 

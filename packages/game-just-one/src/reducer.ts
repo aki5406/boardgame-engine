@@ -24,7 +24,8 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         phase: "hinting",
         guesserId: event.guesserId,
         secretWord: event.secretWord,
-        hintsByPlayerId: {}
+        hintsByPlayerId: {},
+        excludedHintPlayerIds: []
       };
 
     case "just-one.hintSubmitted":
@@ -40,6 +41,24 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
       return {
         ...state,
         phase: "duplicateReview"
+      };
+
+    case "just-one.hintExcluded":
+      if (state.excludedHintPlayerIds.includes(event.playerId)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        excludedHintPlayerIds: [...state.excludedHintPlayerIds, event.playerId]
+      };
+
+    case "just-one.hintRestored":
+      return {
+        ...state,
+        excludedHintPlayerIds: state.excludedHintPlayerIds.filter(
+          (playerId) => playerId !== event.playerId
+        )
       };
 
     default:

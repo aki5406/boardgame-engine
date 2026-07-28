@@ -17,4 +17,5 @@ export type JustOneState = EngineState &
     guesserId: PlayerId | null;
     secretWord: string | null;
     hintsByPlayerId: Readonly<Record<PlayerId, string>>;
+    excludedHintPlayerIds: readonly PlayerId[];
   }>;

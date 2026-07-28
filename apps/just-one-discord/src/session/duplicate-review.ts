@@ -27,10 +27,11 @@ export interface CreateJustOneDuplicateReviewThreadInput {
   readonly createPrivateThread: (input: {
     readonly threadName: string;
     readonly hintPlayerIds: readonly string[];
-    readonly content: string;
-  }) => Promise<{ readonly threadId: string }>;
+  }) => Promise<{
+    readonly threadId: string;
+    readonly messageId: string;
+  }>;
   readonly threadName: string;
-  readonly content: string;
 }
 
 export type CreateJustOneDuplicateReviewThreadResult =
@@ -86,14 +87,14 @@ export async function createJustOneDuplicateReviewThread(
   const hintPlayerIds = state.players.filter((playerId) => playerId !== state.guesserId);
   const thread = await input.createPrivateThread({
     threadName: input.threadName,
-    hintPlayerIds,
-    content: input.content
+    hintPlayerIds
   });
 
   input.registry.registerDuplicateReviewThread({
     threadId: thread.threadId,
     sessionId: input.session.id,
-    channelId: input.channelId
+    channelId: input.channelId,
+    messageId: thread.messageId
   });
 
   return {
