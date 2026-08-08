@@ -39,10 +39,16 @@ export type JustOneHintRestoredEvent = EngineEvent &
     playerId: PlayerId;
   }>;
 
+export type JustOneDuplicateReviewConfirmedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.duplicateReviewConfirmed";
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
   | JustOneHintSubmittedEvent
   | JustOneDuplicateReviewStartedEvent
   | JustOneHintExcludedEvent
-  | JustOneHintRestoredEvent;
+  | JustOneHintRestoredEvent
+  | JustOneDuplicateReviewConfirmedEvent;

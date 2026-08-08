@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createJustOneDuplicateReviewButtonRows,
+  createJustOneConfirmHintsCustomId,
   createJustOneDuplicateReviewFailureReply,
   createJustOneDuplicateReviewMessage,
   createJustOneHintToggleCustomId,
@@ -38,9 +39,10 @@ describe("createJustOneDuplicateReviewMessage", () => {
     }));
     const rows = createJustOneDuplicateReviewButtonRows(hints);
 
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
     expect(rows[0]?.components).toHaveLength(5);
     expect(rows[1]?.components).toHaveLength(1);
+    expect(rows[2]?.components).toHaveLength(1);
     expect(rows[0]?.components[0]?.toJSON()).toMatchObject({
       custom_id: createJustOneHintToggleCustomId("player-1"),
       label: "1: Restore"
@@ -54,6 +56,25 @@ describe("createJustOneDuplicateReviewMessage", () => {
     if (firstButton && "custom_id" in firstButton) {
       expect(firstButton.custom_id).not.toContain("Hint 1");
     }
+    expect(rows[2]?.components[0]?.toJSON()).toMatchObject({
+      custom_id: createJustOneConfirmHintsCustomId(),
+      label: "Confirm hints"
+    });
+  });
+
+  it("removes controls and marks the message complete after confirmation", () => {
+    const message = createJustOneDuplicateReviewMessage({
+      phase: "guessing",
+      players: ["guesser-id", "hint-player"],
+      guesserId: "guesser-id",
+      secretWord: "Apple",
+      hintsByPlayerId: { "hint-player": "Fruit" },
+      excludedHintPlayerIds: []
+    });
+
+    expect(message.content).toContain("Duplicate review complete");
+    expect(message.content).toContain("Hints have been confirmed.");
+    expect(message.components).toEqual([]);
   });
 
   it("parses only valid Just One hint toggle IDs", () => {

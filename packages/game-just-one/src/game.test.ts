@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   createGame,
   createJustOneEngine,
+  confirmDuplicateReview,
   defaultWords,
   excludeHint,
   getDuplicateReviewHints,
   getHintSubmissionProgress,
+  getRemainingHints,
   joinGame,
   justOneGame,
   justOneInitialState,
@@ -625,6 +627,71 @@ describe("Just One game", () => {
     expect(getDuplicateReviewHints(excluded.session.state as JustOneState)).toEqual([
       { playerId: "player-2", hint: "fruit", excluded: false },
       { playerId: "player-3", hint: "red", excluded: true }
+    ]);
+  });
+
+  it("confirms duplicate review while preserving hints and exclusions", () => {
+    const { engine, session } = createDuplicateReviewSession();
+    const excluded = excludeHint({ engine, session, playerId: "player-2" });
+
+    if (excluded.status !== "excluded") {
+      throw new Error("Expected hint exclusion to succeed");
+    }
+
+    const confirmed = confirmDuplicateReview({ engine, session: excluded.session });
+
+    expect(confirmed).toEqual({
+      status: "confirmed",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          phase: "guessing",
+          excludedHintPlayerIds: ["player-2"],
+          hintsByPlayerId: {
+            "player-2": "fruit",
+            "player-3": "red"
+          }
+        })
+      })
+    });
+
+    if (confirmed.status !== "confirmed") {
+      throw new Error("Expected duplicate review confirmation to succeed");
+    }
+
+    expect(excludeHint({ engine, session: confirmed.session, playerId: "player-3" })).toEqual({
+      status: "invalidPhase"
+    });
+    expect(restoreHint({ engine, session: confirmed.session, playerId: "player-2" })).toEqual({
+      status: "invalidPhase"
+    });
+    expect(confirmDuplicateReview({ engine, session: confirmed.session })).toEqual({
+      status: "invalidPhase"
+    });
+  });
+
+  it("rejects confirmation with invalid exclusions and derives remaining hints in player order", () => {
+    const { engine, session } = createDuplicateReviewSession();
+    const invalidSession = engine.startSession({
+      id: session.id,
+      players: session.players,
+      initialState: {
+        ...(session.state as JustOneState),
+        excludedHintPlayerIds: ["player-1"]
+      }
+    });
+
+    expect(confirmDuplicateReview({ engine, session: invalidSession })).toEqual({
+      status: "invalidState"
+    });
+
+    const excluded = excludeHint({ engine, session, playerId: "player-2" });
+
+    if (excluded.status !== "excluded") {
+      throw new Error("Expected hint exclusion to succeed");
+    }
+
+    expect(getRemainingHints(excluded.session.state as JustOneState)).toEqual([
+      { playerId: "player-3", hint: "red" }
     ]);
   });
 });
