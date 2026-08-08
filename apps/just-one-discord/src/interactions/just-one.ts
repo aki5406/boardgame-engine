@@ -9,6 +9,7 @@ import {
   confirmJustOneDuplicateReview,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
+  getJustOneGuessingHints,
   startJustOneDiscordSession,
   startJustOneDuplicateReviewForChannel,
   submitJustOneHintFromThread,
@@ -25,6 +26,7 @@ import {
 } from "../views/just-one-start.js";
 import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
 import { createJustOneHintProgressMessage } from "../views/just-one-hint-progress.js";
+import { createJustOneGuessingHintsMessage } from "../views/just-one-guessing.js";
 import {
   createJustOneDuplicateReviewFailureReply,
   createJustOneDuplicateReviewMessage,
@@ -362,6 +364,42 @@ async function handleJustOneDuplicateReviewButton(
         ephemeral: true
       });
     }
+  }
+
+  await publishJustOneGuessingHints(interaction, reviewThread.channelId, input);
+}
+
+async function publishJustOneGuessingHints(
+  interaction: ButtonInteraction,
+  channelId: string,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const result = getJustOneGuessingHints({
+    channelId,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status !== "ready") {
+    console.error("Just One guessing hints were unavailable after confirmation.");
+    return;
+  }
+
+  try {
+    const channel = await interaction.client.channels.fetch(channelId);
+
+    if (!channel?.isSendable()) {
+      throw new Error("Just One guessing channel is unavailable");
+    }
+
+    await channel.send({
+      content: createJustOneGuessingHintsMessage(result),
+      allowedMentions: {
+        parse: [],
+        users: [result.guesserId]
+      }
+    });
+  } catch {
+    console.error("Failed to publish Just One guessing hints.");
   }
 }
 

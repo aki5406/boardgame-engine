@@ -30,6 +30,11 @@ export {
   type SubmitJustOneHintFromThreadResult
 } from "./hint.js";
 export {
+  getJustOneGuessingHints,
+  type GetJustOneGuessingHintsInput,
+  type GetJustOneGuessingHintsResult
+} from "./guessing-hints.js";
+export {
   updateJustOneHintProgress,
   type UpdateJustOneHintProgressInput,
   type UpdateJustOneHintProgressResult
