@@ -4,11 +4,14 @@ import {
   createGame,
   createJustOneEngine,
   defaultWords,
+  excludeHint,
+  getDuplicateReviewHints,
   getHintSubmissionProgress,
   joinGame,
   justOneGame,
   justOneInitialState,
   reduceJustOneState,
+  restoreHint,
   startDuplicateReview,
   submitHint,
   startGame
@@ -22,7 +25,8 @@ describe("Just One game", () => {
       players: [],
       guesserId: null,
       secretWord: null,
-      hintsByPlayerId: {}
+      hintsByPlayerId: {},
+      excludedHintPlayerIds: []
     });
   });
 
@@ -37,7 +41,8 @@ describe("Just One game", () => {
       players: ["player-1"],
       guesserId: null,
       secretWord: null,
-      hintsByPlayerId: {}
+      hintsByPlayerId: {},
+      excludedHintPlayerIds: []
     });
   });
 
@@ -72,7 +77,8 @@ describe("Just One game", () => {
       players: ["player-1"],
       guesserId: null,
       secretWord: null,
-      hintsByPlayerId: {}
+      hintsByPlayerId: {},
+      excludedHintPlayerIds: []
     });
   });
 
@@ -112,7 +118,8 @@ describe("Just One game", () => {
       players: ["player-1", "player-2"],
       guesserId: "player-1",
       secretWord: "Apple",
-      hintsByPlayerId: {}
+      hintsByPlayerId: {},
+      excludedHintPlayerIds: []
     });
   });
 
@@ -157,7 +164,8 @@ describe("Just One game", () => {
       players: ["player-1", "player-2", "player-3"],
       guesserId: "player-3",
       secretWord: "Coffee",
-      hintsByPlayerId: {}
+      hintsByPlayerId: {},
+      excludedHintPlayerIds: []
     });
   });
 
@@ -396,7 +404,8 @@ describe("Just One game", () => {
         hintsByPlayerId: {
           "player-2": "fruit",
           "player-3": "red"
-        }
+        },
+        excludedHintPlayerIds: []
       })
     ).toEqual({
       submittedCount: 2,
@@ -482,7 +491,8 @@ describe("Just One game", () => {
         hintsByPlayerId: {
           "player-1": "not allowed",
           "player-2": "fruit"
-        }
+        },
+        excludedHintPlayerIds: []
       }
     });
 
@@ -526,7 +536,126 @@ describe("Just One game", () => {
       status: "invalidPhase"
     });
   });
+
+  it("excludes and restores an individual hint during duplicate review", () => {
+    const { engine, session } = createDuplicateReviewSession();
+    const excluded = excludeHint({ engine, session, playerId: "player-2" });
+
+    expect(excluded).toEqual({
+      status: "excluded",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          excludedHintPlayerIds: ["player-2"]
+        })
+      })
+    });
+
+    if (excluded.status !== "excluded") {
+      throw new Error("Expected hint exclusion to succeed");
+    }
+
+    expect(restoreHint({ engine, session: excluded.session, playerId: "player-2" })).toEqual({
+      status: "restored",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          excludedHintPlayerIds: []
+        })
+      })
+    });
+  });
+
+  it("rejects invalid duplicate review hint changes", () => {
+    const { engine, session } = createDuplicateReviewSession();
+
+    expect(excludeHint({ engine, session, playerId: "player-1" })).toEqual({
+      status: "guesserCannotReview"
+    });
+    expect(excludeHint({ engine, session, playerId: "player-4" })).toEqual({
+      status: "notPlayer"
+    });
+    const excluded = excludeHint({ engine, session, playerId: "player-2" });
+
+    if (excluded.status !== "excluded") {
+      throw new Error("Expected hint exclusion to succeed");
+    }
+
+    expect(excludeHint({ engine, session: excluded.session, playerId: "player-2" })).toEqual({
+      status: "alreadyExcluded"
+    });
+    expect(restoreHint({ engine, session, playerId: "player-3" })).toEqual({
+      status: "notExcluded"
+    });
+  });
+
+  it("rejects review hint changes outside duplicate review or without a submitted hint", () => {
+    const { engine, session } = createHintingSession();
+
+    expect(excludeHint({ engine, session, playerId: "player-2" })).toEqual({
+      status: "invalidPhase"
+    });
+
+    const reviewSession = engine.startSession({
+      id: "just-one-session-1",
+      players: [{ id: "player-1" }, { id: "player-2" }, { id: "player-3" }],
+      initialState: {
+        phase: "duplicateReview",
+        players: ["player-1", "player-2", "player-3"],
+        guesserId: "player-1",
+        secretWord: "Apple",
+        hintsByPlayerId: {
+          "player-2": "fruit"
+        },
+        excludedHintPlayerIds: []
+      }
+    });
+
+    expect(excludeHint({ engine, session: reviewSession, playerId: "player-3" })).toEqual({
+      status: "hintNotFound"
+    });
+  });
+
+  it("keeps duplicate review hints in player order and exposes exclusion state", () => {
+    const { engine, session } = createDuplicateReviewSession();
+    const excluded = excludeHint({ engine, session, playerId: "player-3" });
+
+    if (excluded.status !== "excluded") {
+      throw new Error("Expected hint exclusion to succeed");
+    }
+
+    expect(getDuplicateReviewHints(excluded.session.state as JustOneState)).toEqual([
+      { playerId: "player-2", hint: "fruit", excluded: false },
+      { playerId: "player-3", hint: "red", excluded: true }
+    ]);
+  });
 });
+
+function createDuplicateReviewSession() {
+  const { engine, session } = createHintingSession();
+  const firstHint = submitHint({ engine, session, playerId: "player-2", hint: "fruit" });
+
+  if (firstHint.status !== "submitted") {
+    throw new Error("Expected the first hint to be submitted");
+  }
+
+  const secondHint = submitHint({
+    engine,
+    session: firstHint.session,
+    playerId: "player-3",
+    hint: "red"
+  });
+
+  if (secondHint.status !== "submitted") {
+    throw new Error("Expected the second hint to be submitted");
+  }
+
+  const started = startDuplicateReview({ engine, session: secondHint.session });
+
+  if (started.status !== "started") {
+    throw new Error("Expected duplicate review to start");
+  }
+
+  return { engine, session: started.session };
+}
 
 function createHintingSession() {
   const engine = createJustOneEngine();

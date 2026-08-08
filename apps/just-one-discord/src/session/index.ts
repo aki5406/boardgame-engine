@@ -35,6 +35,11 @@ export {
   type UpdateJustOneHintProgressResult
 } from "./hint-progress.js";
 export {
+  toggleJustOneReviewHint,
+  type ToggleJustOneReviewHintInput,
+  type ToggleJustOneReviewHintResult
+} from "./review-hint.js";
+export {
   createJustOneDiscordSessionRegistry,
   type JustOneDiscordHintThread,
   type JustOneDiscordHintProgressMessage,

@@ -27,8 +27,22 @@ export type JustOneDuplicateReviewStartedEvent = EngineEvent &
     type: "just-one.duplicateReviewStarted";
   }>;
 
+export type JustOneHintExcludedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.hintExcluded";
+    playerId: PlayerId;
+  }>;
+
+export type JustOneHintRestoredEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.hintRestored";
+    playerId: PlayerId;
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
   | JustOneHintSubmittedEvent
-  | JustOneDuplicateReviewStartedEvent;
+  | JustOneDuplicateReviewStartedEvent
+  | JustOneHintExcludedEvent
+  | JustOneHintRestoredEvent;

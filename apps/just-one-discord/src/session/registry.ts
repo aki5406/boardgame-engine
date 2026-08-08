@@ -21,6 +21,7 @@ export interface JustOneDiscordDuplicateReviewThread {
   readonly threadId: string;
   readonly sessionId: string;
   readonly channelId: string;
+  readonly messageId: string;
 }
 
 export interface JustOneDiscordSessionRegistry {

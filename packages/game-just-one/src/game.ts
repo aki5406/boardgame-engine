@@ -18,7 +18,8 @@ export const justOneInitialState: JustOneState = {
   players: [],
   guesserId: null,
   secretWord: null,
-  hintsByPlayerId: {}
+  hintsByPlayerId: {},
+  excludedHintPlayerIds: []
 };
 
 export const justOneGame: EngineGame = {
@@ -75,6 +76,27 @@ export type StartDuplicateReviewResult =
 export interface StartDuplicateReviewInput {
   readonly engine: Engine;
   readonly session: EngineGameSession;
+}
+
+export type ReviewHintResult =
+  | Readonly<{ status: "excluded" | "restored"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "notPlayer" }>
+  | Readonly<{ status: "guesserCannotReview" }>
+  | Readonly<{ status: "hintNotFound" }>
+  | Readonly<{ status: "alreadyExcluded" }>
+  | Readonly<{ status: "notExcluded" }>;
+
+export interface ReviewHintInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly playerId: PlayerId;
+}
+
+export interface JustOneDuplicateReviewHint {
+  readonly playerId: PlayerId;
+  readonly hint: string;
+  readonly excluded: boolean;
 }
 
 export function createJustOneEngine(): Engine {
@@ -205,6 +227,113 @@ export function startDuplicateReview(input: StartDuplicateReviewInput): StartDup
 
   return {
     status: "started",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
+export function excludeHint(input: ReviewHintInput): ReviewHintResult {
+  const validationResult = validateReviewHint(input);
+
+  if (validationResult) {
+    return validationResult;
+  }
+
+  const state = input.session.state as JustOneState;
+
+  if (state.excludedHintPlayerIds.includes(input.playerId)) {
+    return { status: "alreadyExcluded" };
+  }
+
+  return applyReviewHintEvent(
+    input,
+    {
+      type: "just-one.hintExcluded",
+      playerId: input.playerId
+    },
+    "excluded"
+  );
+}
+
+export function restoreHint(input: ReviewHintInput): ReviewHintResult {
+  const validationResult = validateReviewHint(input);
+
+  if (validationResult) {
+    return validationResult;
+  }
+
+  const state = input.session.state as JustOneState;
+
+  if (!state.excludedHintPlayerIds.includes(input.playerId)) {
+    return { status: "notExcluded" };
+  }
+
+  return applyReviewHintEvent(
+    input,
+    {
+      type: "just-one.hintRestored",
+      playerId: input.playerId
+    },
+    "restored"
+  );
+}
+
+export function getDuplicateReviewHints(
+  state: JustOneState
+): readonly JustOneDuplicateReviewHint[] {
+  return state.players.flatMap((playerId) => {
+    const hint = state.hintsByPlayerId[playerId];
+
+    if (playerId === state.guesserId || hint === undefined) {
+      return [];
+    }
+
+    return [
+      {
+        playerId,
+        hint,
+        excluded: state.excludedHintPlayerIds.includes(playerId)
+      }
+    ];
+  });
+}
+
+function validateReviewHint(
+  input: ReviewHintInput
+):
+  | Exclude<
+      ReviewHintResult,
+      Readonly<{ status: "excluded" | "restored"; session: EngineGameSession }>
+    >
+  | undefined {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "duplicateReview") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!input.session.players.some((player) => player.id === input.playerId)) {
+    return { status: "notPlayer" };
+  }
+
+  if (state.guesserId === input.playerId) {
+    return { status: "guesserCannotReview" };
+  }
+
+  if (state.hintsByPlayerId[input.playerId] === undefined) {
+    return { status: "hintNotFound" };
+  }
+}
+
+function applyReviewHintEvent(
+  input: ReviewHintInput,
+  event: JustOneEvent,
+  status: "excluded" | "restored"
+): ReviewHintResult {
+  return {
+    status,
     session: input.engine.applyEvent({
       session: input.session,
       event
