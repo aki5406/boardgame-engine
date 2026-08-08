@@ -10,6 +10,7 @@ export type {
 export type {
   JustOneEvent,
   JustOneDuplicateReviewStartedEvent,
+  JustOneDuplicateReviewConfirmedEvent,
   JustOneHintExcludedEvent,
   JustOneHintRestoredEvent,
   JustOneGameStartedEvent,
@@ -19,9 +20,11 @@ export type {
 export {
   createGame,
   createJustOneEngine,
+  confirmDuplicateReview,
   excludeHint,
   getDuplicateReviewHints,
   getHintSubmissionProgress,
+  getRemainingHints,
   joinGame,
   justOneGame,
   justOneInitialState,
@@ -32,7 +35,10 @@ export {
 } from "./game.js";
 export type {
   HintSubmissionProgress,
+  ConfirmDuplicateReviewInput,
+  ConfirmDuplicateReviewResult,
   JustOneDuplicateReviewHint,
+  JustOneRemainingHint,
   JustOneRandom,
   SubmitHintInput,
   SubmitHintResult,

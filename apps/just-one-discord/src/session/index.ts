@@ -35,6 +35,11 @@ export {
   type UpdateJustOneHintProgressResult
 } from "./hint-progress.js";
 export {
+  confirmJustOneDuplicateReview,
+  type ConfirmJustOneDuplicateReviewInput,
+  type ConfirmJustOneDuplicateReviewResult
+} from "./confirm-duplicate-review.js";
+export {
   toggleJustOneReviewHint,
   type ToggleJustOneReviewHintInput,
   type ToggleJustOneReviewHintResult

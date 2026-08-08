@@ -61,6 +61,12 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         )
       };
 
+    case "just-one.duplicateReviewConfirmed":
+      return {
+        ...state,
+        phase: "guessing"
+      };
+
     default:
       return state;
   }

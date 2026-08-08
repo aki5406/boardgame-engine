@@ -99,6 +99,21 @@ export interface JustOneDuplicateReviewHint {
   readonly excluded: boolean;
 }
 
+export interface JustOneRemainingHint {
+  readonly playerId: PlayerId;
+  readonly hint: string;
+}
+
+export type ConfirmDuplicateReviewResult =
+  | Readonly<{ status: "confirmed"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "invalidState" }>;
+
+export interface ConfirmDuplicateReviewInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+}
+
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
 }
@@ -300,6 +315,34 @@ export function getDuplicateReviewHints(
   });
 }
 
+export function confirmDuplicateReview(
+  input: ConfirmDuplicateReviewInput
+): ConfirmDuplicateReviewResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "duplicateReview") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!isValidDuplicateReviewState(state)) {
+    return { status: "invalidState" };
+  }
+
+  return {
+    status: "confirmed",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event: { type: "just-one.duplicateReviewConfirmed" }
+    })
+  };
+}
+
+export function getRemainingHints(state: JustOneState): readonly JustOneRemainingHint[] {
+  return getDuplicateReviewHints(state)
+    .filter((hint) => !hint.excluded)
+    .map(({ playerId, hint }) => ({ playerId, hint }));
+}
+
 function validateReviewHint(
   input: ReviewHintInput
 ):
@@ -325,6 +368,29 @@ function validateReviewHint(
   if (state.hintsByPlayerId[input.playerId] === undefined) {
     return { status: "hintNotFound" };
   }
+}
+
+function isValidDuplicateReviewState(state: JustOneState): boolean {
+  if (!state.guesserId || !state.players.includes(state.guesserId)) {
+    return false;
+  }
+
+  const progress = getHintSubmissionProgress(state);
+
+  if (
+    !progress.allSubmitted ||
+    Object.keys(state.hintsByPlayerId).length !== progress.totalCount ||
+    state.hintsByPlayerId[state.guesserId] !== undefined
+  ) {
+    return false;
+  }
+
+  return state.excludedHintPlayerIds.every(
+    (playerId) =>
+      playerId !== state.guesserId &&
+      state.players.includes(playerId) &&
+      state.hintsByPlayerId[playerId] !== undefined
+  );
 }
 
 function applyReviewHintEvent(

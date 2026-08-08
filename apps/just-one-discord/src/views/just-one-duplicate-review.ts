@@ -7,6 +7,7 @@ import {
 } from "@boardgame/game-just-one";
 
 const JUST_ONE_HINT_TOGGLE_PREFIX = "just-one:hint-toggle:";
+const JUST_ONE_CONFIRM_HINTS_CUSTOM_ID = "just-one:confirm-hints";
 
 export interface JustOneDuplicateReviewMessage {
   readonly content: string;
@@ -21,20 +22,22 @@ export function createJustOneDuplicateReviewMessage(
   state: JustOneState
 ): JustOneDuplicateReviewMessage {
   const hints = getDuplicateReviewHints(state);
+  const isComplete = state.phase === "guessing";
 
   return {
-    content: createJustOneDuplicateReviewContent(hints),
-    components: createJustOneDuplicateReviewButtonRows(hints)
+    content: createJustOneDuplicateReviewContent(hints, isComplete),
+    components: isComplete ? [] : createJustOneDuplicateReviewButtonRows(hints)
   };
 }
 
 export function createJustOneDuplicateReviewContent(
-  hints: readonly JustOneDuplicateReviewHint[]
+  hints: readonly JustOneDuplicateReviewHint[],
+  isComplete = false
 ): string {
   return [
-    "Duplicate review",
+    isComplete ? "Duplicate review complete" : "Duplicate review",
     "",
-    "Review the submitted hints and remove duplicates.",
+    isComplete ? "Hints have been confirmed." : "Review the submitted hints and remove duplicates.",
     "",
     ...hints.map((hint, index) =>
       hint.excluded ? `${index + 1}. ${hint.hint} [Removed]` : `${index + 1}. ${hint.hint}`
@@ -52,9 +55,17 @@ export function createJustOneDuplicateReviewButtonRows(
       .setStyle(hint.excluded ? ButtonStyle.Secondary : ButtonStyle.Danger)
   );
 
-  return chunk(buttons, 5).map((buttonRow) =>
-    new ActionRowBuilder<ButtonBuilder>().addComponents(buttonRow)
-  );
+  return [
+    ...chunk(buttons, 5).map((buttonRow) =>
+      new ActionRowBuilder<ButtonBuilder>().addComponents(buttonRow)
+    ),
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(createJustOneConfirmHintsCustomId())
+        .setLabel("Confirm hints")
+        .setStyle(ButtonStyle.Success)
+    )
+  ];
 }
 
 export function createJustOneHintToggleCustomId(playerId: string): string {
@@ -69,6 +80,14 @@ export function parseJustOneHintToggleCustomId(customId: string): string | undef
   const playerId = customId.slice(JUST_ONE_HINT_TOGGLE_PREFIX.length);
 
   return playerId.length > 0 ? playerId : undefined;
+}
+
+export function createJustOneConfirmHintsCustomId(): string {
+  return JUST_ONE_CONFIRM_HINTS_CUSTOM_ID;
+}
+
+export function isJustOneConfirmHintsCustomId(customId: string): boolean {
+  return customId === JUST_ONE_CONFIRM_HINTS_CUSTOM_ID;
 }
 
 export function createJustOneDuplicateReviewFailureReply(): string {
