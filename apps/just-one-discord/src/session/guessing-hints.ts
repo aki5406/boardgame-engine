@@ -2,6 +2,7 @@ import { getRemainingHints } from "@boardgame/game-just-one";
 
 import { getJustOneState } from "./state.js";
 import type { JustOneDiscordSessionRegistry } from "./registry.js";
+import { createJustOneGuessingHintsMessage } from "../views/just-one-guessing.js";
 
 export type GetJustOneGuessingHintsResult =
   | Readonly<{
@@ -17,6 +18,17 @@ export interface GetJustOneGuessingHintsInput {
   readonly registry: JustOneDiscordSessionRegistry;
 }
 
+export type PublishJustOneGuessingHintsResult =
+  | Readonly<{ status: "published" }>
+  | Exclude<GetJustOneGuessingHintsResult, Readonly<{ status: "ready" }>>;
+
+export interface PublishJustOneGuessingHintsInput extends GetJustOneGuessingHintsInput {
+  readonly publishMessage: (input: {
+    readonly content: string;
+    readonly guesserId: string;
+  }) => Promise<void>;
+}
+
 export function getJustOneGuessingHints(
   input: GetJustOneGuessingHintsInput
 ): GetJustOneGuessingHintsResult {
@@ -28,21 +40,30 @@ export function getJustOneGuessingHints(
 
   const state = getJustOneState(session);
 
-  if (state.phase !== "guessing" || !state.guesserId || !state.secretWord) {
+  if (state.phase !== "guessing" || !state.guesserId) {
     return { status: "invalidState" };
   }
-
-  const secretWord = state.secretWord;
 
   return {
     status: "ready",
     guesserId: state.guesserId,
-    hints: getRemainingHints(state)
-      .map((hint) => hint.hint)
-      .filter((hint) => !includesSecretWord(hint, secretWord))
+    hints: getRemainingHints(state).map((hint) => hint.hint)
   };
 }
 
-function includesSecretWord(hint: string, secretWord: string): boolean {
-  return hint.toLocaleLowerCase().includes(secretWord.toLocaleLowerCase());
+export async function publishJustOneGuessingHints(
+  input: PublishJustOneGuessingHintsInput
+): Promise<PublishJustOneGuessingHintsResult> {
+  const result = getJustOneGuessingHints(input);
+
+  if (result.status !== "ready") {
+    return result;
+  }
+
+  await input.publishMessage({
+    content: createJustOneGuessingHintsMessage(result),
+    guesserId: result.guesserId
+  });
+
+  return { status: "published" };
 }

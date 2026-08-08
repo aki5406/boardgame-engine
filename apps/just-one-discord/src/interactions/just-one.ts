@@ -9,11 +9,11 @@ import {
   confirmJustOneDuplicateReview,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
-  getJustOneGuessingHints,
   startJustOneDiscordSession,
   startJustOneDuplicateReviewForChannel,
   submitJustOneHintFromThread,
   toggleJustOneReviewHint,
+  publishJustOneGuessingHints,
   updateJustOneHintProgress,
   getJustOneState,
   type JustOneDiscordSessionRegistry
@@ -26,7 +26,6 @@ import {
 } from "../views/just-one-start.js";
 import { createJustOneHintConfirmationReply } from "../views/just-one-hint.js";
 import { createJustOneHintProgressMessage } from "../views/just-one-hint-progress.js";
-import { createJustOneGuessingHintsMessage } from "../views/just-one-guessing.js";
 import {
   createJustOneDuplicateReviewFailureReply,
   createJustOneDuplicateReviewMessage,
@@ -365,42 +364,6 @@ async function handleJustOneDuplicateReviewButton(
       });
     }
   }
-
-  await publishJustOneGuessingHints(interaction, reviewThread.channelId, input);
-}
-
-async function publishJustOneGuessingHints(
-  interaction: ButtonInteraction,
-  channelId: string,
-  input: RegisterJustOneInteractionHandlersInput
-): Promise<void> {
-  const result = getJustOneGuessingHints({
-    channelId,
-    registry: input.sessionRegistry
-  });
-
-  if (result.status !== "ready") {
-    console.error("Just One guessing hints were unavailable after confirmation.");
-    return;
-  }
-
-  try {
-    const channel = await interaction.client.channels.fetch(channelId);
-
-    if (!channel?.isSendable()) {
-      throw new Error("Just One guessing channel is unavailable");
-    }
-
-    await channel.send({
-      content: createJustOneGuessingHintsMessage(result),
-      allowedMentions: {
-        parse: [],
-        users: [result.guesserId]
-      }
-    });
-  } catch {
-    console.error("Failed to publish Just One guessing hints.");
-  }
 }
 
 async function handleJustOneDuplicateReviewConfirm(
@@ -467,6 +430,30 @@ async function handleJustOneDuplicateReviewConfirm(
         ephemeral: true
       });
     }
+  }
+
+  try {
+    await publishJustOneGuessingHints({
+      channelId: reviewThread.channelId,
+      registry: input.sessionRegistry,
+      publishMessage: async ({ content, guesserId }) => {
+        const channel = await interaction.client.channels.fetch(reviewThread.channelId);
+
+        if (!channel?.isSendable()) {
+          throw new Error("Just One guessing channel is unavailable");
+        }
+
+        await channel.send({
+          content,
+          allowedMentions: {
+            parse: [],
+            users: [guesserId]
+          }
+        });
+      }
+    });
+  } catch {
+    console.error("Failed to publish Just One guessing hints.");
   }
 }
 

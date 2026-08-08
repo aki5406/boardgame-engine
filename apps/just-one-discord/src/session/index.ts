@@ -32,7 +32,10 @@ export {
 export {
   getJustOneGuessingHints,
   type GetJustOneGuessingHintsInput,
-  type GetJustOneGuessingHintsResult
+  type GetJustOneGuessingHintsResult,
+  publishJustOneGuessingHints,
+  type PublishJustOneGuessingHintsInput,
+  type PublishJustOneGuessingHintsResult
 } from "./guessing-hints.js";
 export {
   updateJustOneHintProgress,

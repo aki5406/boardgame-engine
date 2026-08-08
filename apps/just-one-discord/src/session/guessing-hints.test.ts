@@ -10,7 +10,7 @@ import {
   submitHint
 } from "@boardgame/game-just-one";
 
-import { getJustOneGuessingHints } from "./guessing-hints.js";
+import { getJustOneGuessingHints, publishJustOneGuessingHints } from "./guessing-hints.js";
 import { createJustOneDiscordSessionRegistry } from "./registry.js";
 
 describe("getJustOneGuessingHints", () => {
@@ -81,7 +81,7 @@ describe("getJustOneGuessingHints", () => {
     });
   });
 
-  it("does not expose a hint that contains the secret word", () => {
+  it("keeps the Engine remaining hints unchanged", () => {
     const { engine, registry, session } = setupDuplicateReview("Apple pie");
     const confirmed = confirmDuplicateReview({ engine, session });
 
@@ -94,8 +94,39 @@ describe("getJustOneGuessingHints", () => {
     expect(getJustOneGuessingHints({ channelId: "channel-1", registry })).toEqual({
       status: "ready",
       guesserId: "player-1",
-      hints: ["Red"]
+      hints: ["Apple pie", "Red"]
     });
+  });
+
+  it("publishes the confirmed hints exactly once through the adapter boundary", async () => {
+    const { engine, registry, session } = setupDuplicateReview();
+    const confirmed = confirmDuplicateReview({ engine, session });
+
+    if (confirmed.status !== "confirmed") {
+      throw new Error("Expected duplicate review confirmation to succeed");
+    }
+
+    registry.register({ channelId: "channel-1", session: confirmed.session });
+    const published: { content: string; guesserId: string }[] = [];
+
+    await expect(
+      publishJustOneGuessingHints({
+        channelId: "channel-1",
+        registry,
+        publishMessage: async (message) => {
+          published.push(message);
+        }
+      })
+    ).resolves.toEqual({ status: "published" });
+
+    expect(published).toEqual([
+      {
+        content: expect.stringContaining("Hints for <@player-1>"),
+        guesserId: "player-1"
+      }
+    ]);
+    expect(published[0]?.content).toContain("- Fruit");
+    expect(published[0]?.content).toContain("- Red");
   });
 });
 
