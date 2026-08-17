@@ -24,6 +24,12 @@ export interface JustOneDiscordDuplicateReviewThread {
   readonly messageId: string;
 }
 
+export interface JustOneDiscordGuessingMessage {
+  readonly channelId: string;
+  readonly sessionId: string;
+  readonly messageId: string;
+}
+
 export interface JustOneDiscordSessionRegistry {
   readonly register: (input: RegisterJustOneDiscordSessionInput) => void;
   readonly get: (channelId: string) => JustOneDiscordSession | undefined;
@@ -43,6 +49,8 @@ export interface JustOneDiscordSessionRegistry {
   readonly getDuplicateReviewThreadByChannelId: (
     channelId: string
   ) => JustOneDiscordDuplicateReviewThread | undefined;
+  readonly registerGuessingMessage: (message: JustOneDiscordGuessingMessage) => void;
+  readonly getGuessingMessage: (channelId: string) => JustOneDiscordGuessingMessage | undefined;
 }
 
 export interface RegisterJustOneDiscordSessionInput {
@@ -55,6 +63,7 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
   const hintThreadsByThreadId = new Map<string, JustOneDiscordHintThread>();
   const hintProgressMessagesByChannelId = new Map<string, JustOneDiscordHintProgressMessage>();
   const duplicateReviewThreadsByThreadId = new Map<string, JustOneDiscordDuplicateReviewThread>();
+  const guessingMessagesByChannelId = new Map<string, JustOneDiscordGuessingMessage>();
 
   return {
     register(input) {
@@ -73,6 +82,7 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
       }
 
       hintProgressMessagesByChannelId.delete(channelId);
+      guessingMessagesByChannelId.delete(channelId);
 
       for (const [threadId, thread] of duplicateReviewThreadsByThreadId) {
         if (thread.channelId === channelId) {
@@ -119,6 +129,14 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
       return [...duplicateReviewThreadsByThreadId.values()].find(
         (thread) => thread.channelId === channelId
       );
+    },
+
+    registerGuessingMessage(message) {
+      guessingMessagesByChannelId.set(message.channelId, message);
+    },
+
+    getGuessingMessage(channelId) {
+      return guessingMessagesByChannelId.get(channelId);
     }
   };
 }

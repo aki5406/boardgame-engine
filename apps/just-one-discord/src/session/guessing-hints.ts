@@ -7,6 +7,7 @@ import { createJustOneGuessingHintsMessage } from "../views/just-one-guessing.js
 export type GetJustOneGuessingHintsResult =
   | Readonly<{
       status: "ready";
+      sessionId: string;
       guesserId: string;
       hints: readonly string[];
     }>
@@ -25,8 +26,9 @@ export type PublishJustOneGuessingHintsResult =
 export interface PublishJustOneGuessingHintsInput extends GetJustOneGuessingHintsInput {
   readonly publishMessage: (input: {
     readonly content: string;
+    readonly components: ReturnType<typeof createJustOneGuessingHintsMessage>["components"];
     readonly guesserId: string;
-  }) => Promise<void>;
+  }) => Promise<Readonly<{ messageId: string }>>;
 }
 
 export function getJustOneGuessingHints(
@@ -46,6 +48,7 @@ export function getJustOneGuessingHints(
 
   return {
     status: "ready",
+    sessionId: session.id,
     guesserId: state.guesserId,
     hints: getRemainingHints(state).map((hint) => hint.hint)
   };
@@ -60,9 +63,17 @@ export async function publishJustOneGuessingHints(
     return result;
   }
 
-  await input.publishMessage({
-    content: createJustOneGuessingHintsMessage(result),
+  const message = createJustOneGuessingHintsMessage(result);
+  const publishedMessage = await input.publishMessage({
+    content: message.content,
+    components: message.components,
     guesserId: result.guesserId
+  });
+
+  input.registry.registerGuessingMessage({
+    channelId: input.channelId,
+    sessionId: result.sessionId,
+    messageId: publishedMessage.messageId
   });
 
   return { status: "published" };

@@ -32,6 +32,7 @@ describe("getJustOneGuessingHints", () => {
 
     expect(getJustOneGuessingHints({ channelId: "channel-1", registry })).toEqual({
       status: "ready",
+      sessionId: "just-one:channel-1",
       guesserId: "player-1",
       hints: ["Red"]
     });
@@ -65,6 +66,7 @@ describe("getJustOneGuessingHints", () => {
 
     expect(getJustOneGuessingHints({ channelId: "channel-1", registry })).toEqual({
       status: "ready",
+      sessionId: "just-one:channel-1",
       guesserId: "player-1",
       hints: []
     });
@@ -93,6 +95,7 @@ describe("getJustOneGuessingHints", () => {
 
     expect(getJustOneGuessingHints({ channelId: "channel-1", registry })).toEqual({
       status: "ready",
+      sessionId: "just-one:channel-1",
       guesserId: "player-1",
       hints: ["Apple pie", "Red"]
     });
@@ -115,11 +118,12 @@ describe("getJustOneGuessingHints", () => {
         registry,
         publishMessage: async (message) => {
           published.push(message);
+          return { messageId: "guessing-message-1" };
         }
       })
     ).resolves.toEqual({ status: "published" });
 
-    expect(published).toEqual([
+    expect(published).toMatchObject([
       {
         content: expect.stringContaining("Hints for <@player-1>"),
         guesserId: "player-1"
@@ -127,6 +131,11 @@ describe("getJustOneGuessingHints", () => {
     ]);
     expect(published[0]?.content).toContain("- Fruit");
     expect(published[0]?.content).toContain("- Red");
+    expect(registry.getGuessingMessage("channel-1")).toEqual({
+      channelId: "channel-1",
+      sessionId: "just-one:channel-1",
+      messageId: "guessing-message-1"
+    });
   });
 });
 

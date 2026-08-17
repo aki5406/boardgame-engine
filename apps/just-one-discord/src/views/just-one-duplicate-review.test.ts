@@ -17,6 +17,7 @@ describe("createJustOneDuplicateReviewMessage", () => {
       players: ["guesser-id", "first-hint-player", "second-hint-player"],
       guesserId: "guesser-id",
       secretWord: "Apple",
+      guess: null,
       hintsByPlayerId: {
         "second-hint-player": "Red",
         "first-hint-player": "Fruit"
@@ -68,6 +69,7 @@ describe("createJustOneDuplicateReviewMessage", () => {
       players: ["guesser-id", "hint-player"],
       guesserId: "guesser-id",
       secretWord: "Apple",
+      guess: null,
       hintsByPlayerId: { "hint-player": "Fruit" },
       excludedHintPlayerIds: []
     });
