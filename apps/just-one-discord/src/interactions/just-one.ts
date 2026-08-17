@@ -13,6 +13,7 @@ import {
   startJustOneDuplicateReviewForChannel,
   submitJustOneHintFromThread,
   toggleJustOneReviewHint,
+  publishJustOneGuessingHints,
   updateJustOneHintProgress,
   getJustOneState,
   type JustOneDiscordSessionRegistry
@@ -429,6 +430,30 @@ async function handleJustOneDuplicateReviewConfirm(
         ephemeral: true
       });
     }
+  }
+
+  try {
+    await publishJustOneGuessingHints({
+      channelId: reviewThread.channelId,
+      registry: input.sessionRegistry,
+      publishMessage: async ({ content, guesserId }) => {
+        const channel = await interaction.client.channels.fetch(reviewThread.channelId);
+
+        if (!channel?.isSendable()) {
+          throw new Error("Just One guessing channel is unavailable");
+        }
+
+        await channel.send({
+          content,
+          allowedMentions: {
+            parse: [],
+            users: [guesserId]
+          }
+        });
+      }
+    });
+  } catch {
+    console.error("Failed to publish Just One guessing hints.");
   }
 }
 
