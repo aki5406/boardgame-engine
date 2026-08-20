@@ -8,6 +8,7 @@ export type JustOnePhase =
   | "duplicateReview"
   | "guessing"
   | "answered"
+  | "resultConfirmed"
   | "revealed"
   | "finished";
 
@@ -18,6 +19,7 @@ export type JustOneState = EngineState &
     guesserId: PlayerId | null;
     secretWord: string | null;
     guess: string | null;
+    result: "correct" | "incorrect" | null;
     hintsByPlayerId: Readonly<Record<PlayerId, string>>;
     excludedHintPlayerIds: readonly PlayerId[];
   }>;

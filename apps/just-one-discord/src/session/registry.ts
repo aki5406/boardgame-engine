@@ -30,6 +30,12 @@ export interface JustOneDiscordGuessingMessage {
   readonly messageId: string;
 }
 
+export interface JustOneDiscordRevealMessage {
+  readonly channelId: string;
+  readonly sessionId: string;
+  readonly messageId: string;
+}
+
 export interface JustOneDiscordSessionRegistry {
   readonly register: (input: RegisterJustOneDiscordSessionInput) => void;
   readonly get: (channelId: string) => JustOneDiscordSession | undefined;
@@ -51,6 +57,8 @@ export interface JustOneDiscordSessionRegistry {
   ) => JustOneDiscordDuplicateReviewThread | undefined;
   readonly registerGuessingMessage: (message: JustOneDiscordGuessingMessage) => void;
   readonly getGuessingMessage: (channelId: string) => JustOneDiscordGuessingMessage | undefined;
+  readonly registerRevealMessage: (message: JustOneDiscordRevealMessage) => void;
+  readonly getRevealMessage: (channelId: string) => JustOneDiscordRevealMessage | undefined;
 }
 
 export interface RegisterJustOneDiscordSessionInput {
@@ -64,6 +72,7 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
   const hintProgressMessagesByChannelId = new Map<string, JustOneDiscordHintProgressMessage>();
   const duplicateReviewThreadsByThreadId = new Map<string, JustOneDiscordDuplicateReviewThread>();
   const guessingMessagesByChannelId = new Map<string, JustOneDiscordGuessingMessage>();
+  const revealMessagesByChannelId = new Map<string, JustOneDiscordRevealMessage>();
 
   return {
     register(input) {
@@ -83,6 +92,7 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
 
       hintProgressMessagesByChannelId.delete(channelId);
       guessingMessagesByChannelId.delete(channelId);
+      revealMessagesByChannelId.delete(channelId);
 
       for (const [threadId, thread] of duplicateReviewThreadsByThreadId) {
         if (thread.channelId === channelId) {
@@ -137,6 +147,14 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
 
     getGuessingMessage(channelId) {
       return guessingMessagesByChannelId.get(channelId);
+    },
+
+    registerRevealMessage(message) {
+      revealMessagesByChannelId.set(message.channelId, message);
+    },
+
+    getRevealMessage(channelId) {
+      return revealMessagesByChannelId.get(channelId);
     }
   };
 }

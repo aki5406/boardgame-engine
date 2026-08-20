@@ -4,11 +4,13 @@ import {
   createGame,
   createJustOneEngine,
   confirmDuplicateReview,
+  confirmResult,
   defaultWords,
   excludeHint,
   getDuplicateReviewHints,
   getHintSubmissionProgress,
   getRemainingHints,
+  getRevealResult,
   joinGame,
   justOneGame,
   justOneInitialState,
@@ -29,6 +31,7 @@ describe("Just One game", () => {
       guesserId: null,
       secretWord: null,
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -46,6 +49,7 @@ describe("Just One game", () => {
       guesserId: null,
       secretWord: null,
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -83,6 +87,7 @@ describe("Just One game", () => {
       guesserId: null,
       secretWord: null,
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -125,6 +130,7 @@ describe("Just One game", () => {
       guesserId: "player-1",
       secretWord: "Apple",
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -172,6 +178,7 @@ describe("Just One game", () => {
       guesserId: "player-3",
       secretWord: "Coffee",
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -410,6 +417,7 @@ describe("Just One game", () => {
         guesserId: "player-1",
         secretWord: "Apple",
         guess: null,
+        result: null,
         hintsByPlayerId: {
           "player-2": "fruit",
           "player-3": "red"
@@ -760,6 +768,92 @@ describe("Just One game", () => {
         guess: "Apple"
       })
     ).toEqual({
+      status: "invalidPhase"
+    });
+  });
+
+  it("confirms a human-selected result without changing the revealed round data", () => {
+    const { engine, session } = createGuessingSession();
+    const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Orange" });
+
+    if (submitted.status !== "submitted") {
+      throw new Error("Expected guess submission to succeed");
+    }
+
+    const confirmed = confirmResult({
+      engine,
+      session: submitted.session,
+      result: "correct"
+    });
+
+    expect(confirmed).toEqual({
+      status: "confirmed",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          phase: "resultConfirmed",
+          result: "correct",
+          guess: "Orange",
+          secretWord: "Apple",
+          hintsByPlayerId: { "player-2": "fruit", "player-3": "red" },
+          excludedHintPlayerIds: ["player-2"]
+        })
+      })
+    });
+
+    if (confirmed.status !== "confirmed") {
+      throw new Error("Expected result confirmation to succeed");
+    }
+
+    expect(getRevealResult(confirmed.session.state as JustOneState)).toEqual({
+      status: "ready",
+      guesserId: "player-1",
+      guess: "Orange",
+      secretWord: "Apple"
+    });
+  });
+
+  it("supports incorrect results and rejects invalid or repeated confirmation", () => {
+    const { engine, session } = createGuessingSession();
+
+    expect(confirmResult({ engine, session, result: "incorrect" })).toEqual({
+      status: "invalidPhase"
+    });
+
+    const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Apple" });
+
+    if (submitted.status !== "submitted") {
+      throw new Error("Expected guess submission to succeed");
+    }
+
+    const withoutGuess = engine.startSession({
+      id: submitted.session.id,
+      players: submitted.session.players,
+      initialState: { ...(submitted.session.state as JustOneState), guess: null }
+    });
+    expect(confirmResult({ engine, session: withoutGuess, result: "correct" })).toEqual({
+      status: "invalidState"
+    });
+
+    const withoutSecretWord = engine.startSession({
+      id: submitted.session.id,
+      players: submitted.session.players,
+      initialState: { ...(submitted.session.state as JustOneState), secretWord: null }
+    });
+    expect(confirmResult({ engine, session: withoutSecretWord, result: "correct" })).toEqual({
+      status: "invalidState"
+    });
+
+    const confirmed = confirmResult({
+      engine,
+      session: submitted.session,
+      result: "incorrect"
+    });
+
+    if (confirmed.status !== "confirmed") {
+      throw new Error("Expected result confirmation to succeed");
+    }
+
+    expect(confirmResult({ engine, session: confirmed.session, result: "correct" })).toEqual({
       status: "invalidPhase"
     });
   });

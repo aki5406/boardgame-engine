@@ -25,6 +25,7 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         guesserId: event.guesserId,
         secretWord: event.secretWord,
         guess: null,
+        result: null,
         hintsByPlayerId: {},
         excludedHintPlayerIds: []
       };
@@ -73,6 +74,13 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         ...state,
         phase: "answered",
         guess: event.guess
+      };
+
+    case "just-one.resultConfirmed":
+      return {
+        ...state,
+        phase: "resultConfirmed",
+        result: event.result
       };
 
     default:

@@ -89,6 +89,7 @@ describe("startJustOneDiscordSession", () => {
       guesserId: "user-1",
       secretWord: "Train",
       guess: null,
+      result: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });

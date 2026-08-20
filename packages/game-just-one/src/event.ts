@@ -50,6 +50,12 @@ export type JustOneGuessSubmittedEvent = EngineEvent &
     guess: string;
   }>;
 
+export type JustOneResultConfirmedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.resultConfirmed";
+    result: "correct" | "incorrect";
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
@@ -58,4 +64,5 @@ export type JustOneEvent =
   | JustOneHintExcludedEvent
   | JustOneHintRestoredEvent
   | JustOneDuplicateReviewConfirmedEvent
-  | JustOneGuessSubmittedEvent;
+  | JustOneGuessSubmittedEvent
+  | JustOneResultConfirmedEvent;

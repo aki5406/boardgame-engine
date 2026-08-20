@@ -19,6 +19,7 @@ export const justOneInitialState: JustOneState = {
   guesserId: null,
   secretWord: null,
   guess: null,
+  result: null,
   hintsByPlayerId: {},
   excludedHintPlayerIds: []
 };
@@ -128,6 +129,28 @@ export interface SubmitGuessInput {
   readonly playerId: PlayerId;
   readonly guess: string;
 }
+
+export type JustOneResult = "correct" | "incorrect";
+
+export type ConfirmResultResult =
+  | Readonly<{ status: "confirmed"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "invalidState" }>;
+
+export interface ConfirmResultInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly result: JustOneResult;
+}
+
+export type GetRevealResult =
+  | Readonly<{
+      status: "ready";
+      guesserId: PlayerId;
+      guess: string;
+      secretWord: string;
+    }>
+  | Readonly<{ status: "invalidState" }>;
 
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
@@ -385,6 +408,54 @@ export function submitGuess(input: SubmitGuessInput): SubmitGuessResult {
 
   return {
     status: "submitted",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
+export function getRevealResult(state: JustOneState): GetRevealResult {
+  if (
+    (state.phase !== "answered" && state.phase !== "resultConfirmed") ||
+    !state.guesserId ||
+    !state.guess ||
+    !state.secretWord
+  ) {
+    return { status: "invalidState" };
+  }
+
+  return {
+    status: "ready",
+    guesserId: state.guesserId,
+    guess: state.guess,
+    secretWord: state.secretWord
+  };
+}
+
+export function confirmResult(input: ConfirmResultInput): ConfirmResultResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "answered") {
+    return { status: "invalidPhase" };
+  }
+
+  if (
+    (input.result !== "correct" && input.result !== "incorrect") ||
+    !state.guess ||
+    !state.secretWord ||
+    state.result !== null
+  ) {
+    return { status: "invalidState" };
+  }
+
+  const event: JustOneEvent = {
+    type: "just-one.resultConfirmed",
+    result: input.result
+  };
+
+  return {
+    status: "confirmed",
     session: input.engine.applyEvent({
       session: input.session,
       event

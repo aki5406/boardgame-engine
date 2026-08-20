@@ -1,4 +1,9 @@
 export {
+  confirmJustOneResult,
+  type ConfirmJustOneResultInput,
+  type ConfirmJustOneResultResult
+} from "./result.js";
+export {
   submitJustOneGuess,
   type SubmitJustOneGuessInput,
   type SubmitJustOneGuessResult
@@ -61,6 +66,7 @@ export {
   createJustOneDiscordSessionRegistry,
   type JustOneDiscordHintThread,
   type JustOneDiscordGuessingMessage,
+  type JustOneDiscordRevealMessage,
   type JustOneDiscordHintProgressMessage,
   type JustOneDiscordSession,
   type JustOneDiscordSessionRegistry,
