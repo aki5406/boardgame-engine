@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createJustOneRevealMessage, parseJustOneResultCustomId } from "./just-one-reveal.js";
+import {
+  createJustOneRevealMessage,
+  isJustOneScoreRoundCustomId,
+  parseJustOneResultCustomId
+} from "./just-one-reveal.js";
 
 describe("createJustOneRevealMessage", () => {
   it("reveals the guess and secret word with result buttons", () => {
@@ -19,7 +23,7 @@ describe("createJustOneRevealMessage", () => {
     ]);
   });
 
-  it("shows a confirmed result without controls", () => {
+  it("shows a confirmed result with a Score round button", () => {
     const message = createJustOneRevealMessage({
       guesserId: "guesser-id",
       guess: "Orange",
@@ -28,6 +32,25 @@ describe("createJustOneRevealMessage", () => {
     });
 
     expect(message.content).toContain("Result: Incorrect");
+    expect(message.components[0]?.components[0]?.toJSON()).toMatchObject({
+      custom_id: "just-one:score-round",
+      label: "Score round"
+    });
+  });
+
+  it("shows the round points and total score without controls after scoring", () => {
+    const message = createJustOneRevealMessage({
+      guesserId: "guesser-id",
+      guess: "Orange",
+      secretWord: "Apple",
+      result: "incorrect",
+      points: 0,
+      totalScore: 3
+    });
+
+    expect(message.content).toContain("Round complete");
+    expect(message.content).toContain("Points this round: +0");
+    expect(message.content).toContain("Total score: 3");
     expect(message.components).toEqual([]);
   });
 
@@ -35,5 +58,6 @@ describe("createJustOneRevealMessage", () => {
     expect(parseJustOneResultCustomId("just-one:result:correct")).toBe("correct");
     expect(parseJustOneResultCustomId("just-one:result:incorrect")).toBe("incorrect");
     expect(parseJustOneResultCustomId("just-one:result:Apple")).toBeUndefined();
+    expect(isJustOneScoreRoundCustomId("just-one:score-round")).toBe(true);
   });
 });

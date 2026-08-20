@@ -13,6 +13,7 @@ export type {
   JustOneDuplicateReviewConfirmedEvent,
   JustOneGuessSubmittedEvent,
   JustOneResultConfirmedEvent,
+  JustOneRoundScoredEvent,
   JustOneHintExcludedEvent,
   JustOneHintRestoredEvent,
   JustOneGameStartedEvent,
@@ -33,6 +34,7 @@ export {
   justOneGame,
   justOneInitialState,
   restoreHint,
+  scoreRound,
   submitGuess,
   startDuplicateReview,
   submitHint,
@@ -49,6 +51,8 @@ export type {
   JustOneRemainingHint,
   JustOneRandom,
   JustOneResult,
+  ScoreRoundInput,
+  ScoreRoundResult,
   SubmitHintInput,
   SubmitHintResult,
   SubmitGuessInput,
@@ -58,6 +62,7 @@ export type {
   ReviewHintInput,
   ReviewHintResult
 } from "./game.js";
+export { getRoundPoints } from "./game.js";
 export { justOneReducer, reduceJustOneState } from "./reducer.js";
 export type { JustOnePhase, JustOneState, PlayerId } from "./state.js";
 export { defaultWords } from "./words.js";

@@ -1,4 +1,9 @@
 export {
+  scoreJustOneRound,
+  type ScoreJustOneRoundInput,
+  type ScoreJustOneRoundResult
+} from "./score.js";
+export {
   confirmJustOneResult,
   type ConfirmJustOneResultInput,
   type ConfirmJustOneResultResult

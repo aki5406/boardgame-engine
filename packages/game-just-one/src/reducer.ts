@@ -26,6 +26,7 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         secretWord: event.secretWord,
         guess: null,
         result: null,
+        score: state.score,
         hintsByPlayerId: {},
         excludedHintPlayerIds: []
       };
@@ -81,6 +82,13 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         ...state,
         phase: "resultConfirmed",
         result: event.result
+      };
+
+    case "just-one.roundScored":
+      return {
+        ...state,
+        phase: "roundScored",
+        score: state.score + event.points
       };
 
     default:

@@ -56,6 +56,12 @@ export type JustOneResultConfirmedEvent = EngineEvent &
     result: "correct" | "incorrect";
   }>;
 
+export type JustOneRoundScoredEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.roundScored";
+    points: number;
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
@@ -65,4 +71,5 @@ export type JustOneEvent =
   | JustOneHintRestoredEvent
   | JustOneDuplicateReviewConfirmedEvent
   | JustOneGuessSubmittedEvent
-  | JustOneResultConfirmedEvent;
+  | JustOneResultConfirmedEvent
+  | JustOneRoundScoredEvent;

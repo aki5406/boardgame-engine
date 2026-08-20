@@ -16,6 +16,7 @@ import {
   justOneInitialState,
   reduceJustOneState,
   restoreHint,
+  scoreRound,
   submitGuess,
   startDuplicateReview,
   submitHint,
@@ -32,6 +33,7 @@ describe("Just One game", () => {
       secretWord: null,
       guess: null,
       result: null,
+      score: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -50,6 +52,7 @@ describe("Just One game", () => {
       secretWord: null,
       guess: null,
       result: null,
+      score: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -88,6 +91,7 @@ describe("Just One game", () => {
       secretWord: null,
       guess: null,
       result: null,
+      score: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -131,6 +135,7 @@ describe("Just One game", () => {
       secretWord: "Apple",
       guess: null,
       result: null,
+      score: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -179,6 +184,7 @@ describe("Just One game", () => {
       secretWord: "Coffee",
       guess: null,
       result: null,
+      score: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -418,6 +424,7 @@ describe("Just One game", () => {
         secretWord: "Apple",
         guess: null,
         result: null,
+        score: 0,
         hintsByPlayerId: {
           "player-2": "fruit",
           "player-3": "red"
@@ -856,6 +863,54 @@ describe("Just One game", () => {
     expect(confirmResult({ engine, session: confirmed.session, result: "correct" })).toEqual({
       status: "invalidPhase"
     });
+  });
+
+  it("scores a correct result once and preserves round state", () => {
+    const { engine, session } = createGuessingSession();
+    const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Apple" });
+    if (submitted.status !== "submitted") throw new Error("Expected guess submission to succeed");
+    const confirmed = confirmResult({ engine, session: submitted.session, result: "correct" });
+    if (confirmed.status !== "confirmed")
+      throw new Error("Expected result confirmation to succeed");
+
+    const existingScoreSession = engine.startSession({
+      id: confirmed.session.id,
+      players: confirmed.session.players,
+      initialState: { ...(confirmed.session.state as JustOneState), score: 3 }
+    });
+    const scored = scoreRound({ engine, session: existingScoreSession });
+
+    expect(scored).toEqual({
+      status: "scored",
+      points: 1,
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          phase: "roundScored",
+          score: 4,
+          result: "correct",
+          guess: "Apple",
+          secretWord: "Apple",
+          hintsByPlayerId: { "player-2": "fruit", "player-3": "red" },
+          excludedHintPlayerIds: ["player-2"]
+        })
+      })
+    });
+  });
+
+  it("keeps the score for an incorrect result and rejects repeated scoring", () => {
+    const { engine, session } = createGuessingSession();
+    const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Orange" });
+    if (submitted.status !== "submitted") throw new Error("Expected guess submission to succeed");
+    const confirmed = confirmResult({ engine, session: submitted.session, result: "incorrect" });
+    if (confirmed.status !== "confirmed")
+      throw new Error("Expected result confirmation to succeed");
+
+    const scored = scoreRound({ engine, session: confirmed.session });
+    if (scored.status !== "scored") throw new Error("Expected round scoring to succeed");
+
+    expect(scored.points).toBe(0);
+    expect((scored.session.state as JustOneState).score).toBe(0);
+    expect(scoreRound({ engine, session: scored.session })).toEqual({ status: "invalidPhase" });
   });
 });
 
