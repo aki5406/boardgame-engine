@@ -7,11 +7,12 @@ import type {
 } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
-import { getHintSubmissionProgress, type Engine } from "@boardgame/game-just-one";
+import { getHintSubmissionProgress, getRevealResult, type Engine } from "@boardgame/game-just-one";
 
 import {
   createJustOneDiscordSessionForChannel,
   createJustOneDuplicateReviewThread,
+  confirmJustOneResult,
   confirmJustOneDuplicateReview,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
@@ -23,6 +24,7 @@ import {
   submitJustOneGuess,
   updateJustOneHintProgress,
   getJustOneState,
+  type JustOneDiscordSession,
   type JustOneDiscordSessionRegistry
 } from "../session/index.js";
 import {
@@ -47,6 +49,10 @@ import {
   isJustOneGuessModalCustomId,
   isJustOneSubmitGuessCustomId
 } from "../views/just-one-guessing.js";
+import {
+  createJustOneRevealMessage,
+  parseJustOneResultCustomId
+} from "../views/just-one-reveal.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
   readonly engine: Engine;
@@ -70,6 +76,11 @@ export function registerJustOneInteractionHandlers(
     if (interaction.isButton()) {
       if (isJustOneSubmitGuessCustomId(interaction.customId)) {
         await handleJustOneSubmitGuessButton(interaction, input);
+        return;
+      }
+
+      if (parseJustOneResultCustomId(interaction.customId)) {
+        await handleJustOneResultButton(interaction, input);
         return;
       }
 
@@ -435,22 +446,145 @@ async function handleJustOneGuessModalSubmit(
 
   const guessingMessage = input.sessionRegistry.getGuessingMessage(channelId);
 
-  if (!guessingMessage || guessingMessage.sessionId !== result.session.id) {
+  if (guessingMessage && guessingMessage.sessionId === result.session.id) {
+    try {
+      const channel = await interaction.client.channels.fetch(channelId);
+
+      if (!channel?.isTextBased()) {
+        throw new Error("Just One guessing channel is unavailable");
+      }
+
+      const message = await channel.messages.fetch(guessingMessage.messageId);
+      await message.edit({ components: [] });
+    } catch {
+      console.error("Failed to update Just One guessing message.");
+    }
+  }
+
+  try {
+    const reveal = getJustOneRevealMessage(result.session);
+
+    if (!reveal) {
+      throw new Error("Just One reveal state is unavailable");
+    }
+
+    const channel = await interaction.client.channels.fetch(channelId);
+
+    if (!channel?.isSendable()) {
+      throw new Error("Just One reveal channel is unavailable");
+    }
+
+    const revealMessage = await channel.send({
+      ...reveal,
+      allowedMentions: {
+        parse: [],
+        users: [getJustOneState(result.session).guesserId!]
+      }
+    });
+    input.sessionRegistry.registerRevealMessage({
+      channelId,
+      sessionId: result.session.id,
+      messageId: revealMessage.id
+    });
+  } catch {
+    console.error("Failed to publish Just One reveal message.");
+  }
+}
+
+async function handleJustOneResultButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const result = parseJustOneResultCustomId(interaction.customId);
+  const channelId = interaction.channelId;
+
+  if (!result || !channelId) {
+    return;
+  }
+
+  const revealMessage = input.sessionRegistry.getRevealMessage(channelId);
+  const session = input.sessionRegistry.get(channelId);
+
+  if (
+    !revealMessage ||
+    revealMessage.messageId !== interaction.message.id ||
+    !session ||
+    revealMessage.sessionId !== session.id
+  ) {
+    await interaction.reply({
+      content: "The result has already been confirmed.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const state = getJustOneState(session);
+
+  if (state.phase !== "answered") {
+    await interaction.reply({
+      content: "The result has already been confirmed.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot || !state.players.includes(interaction.user.id)) {
+    await interaction.reply({
+      content: "Only game participants can confirm the result.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const confirmation = confirmJustOneResult({
+    channelId,
+    result,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (confirmation.status !== "confirmed") {
+    await interaction.reply({
+      content: "The result has already been confirmed.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const reveal = getJustOneRevealMessage(confirmation.session);
+
+  if (!reveal) {
+    await interaction.reply({
+      content: "The result was confirmed, but the reveal message could not be refreshed.",
+      ephemeral: true
+    });
     return;
   }
 
   try {
-    const channel = await interaction.client.channels.fetch(channelId);
-
-    if (!channel?.isTextBased()) {
-      throw new Error("Just One guessing channel is unavailable");
-    }
-
-    const message = await channel.messages.fetch(guessingMessage.messageId);
-    await message.edit({ components: [] });
+    await interaction.update(reveal);
   } catch {
-    console.error("Failed to update Just One guessing message.");
+    console.error("Failed to update Just One reveal message.");
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "The result was confirmed, but the reveal message could not be refreshed.",
+        ephemeral: true
+      });
+    }
   }
+}
+
+function getJustOneRevealMessage(session: JustOneDiscordSession) {
+  const reveal = getRevealResult(getJustOneState(session));
+
+  if (reveal.status !== "ready") {
+    return undefined;
+  }
+
+  const result = getJustOneState(session).result;
+
+  return createJustOneRevealMessage(result ? { ...reveal, result } : reveal);
 }
 
 async function handleJustOneDuplicateReviewButton(
