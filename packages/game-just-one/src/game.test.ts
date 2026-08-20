@@ -14,6 +14,7 @@ import {
   justOneInitialState,
   reduceJustOneState,
   restoreHint,
+  submitGuess,
   startDuplicateReview,
   submitHint,
   startGame
@@ -27,6 +28,7 @@ describe("Just One game", () => {
       players: [],
       guesserId: null,
       secretWord: null,
+      guess: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -43,6 +45,7 @@ describe("Just One game", () => {
       players: ["player-1"],
       guesserId: null,
       secretWord: null,
+      guess: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -79,6 +82,7 @@ describe("Just One game", () => {
       players: ["player-1"],
       guesserId: null,
       secretWord: null,
+      guess: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -120,6 +124,7 @@ describe("Just One game", () => {
       players: ["player-1", "player-2"],
       guesserId: "player-1",
       secretWord: "Apple",
+      guess: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -166,6 +171,7 @@ describe("Just One game", () => {
       players: ["player-1", "player-2", "player-3"],
       guesserId: "player-3",
       secretWord: "Coffee",
+      guess: null,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -403,6 +409,7 @@ describe("Just One game", () => {
         players: ["player-1", "player-2", "player-3"],
         guesserId: "player-1",
         secretWord: "Apple",
+        guess: null,
         hintsByPlayerId: {
           "player-2": "fruit",
           "player-3": "red"
@@ -490,6 +497,7 @@ describe("Just One game", () => {
         players: ["player-1", "player-2"],
         guesserId: "player-1",
         secretWord: "Apple",
+        guess: null,
         hintsByPlayerId: {
           "player-1": "not allowed",
           "player-2": "fruit"
@@ -604,6 +612,7 @@ describe("Just One game", () => {
         players: ["player-1", "player-2", "player-3"],
         guesserId: "player-1",
         secretWord: "Apple",
+        guess: null,
         hintsByPlayerId: {
           "player-2": "fruit"
         },
@@ -694,6 +703,66 @@ describe("Just One game", () => {
       { playerId: "player-3", hint: "red" }
     ]);
   });
+
+  it("stores a trimmed guess from the guesser without judging it", () => {
+    const { engine, session } = createGuessingSession();
+    const submitted = submitGuess({
+      engine,
+      session,
+      playerId: "player-1",
+      guess: "  Apple  "
+    });
+
+    expect(submitted).toEqual({
+      status: "submitted",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          phase: "answered",
+          guess: "Apple",
+          secretWord: "Apple",
+          hintsByPlayerId: {
+            "player-2": "fruit",
+            "player-3": "red"
+          },
+          excludedHintPlayerIds: ["player-2"]
+        })
+      })
+    });
+  });
+
+  it("rejects guesses from non-guessers, empty input, and non-guessing phases", () => {
+    const { engine, session } = createGuessingSession();
+
+    expect(submitGuess({ engine, session, playerId: "player-2", guess: "Apple" })).toEqual({
+      status: "notGuesser"
+    });
+    expect(submitGuess({ engine, session, playerId: "player-4", guess: "Apple" })).toEqual({
+      status: "notPlayer"
+    });
+    expect(submitGuess({ engine, session, playerId: "player-1", guess: "   " })).toEqual({
+      status: "emptyGuess"
+    });
+
+    const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Apple" });
+
+    if (submitted.status !== "submitted") {
+      throw new Error("Expected guess submission to succeed");
+    }
+
+    expect(
+      submitGuess({ engine, session: submitted.session, playerId: "player-1", guess: "Apple" })
+    ).toEqual({ status: "invalidPhase" });
+    expect(
+      submitGuess({
+        engine,
+        session: createHintingSession().session,
+        playerId: "player-1",
+        guess: "Apple"
+      })
+    ).toEqual({
+      status: "invalidPhase"
+    });
+  });
 });
 
 function createDuplicateReviewSession() {
@@ -722,6 +791,23 @@ function createDuplicateReviewSession() {
   }
 
   return { engine, session: started.session };
+}
+
+function createGuessingSession() {
+  const { engine, session } = createDuplicateReviewSession();
+  const excluded = excludeHint({ engine, session, playerId: "player-2" });
+
+  if (excluded.status !== "excluded") {
+    throw new Error("Expected hint exclusion to succeed");
+  }
+
+  const confirmed = confirmDuplicateReview({ engine, session: excluded.session });
+
+  if (confirmed.status !== "confirmed") {
+    throw new Error("Expected duplicate review confirmation to succeed");
+  }
+
+  return { engine, session: confirmed.session };
 }
 
 function createHintingSession() {

@@ -18,6 +18,7 @@ export const justOneInitialState: JustOneState = {
   players: [],
   guesserId: null,
   secretWord: null,
+  guess: null,
   hintsByPlayerId: {},
   excludedHintPlayerIds: []
 };
@@ -112,6 +113,20 @@ export type ConfirmDuplicateReviewResult =
 export interface ConfirmDuplicateReviewInput {
   readonly engine: Engine;
   readonly session: EngineGameSession;
+}
+
+export type SubmitGuessResult =
+  | Readonly<{ status: "submitted"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "notPlayer" }>
+  | Readonly<{ status: "notGuesser" }>
+  | Readonly<{ status: "emptyGuess" }>;
+
+export interface SubmitGuessInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly playerId: PlayerId;
+  readonly guess: string;
 }
 
 export function createJustOneEngine(): Engine {
@@ -341,6 +356,40 @@ export function getRemainingHints(state: JustOneState): readonly JustOneRemainin
   return getDuplicateReviewHints(state)
     .filter((hint) => !hint.excluded)
     .map(({ playerId, hint }) => ({ playerId, hint }));
+}
+
+export function submitGuess(input: SubmitGuessInput): SubmitGuessResult {
+  const state = input.session.state as JustOneState;
+  const guess = input.guess.trim();
+
+  if (state.phase !== "guessing") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!input.session.players.some((player) => player.id === input.playerId)) {
+    return { status: "notPlayer" };
+  }
+
+  if (state.guesserId !== input.playerId) {
+    return { status: "notGuesser" };
+  }
+
+  if (guess.length === 0) {
+    return { status: "emptyGuess" };
+  }
+
+  const event: JustOneEvent = {
+    type: "just-one.guessSubmitted",
+    guess
+  };
+
+  return {
+    status: "submitted",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
 }
 
 function validateReviewHint(

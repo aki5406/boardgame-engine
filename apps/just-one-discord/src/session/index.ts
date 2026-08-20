@@ -1,4 +1,9 @@
 export {
+  submitJustOneGuess,
+  type SubmitJustOneGuessInput,
+  type SubmitJustOneGuessResult
+} from "./guess.js";
+export {
   createJustOneDuplicateReviewThread,
   startJustOneDuplicateReviewForChannel,
   type CreateJustOneDuplicateReviewThreadInput,
@@ -55,6 +60,7 @@ export {
 export {
   createJustOneDiscordSessionRegistry,
   type JustOneDiscordHintThread,
+  type JustOneDiscordGuessingMessage,
   type JustOneDiscordHintProgressMessage,
   type JustOneDiscordSession,
   type JustOneDiscordSessionRegistry,

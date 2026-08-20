@@ -1,4 +1,10 @@
-import type { ButtonInteraction, ChatInputCommandInteraction, Client, Message } from "discord.js";
+import type {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Client,
+  Message,
+  ModalSubmitInteraction
+} from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
 import { getHintSubmissionProgress, type Engine } from "@boardgame/game-just-one";
@@ -14,6 +20,7 @@ import {
   submitJustOneHintFromThread,
   toggleJustOneReviewHint,
   publishJustOneGuessingHints,
+  submitJustOneGuess,
   updateJustOneHintProgress,
   getJustOneState,
   type JustOneDiscordSessionRegistry
@@ -34,6 +41,12 @@ import {
   parseJustOneHintToggleCustomId
 } from "../views/just-one-duplicate-review.js";
 import { type CreateJustOnePrivateHintThreadResult } from "../session/private-threads.js";
+import {
+  createJustOneGuessModal,
+  getJustOneGuessTextInputCustomId,
+  isJustOneGuessModalCustomId,
+  isJustOneSubmitGuessCustomId
+} from "../views/just-one-guessing.js";
 
 export interface RegisterJustOneInteractionHandlersInput {
   readonly engine: Engine;
@@ -54,11 +67,19 @@ export function registerJustOneInteractionHandlers(
       return;
     }
 
-    if (!interaction.isButton()) {
+    if (interaction.isButton()) {
+      if (isJustOneSubmitGuessCustomId(interaction.customId)) {
+        await handleJustOneSubmitGuessButton(interaction, input);
+        return;
+      }
+
+      await handleJustOneDuplicateReviewButton(interaction, input);
       return;
     }
 
-    await handleJustOneDuplicateReviewButton(interaction, input);
+    if (interaction.isModalSubmit() && isJustOneGuessModalCustomId(interaction.customId)) {
+      await handleJustOneGuessModalSubmit(interaction, input);
+    }
   });
 
   client.on(Events.MessageCreate, async (message) => {
@@ -287,6 +308,151 @@ async function startDuplicateReviewIfReady(
   }
 }
 
+async function handleJustOneSubmitGuessButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+
+  if (!channelId) {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const guessingMessage = input.sessionRegistry.getGuessingMessage(channelId);
+  const session = input.sessionRegistry.get(channelId);
+
+  if (!guessingMessage || guessingMessage.messageId !== interaction.message.id || !session) {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const state = getJustOneState(session);
+
+  if (state.phase !== "guessing") {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (
+    interaction.user.bot ||
+    !state.players.includes(interaction.user.id) ||
+    state.guesserId !== interaction.user.id
+  ) {
+    await interaction.reply({
+      content: "Only the Guesser can submit the answer.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  await interaction.showModal(createJustOneGuessModal());
+}
+
+async function handleJustOneGuessModalSubmit(
+  interaction: ModalSubmitInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+
+  if (!channelId) {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const session = input.sessionRegistry.get(channelId);
+
+  if (!session || getJustOneState(session).phase !== "guessing") {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const state = getJustOneState(session);
+
+  if (
+    interaction.user.bot ||
+    !state.players.includes(interaction.user.id) ||
+    state.guesserId !== interaction.user.id
+  ) {
+    await interaction.reply({
+      content: "Only the Guesser can submit the answer.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const result = submitJustOneGuess({
+    channelId,
+    playerId: interaction.user.id,
+    guess: interaction.fields.getTextInputValue(getJustOneGuessTextInputCustomId()),
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "emptyGuess") {
+    await interaction.reply({
+      content: "Please enter an answer.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status === "notGuesser" || result.status === "notPlayer") {
+    await interaction.reply({
+      content: "Only the Guesser can submit the answer.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status !== "submitted") {
+    await interaction.reply({
+      content: "The answer has already been submitted.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  await interaction.reply({
+    content: "Guess submitted.",
+    ephemeral: true
+  });
+
+  const guessingMessage = input.sessionRegistry.getGuessingMessage(channelId);
+
+  if (!guessingMessage || guessingMessage.sessionId !== result.session.id) {
+    return;
+  }
+
+  try {
+    const channel = await interaction.client.channels.fetch(channelId);
+
+    if (!channel?.isTextBased()) {
+      throw new Error("Just One guessing channel is unavailable");
+    }
+
+    const message = await channel.messages.fetch(guessingMessage.messageId);
+    await message.edit({ components: [] });
+  } catch {
+    console.error("Failed to update Just One guessing message.");
+  }
+}
+
 async function handleJustOneDuplicateReviewButton(
   interaction: ButtonInteraction,
   input: RegisterJustOneInteractionHandlersInput
@@ -436,20 +602,23 @@ async function handleJustOneDuplicateReviewConfirm(
     await publishJustOneGuessingHints({
       channelId: reviewThread.channelId,
       registry: input.sessionRegistry,
-      publishMessage: async ({ content, guesserId }) => {
+      publishMessage: async ({ content, components, guesserId }) => {
         const channel = await interaction.client.channels.fetch(reviewThread.channelId);
 
         if (!channel?.isSendable()) {
           throw new Error("Just One guessing channel is unavailable");
         }
 
-        await channel.send({
+        const guessingMessage = await channel.send({
           content,
+          components,
           allowedMentions: {
             parse: [],
             users: [guesserId]
           }
         });
+
+        return { messageId: guessingMessage.id };
       }
     });
   } catch {
