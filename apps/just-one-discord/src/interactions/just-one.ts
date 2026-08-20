@@ -7,7 +7,12 @@ import type {
 } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
-import { getHintSubmissionProgress, getRevealResult, type Engine } from "@boardgame/game-just-one";
+import {
+  getHintSubmissionProgress,
+  getRevealResult,
+  getRoundPoints,
+  type Engine
+} from "@boardgame/game-just-one";
 
 import {
   createJustOneDiscordSessionForChannel,
@@ -18,6 +23,7 @@ import {
   createJustOnePrivateHintThreads,
   startJustOneDiscordSession,
   startJustOneDuplicateReviewForChannel,
+  scoreJustOneRound,
   submitJustOneHintFromThread,
   toggleJustOneReviewHint,
   publishJustOneGuessingHints,
@@ -51,6 +57,7 @@ import {
 } from "../views/just-one-guessing.js";
 import {
   createJustOneRevealMessage,
+  isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
 } from "../views/just-one-reveal.js";
 
@@ -81,6 +88,11 @@ export function registerJustOneInteractionHandlers(
 
       if (parseJustOneResultCustomId(interaction.customId)) {
         await handleJustOneResultButton(interaction, input);
+        return;
+      }
+
+      if (isJustOneScoreRoundCustomId(interaction.customId)) {
+        await handleJustOneScoreRoundButton(interaction, input);
         return;
       }
 
@@ -575,6 +587,75 @@ async function handleJustOneResultButton(
   }
 }
 
+async function handleJustOneScoreRoundButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+  const revealMessage = channelId ? input.sessionRegistry.getRevealMessage(channelId) : undefined;
+  const session = channelId ? input.sessionRegistry.get(channelId) : undefined;
+
+  if (
+    !channelId ||
+    !revealMessage ||
+    revealMessage.messageId !== interaction.message.id ||
+    !session ||
+    revealMessage.sessionId !== session.id ||
+    getJustOneState(session).phase !== "resultConfirmed"
+  ) {
+    await interaction.reply({
+      content: "This round has already been scored.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot || !getJustOneState(session).players.includes(interaction.user.id)) {
+    await interaction.reply({
+      content: "Only game participants can score the round.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const result = scoreJustOneRound({
+    channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status !== "scored") {
+    await interaction.reply({
+      content: "This round has already been scored.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const reveal = getJustOneRevealMessage(result.session);
+
+  if (!reveal) {
+    await interaction.reply({
+      content: "The round was scored, but the result message could not be refreshed.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    await interaction.update(reveal);
+  } catch {
+    console.error("Failed to update Just One scored round message.");
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "The round was scored, but the result message could not be refreshed.",
+        ephemeral: true
+      });
+    }
+  }
+}
+
 function getJustOneRevealMessage(session: JustOneDiscordSession) {
   const reveal = getRevealResult(getJustOneState(session));
 
@@ -583,6 +664,16 @@ function getJustOneRevealMessage(session: JustOneDiscordSession) {
   }
 
   const result = getJustOneState(session).result;
+  const points = getRoundPoints(getJustOneState(session));
+
+  if (getJustOneState(session).phase === "roundScored" && result && points !== undefined) {
+    return createJustOneRevealMessage({
+      ...reveal,
+      result,
+      points,
+      totalScore: getJustOneState(session).score
+    });
+  }
 
   return createJustOneRevealMessage(result ? { ...reveal, result } : reveal);
 }

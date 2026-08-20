@@ -4,28 +4,47 @@ import type { JustOneResult } from "@boardgame/game-just-one";
 
 const JUST_ONE_RESULT_CORRECT_CUSTOM_ID = "just-one:result:correct";
 const JUST_ONE_RESULT_INCORRECT_CUSTOM_ID = "just-one:result:incorrect";
+const JUST_ONE_SCORE_ROUND_CUSTOM_ID = "just-one:score-round";
 
 export interface JustOneRevealMessageInput {
   readonly guesserId: string;
   readonly guess: string;
   readonly secretWord: string;
   readonly result?: JustOneResult;
+  readonly points?: number;
+  readonly totalScore?: number;
 }
 
 export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
   readonly content: string;
   readonly components: readonly ActionRowBuilder<ButtonBuilder>[];
 } {
+  const scored = input.points !== undefined && input.totalScore !== undefined;
   const content = [
-    "Answer revealed",
+    scored ? "Round complete" : "Answer revealed",
     `Guesser: <@${input.guesserId}>`,
     `Guess: ${input.guess}`,
     `Secret Word: ${input.secretWord}`,
-    ...(input.result ? [`Result: ${formatResult(input.result)}`] : [])
+    ...(input.result ? [`Result: ${formatResult(input.result)}`] : []),
+    ...(scored ? [`Points this round: +${input.points}`, `Total score: ${input.totalScore}`] : [])
   ].join("\n");
 
-  if (input.result) {
+  if (scored) {
     return { content, components: [] };
+  }
+
+  if (input.result) {
+    return {
+      content,
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(JUST_ONE_SCORE_ROUND_CUSTOM_ID)
+            .setLabel("Score round")
+            .setStyle(ButtonStyle.Primary)
+        )
+      ]
+    };
   }
 
   return {
@@ -53,6 +72,10 @@ export function parseJustOneResultCustomId(customId: string): JustOneResult | un
   if (customId === JUST_ONE_RESULT_INCORRECT_CUSTOM_ID) {
     return "incorrect";
   }
+}
+
+export function isJustOneScoreRoundCustomId(customId: string): boolean {
+  return customId === JUST_ONE_SCORE_ROUND_CUSTOM_ID;
 }
 
 function formatResult(result: JustOneResult): string {

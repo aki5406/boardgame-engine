@@ -9,6 +9,7 @@ export type JustOnePhase =
   | "guessing"
   | "answered"
   | "resultConfirmed"
+  | "roundScored"
   | "revealed"
   | "finished";
 
@@ -20,6 +21,7 @@ export type JustOneState = EngineState &
     secretWord: string | null;
     guess: string | null;
     result: "correct" | "incorrect" | null;
+    score: number;
     hintsByPlayerId: Readonly<Record<PlayerId, string>>;
     excludedHintPlayerIds: readonly PlayerId[];
   }>;

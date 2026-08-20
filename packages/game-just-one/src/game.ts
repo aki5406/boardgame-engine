@@ -20,6 +20,7 @@ export const justOneInitialState: JustOneState = {
   secretWord: null,
   guess: null,
   result: null,
+  score: 0,
   hintsByPlayerId: {},
   excludedHintPlayerIds: []
 };
@@ -151,6 +152,16 @@ export type GetRevealResult =
       secretWord: string;
     }>
   | Readonly<{ status: "invalidState" }>;
+
+export type ScoreRoundResult =
+  | Readonly<{ status: "scored"; points: number; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "invalidState" }>;
+
+export interface ScoreRoundInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+}
 
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
@@ -456,6 +467,41 @@ export function confirmResult(input: ConfirmResultInput): ConfirmResultResult {
 
   return {
     status: "confirmed",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
+export function getRoundPoints(state: JustOneState): number | undefined {
+  if (state.result === "correct") {
+    return 1;
+  }
+
+  if (state.result === "incorrect") {
+    return 0;
+  }
+}
+
+export function scoreRound(input: ScoreRoundInput): ScoreRoundResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "resultConfirmed") {
+    return { status: "invalidPhase" };
+  }
+
+  const points = getRoundPoints(state);
+
+  if (!state.guess || !state.secretWord || points === undefined) {
+    return { status: "invalidState" };
+  }
+
+  const event: JustOneEvent = { type: "just-one.roundScored", points };
+
+  return {
+    status: "scored",
+    points,
     session: input.engine.applyEvent({
       session: input.session,
       event
