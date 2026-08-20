@@ -6,6 +6,13 @@
 
 Discord, CLI, and Web clients are adapters. Keep game rules and state transitions in client-independent `packages/*` code.
 
+## Working Style
+
+- Humans define product intent and task scope.
+- Agents own implementation details within that scope.
+- Raise architectural concerns when they materially affect the task.
+- Challenge assumptions when repository evidence conflicts with them.
+
 ## Repository Map
 
 - `packages/engine`: client- and game-independent engine core.
@@ -59,7 +66,9 @@ Unless the task explicitly requires it, do not change:
 - GitHub Actions permissions, secrets, or execution model;
 - package manager, Node.js, or TypeScript configuration at broad scope.
 
-Ask before external writes, pull request creation, pushing, merging, destructive operations, or material scope expansion.
+Do not perform external writes, pull request creation, pushing, merging, destructive operations, or material scope expansion unless the task explicitly authorizes them.
+
+Once an operation is explicitly authorized by the task, do not ask for the same approval again unless the scope materially changes.
 
 ## Completion Report
 
