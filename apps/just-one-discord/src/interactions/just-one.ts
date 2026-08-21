@@ -792,7 +792,7 @@ async function handleJustOneNextRoundButton(
   }
 }
 
-async function handleJustOneFinishGameButton(
+export async function handleJustOneFinishGameButton(
   interaction: ButtonInteraction,
   input: RegisterJustOneInteractionHandlersInput
 ): Promise<void> {
