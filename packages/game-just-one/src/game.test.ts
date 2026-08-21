@@ -7,6 +7,7 @@ import {
   confirmResult,
   defaultWords,
   excludeHint,
+  finishGame,
   getDuplicateReviewHints,
   getHintSubmissionProgress,
   getNextGuesserId,
@@ -15,6 +16,7 @@ import {
   joinGame,
   justOneGame,
   justOneInitialState,
+  JUST_ONE_MAX_ROUNDS,
   reduceJustOneState,
   restoreHint,
   scoreRound,
@@ -40,6 +42,10 @@ describe("Just One game", () => {
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
+  });
+
+  it("uses thirteen rounds as the fixed game limit", () => {
+    expect(JUST_ONE_MAX_ROUNDS).toBe(13);
   });
 
   it("stores joined players in state through the reducer", () => {
@@ -929,6 +935,44 @@ describe("Just One game", () => {
     expect(scoreRound({ engine, session: scored.session })).toEqual({ status: "invalidPhase" });
   });
 
+  it("finishes the thirteenth scored round and keeps the final state", () => {
+    const { engine, session } = createScoredSession();
+    const finalRoundSession = engine.startSession({
+      id: session.id,
+      players: session.players,
+      initialState: {
+        ...(session.state as JustOneState),
+        roundNumber: JUST_ONE_MAX_ROUNDS,
+        score: 9
+      }
+    });
+
+    const result = finishGame({ engine, session: finalRoundSession });
+
+    expect(result).toEqual({
+      status: "finished",
+      session: expect.objectContaining({
+        state: expect.objectContaining({
+          phase: "finished",
+          roundNumber: JUST_ONE_MAX_ROUNDS,
+          score: 9,
+          guess: "Apple",
+          secretWord: "Apple",
+          result: "correct"
+        })
+      })
+    });
+
+    if (result.status !== "finished") throw new Error("Expected game to finish");
+    expect(getRevealResult(result.session.state as JustOneState)).toEqual({
+      status: "ready",
+      guesserId: "player-1",
+      guess: "Apple",
+      secretWord: "Apple"
+    });
+    expect(finishGame({ engine, session: result.session })).toEqual({ status: "invalidPhase" });
+  });
+
   it("starts the next round with the next player and resets round state", () => {
     const { engine, session } = createScoredSession();
     const withExistingScore = engine.startSession({
@@ -1026,6 +1070,17 @@ describe("Just One game", () => {
     expect(
       startNextRound({ engine, session: scoredSession, random: () => 1, words: ["Apple"] })
     ).toEqual({ status: "invalidState" });
+
+    const finalRoundSession = engine.startSession({
+      id: scoredSession.id,
+      players: scoredSession.players,
+      initialState: { ...(scoredSession.state as JustOneState), roundNumber: JUST_ONE_MAX_ROUNDS }
+    });
+    expect(startNextRound({ engine, session: finalRoundSession, random: () => 0 })).toEqual({
+      status: "invalidState"
+    });
+    expect(finishGame({ engine, session: scoredSession })).toEqual({ status: "notFinalRound" });
+    expect(finishGame({ engine, session: session })).toEqual({ status: "invalidPhase" });
   });
 });
 
