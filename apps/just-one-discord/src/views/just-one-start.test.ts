@@ -21,10 +21,10 @@ describe("createJustOneHintPlayerThreadIntro", () => {
 
 describe("createJustOneStartedReply", () => {
   it("does not expose the secret word in the public channel reply", () => {
-    const reply = createJustOneStartedReply("user-1", 2);
+    const reply = createJustOneStartedReply("user-1", 2, 1);
 
     expect(reply).toBe(
-      "Just One started.\n\nGuesser: <@user-1>\nHint players: 2\n\nPrivate hint threads have been created."
+      "Just One started.\n\nRound: 1\nGuesser: <@user-1>\nHint players: 2\n\nPrivate hint threads have been created."
     );
     expect(reply).not.toContain("Apple");
   });
@@ -32,10 +32,10 @@ describe("createJustOneStartedReply", () => {
 
 describe("createJustOneStartPartialFailureReply", () => {
   it("does not expose the secret word in the partial failure reply", () => {
-    const reply = createJustOneStartPartialFailureReply("user-1", 3, 2, 1);
+    const reply = createJustOneStartPartialFailureReply("user-1", 3, 1, 2, 1);
 
     expect(reply).toBe(
-      "Just One started, but failed to create one or more private hint threads.\n\nGuesser: <@user-1>\nHint players: 3\nThreads created: 2\nThreads failed: 1"
+      "Just One started, but failed to create one or more private hint threads.\n\nRound: 1\nGuesser: <@user-1>\nHint players: 3\nThreads created: 2\nThreads failed: 1"
     );
     expect(reply).not.toContain("Apple");
   });
@@ -43,15 +43,16 @@ describe("createJustOneStartPartialFailureReply", () => {
 
 describe("next round replies", () => {
   it("does not expose the secret word in the next round reply", () => {
-    expect(createJustOneNextRoundStartedReply("user-2", 3)).toBe(
-      "Next round started.\n\nGuesser: <@user-2>\nHint Players: check your private threads.\nScore: 3"
+    expect(createJustOneNextRoundStartedReply("user-2", 3, 2)).toBe(
+      "Next round started.\n\nRound: 2\nGuesser: <@user-2>\nHint Players: check your private threads.\nScore: 3"
     );
   });
 
   it("does not expose the secret word in the partial failure reply", () => {
-    const reply = createJustOneNextRoundPartialFailureReply("user-2", 3, 1, 1);
+    const reply = createJustOneNextRoundPartialFailureReply("user-2", 3, 2, 1, 1);
 
     expect(reply).toContain("The next round started");
+    expect(reply).toContain("Round: 2");
     expect(reply).toContain("Score: 3");
     expect(reply).not.toContain("Apple");
   });

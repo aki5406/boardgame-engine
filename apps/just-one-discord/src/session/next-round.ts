@@ -15,6 +15,7 @@ export type StartNextJustOneDiscordRoundResult =
       guesserId: string;
       hintPlayerCount: number;
       score: number;
+      roundNumber: number;
       session: JustOneDiscordSession;
     }>
   | Readonly<{ status: "notFound" }>
@@ -62,6 +63,7 @@ export function startNextJustOneDiscordRound(
     guesserId: state.guesserId,
     hintPlayerCount: result.session.players.length - 1,
     score: state.score,
+    roundNumber: state.roundNumber,
     session: result.session
   };
 }

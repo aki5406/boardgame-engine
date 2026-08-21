@@ -12,10 +12,12 @@ describe("createJustOneRevealMessage", () => {
     const message = createJustOneRevealMessage({
       guesserId: "guesser-id",
       guess: "Orange",
-      secretWord: "Apple"
+      secretWord: "Apple",
+      roundNumber: 1
     });
 
     expect(message.content).toContain("Guesser: <@guesser-id>");
+    expect(message.content).toContain("Round: 1");
     expect(message.content).toContain("Guess: Orange");
     expect(message.content).toContain("Secret Word: Apple");
     expect(message.components[0]?.components.map((component) => component.toJSON())).toEqual([
@@ -29,6 +31,7 @@ describe("createJustOneRevealMessage", () => {
       guesserId: "guesser-id",
       guess: "Orange",
       secretWord: "Apple",
+      roundNumber: 1,
       result: "incorrect"
     });
 
@@ -44,12 +47,14 @@ describe("createJustOneRevealMessage", () => {
       guesserId: "guesser-id",
       guess: "Orange",
       secretWord: "Apple",
+      roundNumber: 2,
       result: "incorrect",
       points: 0,
       totalScore: 3
     });
 
     expect(message.content).toContain("Round complete");
+    expect(message.content).toContain("Round: 2");
     expect(message.content).toContain("Points this round: +0");
     expect(message.content).toContain("Total score: 3");
     expect(message.components[0]?.components[0]?.toJSON()).toMatchObject({

@@ -20,6 +20,7 @@ describe("createJustOneDuplicateReviewMessage", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 1,
       hintsByPlayerId: {
         "second-hint-player": "Red",
         "first-hint-player": "Fruit"
@@ -74,6 +75,7 @@ describe("createJustOneDuplicateReviewMessage", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 1,
       hintsByPlayerId: { "hint-player": "Fruit" },
       excludedHintPlayerIds: []
     });

@@ -22,6 +22,7 @@ export type JustOneState = EngineState &
     guess: string | null;
     result: "correct" | "incorrect" | null;
     score: number;
+    roundNumber: number;
     hintsByPlayerId: Readonly<Record<PlayerId, string>>;
     excludedHintPlayerIds: readonly PlayerId[];
   }>;
