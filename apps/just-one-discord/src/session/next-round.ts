@@ -24,7 +24,7 @@ export interface StartNextJustOneDiscordRoundInput {
   readonly channelId: string;
   readonly engine: Engine;
   readonly registry: JustOneDiscordSessionRegistry;
-  readonly random?: JustOneRandom;
+  readonly random: JustOneRandom;
   readonly words?: readonly string[];
 }
 
@@ -40,7 +40,7 @@ export function startNextJustOneDiscordRound(
   const result = startNextRound({
     engine: input.engine,
     session,
-    ...(input.random ? { random: input.random } : {}),
+    random: input.random,
     words: input.words ?? defaultWords
   });
 

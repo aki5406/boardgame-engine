@@ -975,7 +975,9 @@ describe("Just One game", () => {
   it("rejects next rounds from an invalid phase or state", () => {
     const { engine, session } = createGuessingSession();
 
-    expect(startNextRound({ engine, session })).toEqual({ status: "invalidPhase" });
+    expect(startNextRound({ engine, session, random: () => 0 })).toEqual({
+      status: "invalidPhase"
+    });
 
     const { session: scoredSession } = createScoredSession();
     const invalidGuesserSession = engine.startSession({
@@ -984,10 +986,10 @@ describe("Just One game", () => {
       initialState: { ...(scoredSession.state as JustOneState), guesserId: "missing-player" }
     });
 
-    expect(startNextRound({ engine, session: invalidGuesserSession })).toEqual({
+    expect(startNextRound({ engine, session: invalidGuesserSession, random: () => 0 })).toEqual({
       status: "invalidState"
     });
-    expect(startNextRound({ engine, session: scoredSession, words: [] })).toEqual({
+    expect(startNextRound({ engine, session: scoredSession, random: () => 0, words: [] })).toEqual({
       status: "noWords"
     });
     expect(

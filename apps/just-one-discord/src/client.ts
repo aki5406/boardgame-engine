@@ -18,7 +18,8 @@ export function createJustOneDiscordClient(): Client {
 
   registerJustOneInteractionHandlers(client, {
     engine,
-    sessionRegistry
+    sessionRegistry,
+    random: Math.random
   });
 
   client.once(Events.ClientReady, (readyClient) => {

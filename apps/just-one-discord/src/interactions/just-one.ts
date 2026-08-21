@@ -11,7 +11,8 @@ import {
   getHintSubmissionProgress,
   getRevealResult,
   getRoundPoints,
-  type Engine
+  type Engine,
+  type JustOneRandom
 } from "@boardgame/game-just-one";
 
 import {
@@ -68,6 +69,7 @@ import {
 export interface RegisterJustOneInteractionHandlersInput {
   readonly engine: Engine;
   readonly sessionRegistry: JustOneDiscordSessionRegistry;
+  readonly random: JustOneRandom;
 }
 
 export function registerJustOneInteractionHandlers(
@@ -170,7 +172,8 @@ async function handleJustOneCommand(
     const result = startJustOneDiscordSession({
       channelId: interaction.channelId,
       engine: input.engine,
-      registry: input.sessionRegistry
+      registry: input.sessionRegistry,
+      random: input.random
     });
 
     if (result.status === "notFound") {
@@ -711,7 +714,8 @@ async function handleJustOneNextRoundButton(
   const result = startNextJustOneDiscordRound({
     channelId,
     engine: input.engine,
-    registry: input.sessionRegistry
+    registry: input.sessionRegistry,
+    random: input.random
   });
 
   if (result.status !== "started") {

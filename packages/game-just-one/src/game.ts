@@ -172,7 +172,7 @@ export type StartNextRoundResult =
 export interface StartNextRoundInput {
   readonly engine: Engine;
   readonly session: EngineGameSession;
-  readonly random?: JustOneRandom;
+  readonly random: JustOneRandom;
   readonly words?: readonly string[];
 }
 
@@ -557,8 +557,7 @@ export function startNextRound(input: StartNextRoundInput): StartNextRoundResult
     return { status: "noWords" };
   }
 
-  const random = input.random ?? Math.random;
-  const wordIndex = chooseValidRandomIndex(words.length, random);
+  const wordIndex = chooseValidRandomIndex(words.length, input.random);
 
   if (wordIndex === undefined) {
     return { status: "invalidState" };
