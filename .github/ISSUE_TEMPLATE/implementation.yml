@@ -67,7 +67,7 @@ body:
     attributes:
       label: Architecture Notes
       description: Optional architecture constraints, relevant ADRs, public API considerations, or known design decisions. Repository guidance and accepted ADRs remain authoritative.
-      placeholder: Examples: relevant ADR paths, package boundaries, compatibility constraints, or "No additional constraints."
+      placeholder: 'Examples: relevant ADR paths, package boundaries, compatibility constraints, or "No additional constraints."'
     validations:
       required: false
 
