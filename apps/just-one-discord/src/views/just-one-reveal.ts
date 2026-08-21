@@ -12,6 +12,7 @@ export interface JustOneRevealMessageInput {
   readonly guess: string;
   readonly secretWord: string;
   readonly result?: JustOneResult;
+  readonly roundNumber: number;
   readonly points?: number;
   readonly totalScore?: number;
 }
@@ -23,6 +24,7 @@ export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
   const scored = input.points !== undefined && input.totalScore !== undefined;
   const content = [
     scored ? "Round complete" : "Answer revealed",
+    `Round: ${input.roundNumber}`,
     `Guesser: <@${input.guesserId}>`,
     `Guess: ${input.guess}`,
     `Secret Word: ${input.secretWord}`,

@@ -9,6 +9,7 @@ export type StartJustOneDiscordSessionResult =
       guesserId: string;
       hintPlayerCount: number;
       playerCount: number;
+      roundNumber: number;
       secretWord: string;
       session: JustOneDiscordSession;
     }>
@@ -58,6 +59,7 @@ export function startJustOneDiscordSession(
     guesserId: nextState.guesserId,
     hintPlayerCount: nextSession.players.length - 1,
     playerCount: nextSession.players.length,
+    roundNumber: nextState.roundNumber,
     secretWord: nextState.secretWord,
     session: nextSession
   };

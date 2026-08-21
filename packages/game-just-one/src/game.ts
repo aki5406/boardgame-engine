@@ -21,6 +21,7 @@ export const justOneInitialState: JustOneState = {
   guess: null,
   result: null,
   score: 0,
+  roundNumber: 0,
   hintsByPlayerId: {},
   excludedHintPlayerIds: []
 };
@@ -547,7 +548,7 @@ export function startNextRound(input: StartNextRoundInput): StartNextRoundResult
 
   const nextGuesserId = getNextGuesserId(state);
 
-  if (state.players.length < 2 || !nextGuesserId) {
+  if (state.roundNumber < 1 || state.players.length < 2 || !nextGuesserId) {
     return { status: "invalidState" };
   }
 

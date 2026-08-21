@@ -228,6 +228,7 @@ async function handleJustOneCommand(
         createJustOneStartPartialFailureReply(
           result.guesserId,
           result.hintPlayerCount,
+          result.roundNumber,
           threadResult.createdCount,
           threadResult.failedCount
         )
@@ -235,7 +236,9 @@ async function handleJustOneCommand(
       return;
     }
 
-    await interaction.reply(createJustOneStartedReply(result.guesserId, result.hintPlayerCount));
+    await interaction.reply(
+      createJustOneStartedReply(result.guesserId, result.hintPlayerCount, result.roundNumber)
+    );
 
     const progressMessage = await interaction.followUp({
       content: createJustOneHintProgressMessage(
@@ -757,10 +760,11 @@ async function handleJustOneNextRoundButton(
         ? createJustOneNextRoundPartialFailureReply(
             result.guesserId,
             result.score,
+            result.roundNumber,
             threadResult.createdCount,
             threadResult.failedCount
           )
-        : createJustOneNextRoundStartedReply(result.guesserId, result.score)
+        : createJustOneNextRoundStartedReply(result.guesserId, result.score, result.roundNumber)
     );
 
     const progressMessage = await channel.send(
@@ -781,25 +785,31 @@ async function handleJustOneNextRoundButton(
 }
 
 function getJustOneRevealMessage(session: JustOneDiscordSession) {
-  const reveal = getRevealResult(getJustOneState(session));
+  const state = getJustOneState(session);
+  const reveal = getRevealResult(state);
 
   if (reveal.status !== "ready") {
     return undefined;
   }
 
-  const result = getJustOneState(session).result;
-  const points = getRoundPoints(getJustOneState(session));
+  const result = state.result;
+  const points = getRoundPoints(state);
 
-  if (getJustOneState(session).phase === "roundScored" && result && points !== undefined) {
+  if (state.phase === "roundScored" && result && points !== undefined) {
     return createJustOneRevealMessage({
       ...reveal,
       result,
       points,
-      totalScore: getJustOneState(session).score
+      totalScore: state.score,
+      roundNumber: state.roundNumber
     });
   }
 
-  return createJustOneRevealMessage(result ? { ...reveal, result } : reveal);
+  return createJustOneRevealMessage(
+    result
+      ? { ...reveal, result, roundNumber: state.roundNumber }
+      : { ...reveal, roundNumber: state.roundNumber }
+  );
 }
 
 async function handleJustOneDuplicateReviewButton(

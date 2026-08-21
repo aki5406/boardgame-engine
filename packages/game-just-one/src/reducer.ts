@@ -27,6 +27,7 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         guess: null,
         result: null,
         score: state.score,
+        roundNumber: 1,
         hintsByPlayerId: {},
         excludedHintPlayerIds: []
       };
@@ -99,6 +100,7 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         secretWord: event.secretWord,
         guess: null,
         result: null,
+        roundNumber: state.roundNumber + 1,
         hintsByPlayerId: {},
         excludedHintPlayerIds: []
       };

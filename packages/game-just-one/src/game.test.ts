@@ -36,6 +36,7 @@ describe("Just One game", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -55,6 +56,7 @@ describe("Just One game", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -94,6 +96,7 @@ describe("Just One game", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 0,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -138,6 +141,7 @@ describe("Just One game", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 1,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -187,6 +191,7 @@ describe("Just One game", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 1,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });
@@ -427,6 +432,7 @@ describe("Just One game", () => {
         guess: null,
         result: null,
         score: 0,
+        roundNumber: 1,
         hintsByPlayerId: {
           "player-2": "fruit",
           "player-3": "red"
@@ -949,9 +955,33 @@ describe("Just One game", () => {
           guess: null,
           result: null,
           score: 3,
+          roundNumber: 2,
           hintsByPlayerId: {},
           excludedHintPlayerIds: []
         }
+      })
+    });
+
+    if (result.status !== "started") throw new Error("Expected next round to start");
+    const scoredAgain = engine.startSession({
+      id: result.session.id,
+      players: result.session.players,
+      initialState: {
+        ...(result.session.state as JustOneState),
+        phase: "roundScored"
+      }
+    });
+    const thirdRound = startNextRound({
+      engine,
+      session: scoredAgain,
+      random: createSequenceRandom([0]),
+      words: ["Ocean"]
+    });
+
+    expect(thirdRound).toEqual({
+      status: "started",
+      session: expect.objectContaining({
+        state: expect.objectContaining({ roundNumber: 3, score: 3 })
       })
     });
   });
@@ -966,6 +996,7 @@ describe("Just One game", () => {
         guess: "Apple",
         result: "correct",
         score: 1,
+        roundNumber: 1,
         hintsByPlayerId: {},
         excludedHintPlayerIds: []
       })

@@ -80,6 +80,7 @@ describe("startJustOneDiscordSession", () => {
       guesserId: "user-1",
       hintPlayerCount: 1,
       playerCount: 2,
+      roundNumber: 1,
       secretWord: "Train",
       session: result.session
     });
@@ -91,6 +92,7 @@ describe("startJustOneDiscordSession", () => {
       guess: null,
       result: null,
       score: 0,
+      roundNumber: 1,
       hintsByPlayerId: {},
       excludedHintPlayerIds: []
     });

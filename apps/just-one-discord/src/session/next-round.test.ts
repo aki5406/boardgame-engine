@@ -21,6 +21,7 @@ describe("startNextJustOneDiscordRound", () => {
         guess: "Apple",
         result: "correct",
         score: 2,
+        roundNumber: 1,
         hintsByPlayerId: { "player-2": "Fruit", "player-3": "Red" },
         excludedHintPlayerIds: ["player-3"]
       }
@@ -66,13 +67,15 @@ describe("startNextJustOneDiscordRound", () => {
       status: "started",
       guesserId: "player-2",
       hintPlayerCount: 2,
-      score: 2
+      score: 2,
+      roundNumber: 2
     });
     expect(registry.get("channel-1")?.state).toMatchObject({
       phase: "hinting",
       guesserId: "player-2",
       secretWord: "Train",
       score: 2,
+      roundNumber: 2,
       guess: null,
       result: null,
       hintsByPlayerId: {},
@@ -111,6 +114,7 @@ describe("startNextJustOneDiscordRound", () => {
           guess: "Apple",
           result: "correct",
           score: 1,
+          roundNumber: 1,
           hintsByPlayerId: {},
           excludedHintPlayerIds: []
         }

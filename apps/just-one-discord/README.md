@@ -6,6 +6,8 @@
 
 Each thread contains the secret word and the input instructions for that player only.
 
+Public start and round-complete messages show the Engine-managed round number. The Discord adapter displays this value but does not calculate it.
+
 ### Required Permissions
 
 - View Channel
