@@ -1,0 +1,91 @@
+name: Implementation Task
+description: Define an implementation task that an agent can execute with minimal additional prompting.
+title: "[Task] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for implementation work that should be executable by an agent from the issue plus repository guidance in `AGENTS.md`.
+
+        Keep the task focused. If the work contains multiple independently reviewable changes, split it into separate issues.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What outcome should this task achieve?
+      placeholder: Describe the desired end state in one or a few sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why is this needed, and what existing behavior or implementation should the agent understand first?
+      placeholder: Include relevant background, current behavior, related issues, or constraints.
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: List the behavior or implementation requirements that must be satisfied.
+      placeholder: |
+        - Requirement 1
+        - Requirement 2
+        - Requirement 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define observable conditions that prove the task is complete.
+      placeholder: |
+        - [ ] Expected behavior 1
+        - [ ] Expected behavior 2
+        - [ ] Relevant tests are added or updated
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: Explicitly list related work that must not be included in this task. Write "None" when there is nothing specific to exclude.
+      placeholder: |
+        - Follow-up feature A
+        - Unrelated refactor B
+    validations:
+      required: true
+
+  - type: textarea
+    id: architecture-notes
+    attributes:
+      label: Architecture Notes
+      description: Optional architecture constraints, relevant ADRs, public API considerations, or known design decisions. Repository guidance and accepted ADRs remain authoritative.
+      placeholder: Examples: relevant ADR paths, package boundaries, compatibility constraints, or "No additional constraints."
+    validations:
+      required: false
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: List task-specific verification in addition to the repository completion requirements in `AGENTS.md`.
+      value: |
+        - [ ] `pnpm check`
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Agent Authorization
+      description: This explicit authorization allows an implementation agent to complete the normal Git workflow without asking again unless scope materially changes.
+      options:
+        - label: The implementation agent is authorized to modify repository files, create commits, push its task branch, and open a pull request for this issue. Merging and destructive operations are not authorized.
+          required: true
