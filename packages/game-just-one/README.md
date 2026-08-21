@@ -14,4 +14,6 @@ This package currently provides:
 
 Just One is limited to 13 rounds. After scoring round 13, `finishGame()` transitions the Engine State from `roundScored` to `finished`; the final score remains in `JustOneState.score`.
 
+`getScoreEvaluation(score)` derives the final score message from a valid integer score between 0 and 13. The message is not stored in state.
+
 The current scope is intentionally small and only establishes the state model and the first session helpers.

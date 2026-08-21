@@ -15,6 +15,43 @@ export type JustOneRandom = () => number;
 
 export const JUST_ONE_MAX_ROUNDS = 13;
 
+export function getScoreEvaluation(score: number): string | undefined {
+  if (
+    !Number.isFinite(score) ||
+    !Number.isInteger(score) ||
+    score < 0 ||
+    score > JUST_ONE_MAX_ROUNDS
+  ) {
+    return undefined;
+  }
+
+  if (score === JUST_ONE_MAX_ROUNDS) {
+    return "Perfect score! Can you do it again?";
+  }
+
+  if (score === 12) {
+    return "Incredible! Your friends must be impressed!";
+  }
+
+  if (score === 11) {
+    return "Awesome! That's a score worth celebrating!";
+  }
+
+  if (score >= 9) {
+    return "Wow, not bad at all!";
+  }
+
+  if (score >= 7) {
+    return "You're in the average. Can you do better?";
+  }
+
+  if (score >= 4) {
+    return "That's a good start. Try again!";
+  }
+
+  return "Try again, and again, and again.";
+}
+
 export const justOneInitialState: JustOneState = {
   phase: "waiting",
   players: [],

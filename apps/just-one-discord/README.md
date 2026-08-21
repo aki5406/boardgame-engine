@@ -10,6 +10,8 @@ Public start and round-complete messages show the Engine-managed round number. T
 
 After the Engine scores round 13, the round-complete message offers a Finish game control. Finishing updates that same message with the Engine-managed final score and removes its controls.
 
+The finished result also shows the Engine-derived score evaluation. The adapter does not define score thresholds.
+
 ### Required Permissions
 
 - View Channel

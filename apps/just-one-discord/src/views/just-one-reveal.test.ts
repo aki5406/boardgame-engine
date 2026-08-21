@@ -91,12 +91,29 @@ describe("createJustOneRevealMessage", () => {
       result: "incorrect",
       points: 0,
       totalScore: 9,
-      finished: true
+      finished: true,
+      finalEvaluation: "Wow, not bad at all!"
     });
 
     expect(message.content).toContain("Game finished");
     expect(message.content).toContain("Final score: 9");
+    expect(message.content).toContain("Evaluation: Wow, not bad at all!");
     expect(message.components).toEqual([]);
+  });
+
+  it("does not show an evaluation before the game finishes", () => {
+    const message = createJustOneRevealMessage({
+      guesserId: "guesser-id",
+      guess: "Orange",
+      secretWord: "Apple",
+      roundNumber: 12,
+      result: "incorrect",
+      points: 0,
+      totalScore: 9,
+      finalEvaluation: "Wow, not bad at all!"
+    });
+
+    expect(message.content).not.toContain("Evaluation:");
   });
 
   it("uses stable custom IDs without answer content", () => {
