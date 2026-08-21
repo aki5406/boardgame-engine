@@ -13,6 +13,8 @@ import { defaultWords } from "./words.js";
 
 export type JustOneRandom = () => number;
 
+export const JUST_ONE_MAX_ROUNDS = 13;
+
 export const justOneInitialState: JustOneState = {
   phase: "waiting",
   players: [],
@@ -175,6 +177,17 @@ export interface StartNextRoundInput {
   readonly session: EngineGameSession;
   readonly random: JustOneRandom;
   readonly words?: readonly string[];
+}
+
+export type FinishGameResult =
+  | Readonly<{ status: "finished"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "notFinalRound" }>
+  | Readonly<{ status: "invalidState" }>;
+
+export interface FinishGameInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
 }
 
 export function createJustOneEngine(): Engine {
@@ -444,7 +457,8 @@ export function getRevealResult(state: JustOneState): GetRevealResult {
   if (
     (state.phase !== "answered" &&
       state.phase !== "resultConfirmed" &&
-      state.phase !== "roundScored") ||
+      state.phase !== "roundScored" &&
+      state.phase !== "finished") ||
     !state.guesserId ||
     !state.guess ||
     !state.secretWord
@@ -539,6 +553,42 @@ export function getNextGuesserId(state: JustOneState): PlayerId | undefined {
   return state.players[(currentGuesserIndex + 1) % state.players.length];
 }
 
+export function isJustOneFinalRound(state: JustOneState): boolean {
+  return state.roundNumber === JUST_ONE_MAX_ROUNDS;
+}
+
+export function finishGame(input: FinishGameInput): FinishGameResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "roundScored") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!isJustOneFinalRound(state)) {
+    return { status: "notFinalRound" };
+  }
+
+  if (
+    !Number.isFinite(state.score) ||
+    state.score < 0 ||
+    !state.result ||
+    !state.guess ||
+    !state.secretWord
+  ) {
+    return { status: "invalidState" };
+  }
+
+  const event: JustOneEvent = { type: "just-one.gameFinished" };
+
+  return {
+    status: "finished",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
 export function startNextRound(input: StartNextRoundInput): StartNextRoundResult {
   const state = input.session.state as JustOneState;
 
@@ -548,7 +598,12 @@ export function startNextRound(input: StartNextRoundInput): StartNextRoundResult
 
   const nextGuesserId = getNextGuesserId(state);
 
-  if (state.roundNumber < 1 || state.players.length < 2 || !nextGuesserId) {
+  if (
+    state.roundNumber < 1 ||
+    state.roundNumber >= JUST_ONE_MAX_ROUNDS ||
+    state.players.length < 2 ||
+    !nextGuesserId
+  ) {
     return { status: "invalidState" };
   }
 

@@ -69,6 +69,11 @@ export type JustOneNextRoundStartedEvent = EngineEvent &
     secretWord: string;
   }>;
 
+export type JustOneGameFinishedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.gameFinished";
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
@@ -80,4 +85,5 @@ export type JustOneEvent =
   | JustOneGuessSubmittedEvent
   | JustOneResultConfirmedEvent
   | JustOneRoundScoredEvent
-  | JustOneNextRoundStartedEvent;
+  | JustOneNextRoundStartedEvent
+  | JustOneGameFinishedEvent;

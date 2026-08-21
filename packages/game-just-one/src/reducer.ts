@@ -105,6 +105,12 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         excludedHintPlayerIds: []
       };
 
+    case "just-one.gameFinished":
+      return {
+        ...state,
+        phase: "finished"
+      };
+
     default:
       return state;
   }

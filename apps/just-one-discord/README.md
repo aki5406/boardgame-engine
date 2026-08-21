@@ -8,6 +8,8 @@ Each thread contains the secret word and the input instructions for that player 
 
 Public start and round-complete messages show the Engine-managed round number. The Discord adapter displays this value but does not calculate it.
 
+After the Engine scores round 13, the round-complete message offers a Finish game control. Finishing updates that same message with the Engine-managed final score and removes its controls.
+
 ### Required Permissions
 
 - View Channel

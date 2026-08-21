@@ -11,6 +11,7 @@ import {
   getHintSubmissionProgress,
   getRevealResult,
   getRoundPoints,
+  isJustOneFinalRound,
   type Engine,
   type JustOneRandom
 } from "@boardgame/game-just-one";
@@ -19,6 +20,7 @@ import {
   createJustOneDiscordSessionForChannel,
   createJustOneDuplicateReviewThread,
   confirmJustOneResult,
+  finishJustOneGame,
   confirmJustOneDuplicateReview,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
@@ -61,6 +63,7 @@ import {
 } from "../views/just-one-guessing.js";
 import {
   createJustOneRevealMessage,
+  isJustOneFinishGameCustomId,
   isJustOneNextRoundCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
@@ -104,6 +107,11 @@ export function registerJustOneInteractionHandlers(
 
       if (isJustOneNextRoundCustomId(interaction.customId)) {
         await handleJustOneNextRoundButton(interaction, input);
+        return;
+      }
+
+      if (isJustOneFinishGameCustomId(interaction.customId)) {
+        await handleJustOneFinishGameButton(interaction, input);
         return;
       }
 
@@ -784,6 +792,75 @@ async function handleJustOneNextRoundButton(
   }
 }
 
+async function handleJustOneFinishGameButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+  const revealMessage = channelId ? input.sessionRegistry.getRevealMessage(channelId) : undefined;
+  const session = channelId ? input.sessionRegistry.get(channelId) : undefined;
+
+  if (
+    !channelId ||
+    !revealMessage ||
+    revealMessage.messageId !== interaction.message.id ||
+    !session ||
+    revealMessage.sessionId !== session.id ||
+    getJustOneState(session).phase !== "roundScored"
+  ) {
+    await interaction.reply({
+      content: "This game has already finished.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot || !getJustOneState(session).players.includes(interaction.user.id)) {
+    await interaction.reply({
+      content: "Only game participants can finish the game.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const result = finishJustOneGame({
+    channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status !== "finished") {
+    await interaction.reply({
+      content: "The game cannot be finished yet.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const reveal = getJustOneRevealMessage(result.session);
+
+  if (!reveal) {
+    await interaction.reply({
+      content: "The game finished, but the result message could not be refreshed.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    await interaction.update(reveal);
+  } catch {
+    console.error("Failed to update Just One finished game message.");
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "The game finished, but the result message could not be refreshed.",
+        ephemeral: true
+      });
+    }
+  }
+}
+
 function getJustOneRevealMessage(session: JustOneDiscordSession) {
   const state = getJustOneState(session);
   const reveal = getRevealResult(state);
@@ -795,13 +872,19 @@ function getJustOneRevealMessage(session: JustOneDiscordSession) {
   const result = state.result;
   const points = getRoundPoints(state);
 
-  if (state.phase === "roundScored" && result && points !== undefined) {
+  if (
+    (state.phase === "roundScored" || state.phase === "finished") &&
+    result &&
+    points !== undefined
+  ) {
     return createJustOneRevealMessage({
       ...reveal,
       result,
       points,
       totalScore: state.score,
-      roundNumber: state.roundNumber
+      roundNumber: state.roundNumber,
+      canFinish: state.phase === "roundScored" && isJustOneFinalRound(state),
+      finished: state.phase === "finished"
     });
   }
 

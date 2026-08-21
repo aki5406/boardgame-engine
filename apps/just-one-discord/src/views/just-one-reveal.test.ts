@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createJustOneRevealMessage,
+  isJustOneFinishGameCustomId,
   isJustOneNextRoundCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
@@ -63,11 +64,47 @@ describe("createJustOneRevealMessage", () => {
     });
   });
 
+  it("shows a finish game control for a scored final round", () => {
+    const message = createJustOneRevealMessage({
+      guesserId: "guesser-id",
+      guess: "Orange",
+      secretWord: "Apple",
+      roundNumber: 13,
+      result: "incorrect",
+      points: 0,
+      totalScore: 9,
+      canFinish: true
+    });
+
+    expect(message.components[0]?.components[0]?.toJSON()).toMatchObject({
+      custom_id: "just-one:finish-game",
+      label: "Finish game"
+    });
+  });
+
+  it("shows the final score without controls after the game finishes", () => {
+    const message = createJustOneRevealMessage({
+      guesserId: "guesser-id",
+      guess: "Orange",
+      secretWord: "Apple",
+      roundNumber: 13,
+      result: "incorrect",
+      points: 0,
+      totalScore: 9,
+      finished: true
+    });
+
+    expect(message.content).toContain("Game finished");
+    expect(message.content).toContain("Final score: 9");
+    expect(message.components).toEqual([]);
+  });
+
   it("uses stable custom IDs without answer content", () => {
     expect(parseJustOneResultCustomId("just-one:result:correct")).toBe("correct");
     expect(parseJustOneResultCustomId("just-one:result:incorrect")).toBe("incorrect");
     expect(parseJustOneResultCustomId("just-one:result:Apple")).toBeUndefined();
     expect(isJustOneScoreRoundCustomId("just-one:score-round")).toBe(true);
     expect(isJustOneNextRoundCustomId("just-one:next-round")).toBe(true);
+    expect(isJustOneFinishGameCustomId("just-one:finish-game")).toBe(true);
   });
 });

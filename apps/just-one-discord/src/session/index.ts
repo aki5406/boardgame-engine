@@ -4,6 +4,11 @@ export {
   type ScoreJustOneRoundResult
 } from "./score.js";
 export {
+  finishJustOneGame,
+  type FinishJustOneGameInput,
+  type FinishJustOneGameResult
+} from "./finish.js";
+export {
   confirmJustOneResult,
   type ConfirmJustOneResultInput,
   type ConfirmJustOneResultResult
