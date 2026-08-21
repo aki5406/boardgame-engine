@@ -37,6 +37,32 @@ export function createJustOneStartPartialFailureReply(
   ].join("\n");
 }
 
+export function createJustOneNextRoundStartedReply(guesserId: string, score: number): string {
+  return [
+    "Next round started.",
+    "",
+    `Guesser: <@${guesserId}>`,
+    "Hint Players: check your private threads.",
+    `Score: ${score}`
+  ].join("\n");
+}
+
+export function createJustOneNextRoundPartialFailureReply(
+  guesserId: string,
+  score: number,
+  createdCount: number,
+  failedCount: number
+): string {
+  return [
+    "The next round started, but some private hint threads could not be created.",
+    "",
+    `Guesser: <@${guesserId}>`,
+    `Score: ${score}`,
+    `Threads created: ${createdCount}`,
+    `Threads failed: ${failedCount}`
+  ].join("\n");
+}
+
 export function createJustOneHintThreadName(playerId: string): string {
   const suffix = playerId.slice(-4);
 

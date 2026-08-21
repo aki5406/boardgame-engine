@@ -163,6 +163,19 @@ export interface ScoreRoundInput {
   readonly session: EngineGameSession;
 }
 
+export type StartNextRoundResult =
+  | Readonly<{ status: "started"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "invalidState" }>
+  | Readonly<{ status: "noWords" }>;
+
+export interface StartNextRoundInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly random?: JustOneRandom;
+  readonly words?: readonly string[];
+}
+
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
 }
@@ -428,7 +441,9 @@ export function submitGuess(input: SubmitGuessInput): SubmitGuessResult {
 
 export function getRevealResult(state: JustOneState): GetRevealResult {
   if (
-    (state.phase !== "answered" && state.phase !== "resultConfirmed") ||
+    (state.phase !== "answered" &&
+      state.phase !== "resultConfirmed" &&
+      state.phase !== "roundScored") ||
     !state.guesserId ||
     !state.guess ||
     !state.secretWord
@@ -502,6 +517,67 @@ export function scoreRound(input: ScoreRoundInput): ScoreRoundResult {
   return {
     status: "scored",
     points,
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
+export function getNextGuesserId(state: JustOneState): PlayerId | undefined {
+  if (!state.guesserId || state.players.length === 0) {
+    return undefined;
+  }
+
+  const currentGuesserIndex = state.players.indexOf(state.guesserId);
+
+  if (currentGuesserIndex === -1) {
+    return undefined;
+  }
+
+  return state.players[(currentGuesserIndex + 1) % state.players.length];
+}
+
+export function startNextRound(input: StartNextRoundInput): StartNextRoundResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "roundScored") {
+    return { status: "invalidPhase" };
+  }
+
+  const nextGuesserId = getNextGuesserId(state);
+
+  if (state.players.length < 2 || !nextGuesserId) {
+    return { status: "invalidState" };
+  }
+
+  const words = input.words ?? defaultWords;
+
+  if (words.length === 0) {
+    return { status: "noWords" };
+  }
+
+  const random = input.random ?? Math.random;
+  const wordIndex = chooseValidRandomIndex(words.length, random);
+
+  if (wordIndex === undefined) {
+    return { status: "invalidState" };
+  }
+
+  const secretWord = words[wordIndex];
+
+  if (!secretWord) {
+    return { status: "invalidState" };
+  }
+
+  const event: JustOneEvent = {
+    type: "just-one.nextRoundStarted",
+    guesserId: nextGuesserId,
+    secretWord
+  };
+
+  return {
+    status: "started",
     session: input.engine.applyEvent({
       session: input.session,
       event
@@ -606,4 +682,14 @@ function chooseRandomWord(words: readonly string[], random: JustOneRandom): stri
 
 function chooseRandomIndex(length: number, random: JustOneRandom): number {
   return Math.min(Math.floor(random() * length), length - 1);
+}
+
+function chooseValidRandomIndex(length: number, random: JustOneRandom): number | undefined {
+  const value = random();
+
+  if (!Number.isFinite(value) || value < 0 || value >= 1) {
+    return undefined;
+  }
+
+  return Math.floor(value * length);
 }

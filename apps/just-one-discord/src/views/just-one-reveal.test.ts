@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createJustOneRevealMessage,
+  isJustOneNextRoundCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
 } from "./just-one-reveal.js";
@@ -38,7 +39,7 @@ describe("createJustOneRevealMessage", () => {
     });
   });
 
-  it("shows the round points and total score without controls after scoring", () => {
+  it("shows the round points, total score, and next round control after scoring", () => {
     const message = createJustOneRevealMessage({
       guesserId: "guesser-id",
       guess: "Orange",
@@ -51,7 +52,10 @@ describe("createJustOneRevealMessage", () => {
     expect(message.content).toContain("Round complete");
     expect(message.content).toContain("Points this round: +0");
     expect(message.content).toContain("Total score: 3");
-    expect(message.components).toEqual([]);
+    expect(message.components[0]?.components[0]?.toJSON()).toMatchObject({
+      custom_id: "just-one:next-round",
+      label: "Next round"
+    });
   });
 
   it("uses stable custom IDs without answer content", () => {
@@ -59,5 +63,6 @@ describe("createJustOneRevealMessage", () => {
     expect(parseJustOneResultCustomId("just-one:result:incorrect")).toBe("incorrect");
     expect(parseJustOneResultCustomId("just-one:result:Apple")).toBeUndefined();
     expect(isJustOneScoreRoundCustomId("just-one:score-round")).toBe(true);
+    expect(isJustOneNextRoundCustomId("just-one:next-round")).toBe(true);
   });
 });

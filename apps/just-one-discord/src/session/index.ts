@@ -83,3 +83,8 @@ export {
   type StartJustOneDiscordSessionInput,
   type StartJustOneDiscordSessionResult
 } from "./start.js";
+export {
+  startNextJustOneDiscordRound,
+  type StartNextJustOneDiscordRoundInput,
+  type StartNextJustOneDiscordRoundResult
+} from "./next-round.js";
