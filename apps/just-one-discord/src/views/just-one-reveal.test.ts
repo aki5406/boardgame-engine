@@ -4,6 +4,7 @@ import {
   createJustOneRevealMessage,
   isJustOneFinishGameCustomId,
   isJustOneNextRoundCustomId,
+  isJustOnePlayAgainCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
 } from "./just-one-reveal.js";
@@ -92,13 +93,17 @@ describe("createJustOneRevealMessage", () => {
       points: 0,
       totalScore: 9,
       finished: true,
-      finalEvaluation: "Wow, not bad at all!"
+      finalEvaluation: "Wow, not bad at all!",
+      canRematch: true
     });
 
     expect(message.content).toContain("Game finished");
     expect(message.content).toContain("Final score: 9");
     expect(message.content).toContain("Evaluation: Wow, not bad at all!");
-    expect(message.components).toEqual([]);
+    expect(message.components[0]?.components[0]?.toJSON()).toMatchObject({
+      custom_id: "just-one:play-again",
+      label: "Play again"
+    });
   });
 
   it("does not show an evaluation before the game finishes", () => {
@@ -123,5 +128,6 @@ describe("createJustOneRevealMessage", () => {
     expect(isJustOneScoreRoundCustomId("just-one:score-round")).toBe(true);
     expect(isJustOneNextRoundCustomId("just-one:next-round")).toBe(true);
     expect(isJustOneFinishGameCustomId("just-one:finish-game")).toBe(true);
+    expect(isJustOnePlayAgainCustomId("just-one:play-again")).toBe(true);
   });
 });

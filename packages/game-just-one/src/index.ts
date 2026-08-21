@@ -16,6 +16,7 @@ export type {
   JustOneRoundScoredEvent,
   JustOneNextRoundStartedEvent,
   JustOneGameFinishedEvent,
+  JustOneRematchResetEvent,
   JustOneHintExcludedEvent,
   JustOneHintRestoredEvent,
   JustOneGameStartedEvent,
@@ -40,6 +41,7 @@ export {
   justOneGame,
   justOneInitialState,
   restoreHint,
+  resetForRematch,
   scoreRound,
   startNextRound,
   submitGuess,
@@ -71,7 +73,9 @@ export type {
   StartDuplicateReviewInput,
   StartDuplicateReviewResult,
   ReviewHintInput,
-  ReviewHintResult
+  ReviewHintResult,
+  ResetForRematchInput,
+  ResetForRematchResult
 } from "./game.js";
 export { getRoundPoints } from "./game.js";
 export { JUST_ONE_MAX_ROUNDS } from "./game.js";

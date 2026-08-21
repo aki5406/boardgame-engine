@@ -16,4 +16,6 @@ Just One is limited to 13 rounds. After scoring round 13, `finishGame()` transit
 
 `getScoreEvaluation(score)` derives the final score message from a valid integer score between 0 and 13. The message is not stored in state.
 
+`resetForRematch()` resets a finished game to `waiting` while preserving player order. It clears the team score and all round-local state so the existing `startGame()` flow can begin a new first round.
+
 The current scope is intentionally small and only establishes the state model and the first session helpers.

@@ -74,6 +74,11 @@ export type JustOneGameFinishedEvent = EngineEvent &
     type: "just-one.gameFinished";
   }>;
 
+export type JustOneRematchResetEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.rematchReset";
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
@@ -86,4 +91,5 @@ export type JustOneEvent =
   | JustOneResultConfirmedEvent
   | JustOneRoundScoredEvent
   | JustOneNextRoundStartedEvent
-  | JustOneGameFinishedEvent;
+  | JustOneGameFinishedEvent
+  | JustOneRematchResetEvent;

@@ -20,6 +20,7 @@ import {
   JUST_ONE_MAX_ROUNDS,
   reduceJustOneState,
   restoreHint,
+  resetForRematch,
   scoreRound,
   submitGuess,
   startDuplicateReview,
@@ -997,6 +998,47 @@ describe("Just One game", () => {
     expect(finishGame({ engine, session: result.session })).toEqual({ status: "invalidPhase" });
   });
 
+  it("resets a finished game for a rematch and starts a new first round", () => {
+    const { engine, session } = createFinishedSession();
+
+    const reset = resetForRematch({ engine, session });
+
+    expect(reset).toEqual({
+      status: "reset",
+      session: expect.objectContaining({
+        state: {
+          phase: "waiting",
+          players: ["player-1", "player-2", "player-3"],
+          guesserId: null,
+          secretWord: null,
+          guess: null,
+          result: null,
+          score: 0,
+          roundNumber: 0,
+          hintsByPlayerId: {},
+          excludedHintPlayerIds: []
+        }
+      })
+    });
+
+    if (reset.status !== "reset") throw new Error("Expected rematch reset to succeed");
+    const restarted = startGame({
+      engine,
+      session: reset.session,
+      random: createSequenceRandom([0.5, 0]),
+      words: ["Apple", "Train"]
+    });
+
+    expect(restarted.state).toMatchObject({
+      phase: "hinting",
+      players: ["player-1", "player-2", "player-3"],
+      guesserId: "player-2",
+      secretWord: "Apple",
+      score: 0,
+      roundNumber: 1
+    });
+  });
+
   it("starts the next round with the next player and resets round state", () => {
     const { engine, session } = createScoredSession();
     const withExistingScore = engine.startSession({
@@ -1105,6 +1147,20 @@ describe("Just One game", () => {
     });
     expect(finishGame({ engine, session: scoredSession })).toEqual({ status: "notFinalRound" });
     expect(finishGame({ engine, session: session })).toEqual({ status: "invalidPhase" });
+    expect(resetForRematch({ engine, session: scoredSession })).toEqual({ status: "invalidPhase" });
+
+    const singlePlayerFinishedSession = engine.startSession({
+      id: "just-one:single-player",
+      players: [{ id: "player-1" }],
+      initialState: {
+        ...(session.state as JustOneState),
+        phase: "finished",
+        players: ["player-1"]
+      }
+    });
+    expect(resetForRematch({ engine, session: singlePlayerFinishedSession })).toEqual({
+      status: "invalidState"
+    });
   });
 });
 
@@ -1118,6 +1174,23 @@ function createScoredSession() {
   if (scored.status !== "scored") throw new Error("Expected round scoring to succeed");
 
   return { engine, session: scored.session };
+}
+
+function createFinishedSession() {
+  const { engine, session } = createScoredSession();
+  const finalRoundSession = engine.startSession({
+    id: session.id,
+    players: session.players,
+    initialState: {
+      ...(session.state as JustOneState),
+      score: 9,
+      roundNumber: JUST_ONE_MAX_ROUNDS
+    }
+  });
+  const finished = finishGame({ engine, session: finalRoundSession });
+  if (finished.status !== "finished") throw new Error("Expected game to finish");
+
+  return { engine, session: finished.session };
 }
 
 function createDuplicateReviewSession() {

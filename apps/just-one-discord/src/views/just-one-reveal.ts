@@ -7,6 +7,7 @@ const JUST_ONE_RESULT_INCORRECT_CUSTOM_ID = "just-one:result:incorrect";
 const JUST_ONE_SCORE_ROUND_CUSTOM_ID = "just-one:score-round";
 const JUST_ONE_NEXT_ROUND_CUSTOM_ID = "just-one:next-round";
 const JUST_ONE_FINISH_GAME_CUSTOM_ID = "just-one:finish-game";
+const JUST_ONE_PLAY_AGAIN_CUSTOM_ID = "just-one:play-again";
 
 export interface JustOneRevealMessageInput {
   readonly guesserId: string;
@@ -19,6 +20,7 @@ export interface JustOneRevealMessageInput {
   readonly canFinish?: boolean;
   readonly finished?: boolean;
   readonly finalEvaluation?: string;
+  readonly canRematch?: boolean;
 }
 
 export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
@@ -39,7 +41,19 @@ export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
   ].join("\n");
 
   if (input.finished) {
-    return { content, components: [] };
+    return {
+      content,
+      components: input.canRematch
+        ? [
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+              new ButtonBuilder()
+                .setCustomId(JUST_ONE_PLAY_AGAIN_CUSTOM_ID)
+                .setLabel("Play again")
+                .setStyle(ButtonStyle.Primary)
+            )
+          ]
+        : []
+    };
   }
 
   if (scored) {
@@ -109,6 +123,10 @@ export function isJustOneNextRoundCustomId(customId: string): boolean {
 
 export function isJustOneFinishGameCustomId(customId: string): boolean {
   return customId === JUST_ONE_FINISH_GAME_CUSTOM_ID;
+}
+
+export function isJustOnePlayAgainCustomId(customId: string): boolean {
+  return customId === JUST_ONE_PLAY_AGAIN_CUSTOM_ID;
 }
 
 function formatResult(result: JustOneResult): string {
