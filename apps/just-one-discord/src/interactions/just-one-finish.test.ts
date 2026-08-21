@@ -27,6 +27,11 @@ describe("handleJustOneFinishGameButton", () => {
         components: []
       })
     );
+    expect(interaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("Evaluation: Wow, not bad at all!")
+      })
+    );
   });
 
   it.each([

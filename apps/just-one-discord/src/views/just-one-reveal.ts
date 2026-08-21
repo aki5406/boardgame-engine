@@ -18,6 +18,7 @@ export interface JustOneRevealMessageInput {
   readonly totalScore?: number;
   readonly canFinish?: boolean;
   readonly finished?: boolean;
+  readonly finalEvaluation?: string;
 }
 
 export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
@@ -33,7 +34,8 @@ export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
     `Secret Word: ${input.secretWord}`,
     ...(input.result ? [`Result: ${formatResult(input.result)}`] : []),
     ...(scored ? [`Points this round: +${input.points}`] : []),
-    ...(scored ? [`${input.finished ? "Final score" : "Total score"}: ${input.totalScore}`] : [])
+    ...(scored ? [`${input.finished ? "Final score" : "Total score"}: ${input.totalScore}`] : []),
+    ...(input.finished && input.finalEvaluation ? [`Evaluation: ${input.finalEvaluation}`] : [])
   ].join("\n");
 
   if (input.finished) {

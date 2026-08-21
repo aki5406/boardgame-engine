@@ -32,6 +32,7 @@ export {
   getDuplicateReviewHints,
   getHintSubmissionProgress,
   getNextGuesserId,
+  getScoreEvaluation,
   isJustOneFinalRound,
   getRemainingHints,
   getRevealResult,

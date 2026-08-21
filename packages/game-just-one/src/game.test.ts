@@ -11,6 +11,7 @@ import {
   getDuplicateReviewHints,
   getHintSubmissionProgress,
   getNextGuesserId,
+  getScoreEvaluation,
   getRemainingHints,
   getRevealResult,
   joinGame,
@@ -46,6 +47,29 @@ describe("Just One game", () => {
 
   it("uses thirteen rounds as the fixed game limit", () => {
     expect(JUST_ONE_MAX_ROUNDS).toBe(13);
+  });
+
+  it.each([
+    [13, "Perfect score! Can you do it again?"],
+    [12, "Incredible! Your friends must be impressed!"],
+    [11, "Awesome! That's a score worth celebrating!"],
+    [10, "Wow, not bad at all!"],
+    [9, "Wow, not bad at all!"],
+    [8, "You're in the average. Can you do better?"],
+    [7, "You're in the average. Can you do better?"],
+    [6, "That's a good start. Try again!"],
+    [4, "That's a good start. Try again!"],
+    [3, "Try again, and again, and again."],
+    [0, "Try again, and again, and again."]
+  ])("evaluates final scores", (score, message) => {
+    expect(getScoreEvaluation(score)).toBe(message);
+  });
+
+  it("does not evaluate invalid scores", () => {
+    expect(getScoreEvaluation(-1)).toBeUndefined();
+    expect(getScoreEvaluation(14)).toBeUndefined();
+    expect(getScoreEvaluation(Number.NaN)).toBeUndefined();
+    expect(getScoreEvaluation(9.5)).toBeUndefined();
   });
 
   it("stores joined players in state through the reducer", () => {

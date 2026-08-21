@@ -11,6 +11,7 @@ import {
   getHintSubmissionProgress,
   getRevealResult,
   getRoundPoints,
+  getScoreEvaluation,
   isJustOneFinalRound,
   type Engine,
   type JustOneRandom
@@ -871,6 +872,7 @@ function getJustOneRevealMessage(session: JustOneDiscordSession) {
 
   const result = state.result;
   const points = getRoundPoints(state);
+  const finalEvaluation = state.phase === "finished" ? getScoreEvaluation(state.score) : undefined;
 
   if (
     (state.phase === "roundScored" || state.phase === "finished") &&
@@ -884,7 +886,8 @@ function getJustOneRevealMessage(session: JustOneDiscordSession) {
       totalScore: state.score,
       roundNumber: state.roundNumber,
       canFinish: state.phase === "roundScored" && isJustOneFinalRound(state),
-      finished: state.phase === "finished"
+      finished: state.phase === "finished",
+      ...(finalEvaluation ? { finalEvaluation } : {})
     });
   }
 
