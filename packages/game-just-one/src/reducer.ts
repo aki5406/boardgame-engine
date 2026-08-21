@@ -91,6 +91,18 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         score: state.score + event.points
       };
 
+    case "just-one.nextRoundStarted":
+      return {
+        ...state,
+        phase: "hinting",
+        guesserId: event.guesserId,
+        secretWord: event.secretWord,
+        guess: null,
+        result: null,
+        hintsByPlayerId: {},
+        excludedHintPlayerIds: []
+      };
+
     default:
       return state;
   }

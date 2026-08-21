@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   createJustOneHintPlayerThreadIntro,
   createJustOneHintThreadName,
+  createJustOneNextRoundPartialFailureReply,
+  createJustOneNextRoundStartedReply,
   createJustOneStartPartialFailureReply,
   createJustOneStartedReply
 } from "./just-one-start.js";
@@ -35,6 +37,22 @@ describe("createJustOneStartPartialFailureReply", () => {
     expect(reply).toBe(
       "Just One started, but failed to create one or more private hint threads.\n\nGuesser: <@user-1>\nHint players: 3\nThreads created: 2\nThreads failed: 1"
     );
+    expect(reply).not.toContain("Apple");
+  });
+});
+
+describe("next round replies", () => {
+  it("does not expose the secret word in the next round reply", () => {
+    expect(createJustOneNextRoundStartedReply("user-2", 3)).toBe(
+      "Next round started.\n\nGuesser: <@user-2>\nHint Players: check your private threads.\nScore: 3"
+    );
+  });
+
+  it("does not expose the secret word in the partial failure reply", () => {
+    const reply = createJustOneNextRoundPartialFailureReply("user-2", 3, 1, 1);
+
+    expect(reply).toContain("The next round started");
+    expect(reply).toContain("Score: 3");
     expect(reply).not.toContain("Apple");
   });
 });

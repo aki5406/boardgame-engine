@@ -9,6 +9,7 @@ import {
   excludeHint,
   getDuplicateReviewHints,
   getHintSubmissionProgress,
+  getNextGuesserId,
   getRemainingHints,
   getRevealResult,
   joinGame,
@@ -19,6 +20,7 @@ import {
   scoreRound,
   submitGuess,
   startDuplicateReview,
+  startNextRound,
   submitHint,
   startGame
 } from "./index.js";
@@ -895,6 +897,14 @@ describe("Just One game", () => {
         })
       })
     });
+
+    if (scored.status !== "scored") throw new Error("Expected round scoring to succeed");
+    expect(getRevealResult(scored.session.state as JustOneState)).toEqual({
+      status: "ready",
+      guesserId: "player-1",
+      guess: "Apple",
+      secretWord: "Apple"
+    });
   });
 
   it("keeps the score for an incorrect result and rejects repeated scoring", () => {
@@ -912,7 +922,93 @@ describe("Just One game", () => {
     expect((scored.session.state as JustOneState).score).toBe(0);
     expect(scoreRound({ engine, session: scored.session })).toEqual({ status: "invalidPhase" });
   });
+
+  it("starts the next round with the next player and resets round state", () => {
+    const { engine, session } = createScoredSession();
+    const withExistingScore = engine.startSession({
+      id: session.id,
+      players: session.players,
+      initialState: { ...(session.state as JustOneState), score: 3 }
+    });
+
+    const result = startNextRound({
+      engine,
+      session: withExistingScore,
+      random: createSequenceRandom([0.5]),
+      words: ["Apple", "Train", "Ocean"]
+    });
+
+    expect(result).toEqual({
+      status: "started",
+      session: expect.objectContaining({
+        state: {
+          phase: "hinting",
+          players: ["player-1", "player-2", "player-3"],
+          guesserId: "player-2",
+          secretWord: "Train",
+          guess: null,
+          result: null,
+          score: 3,
+          hintsByPlayerId: {},
+          excludedHintPlayerIds: []
+        }
+      })
+    });
+  });
+
+  it("rotates from the last player back to the first player", () => {
+    expect(
+      getNextGuesserId({
+        phase: "roundScored",
+        players: ["player-1", "player-2", "player-3"],
+        guesserId: "player-3",
+        secretWord: "Apple",
+        guess: "Apple",
+        result: "correct",
+        score: 1,
+        hintsByPlayerId: {},
+        excludedHintPlayerIds: []
+      })
+    ).toBe("player-1");
+  });
+
+  it("rejects next rounds from an invalid phase or state", () => {
+    const { engine, session } = createGuessingSession();
+
+    expect(startNextRound({ engine, session, random: () => 0 })).toEqual({
+      status: "invalidPhase"
+    });
+
+    const { session: scoredSession } = createScoredSession();
+    const invalidGuesserSession = engine.startSession({
+      id: scoredSession.id,
+      players: scoredSession.players,
+      initialState: { ...(scoredSession.state as JustOneState), guesserId: "missing-player" }
+    });
+
+    expect(startNextRound({ engine, session: invalidGuesserSession, random: () => 0 })).toEqual({
+      status: "invalidState"
+    });
+    expect(startNextRound({ engine, session: scoredSession, random: () => 0, words: [] })).toEqual({
+      status: "noWords"
+    });
+    expect(
+      startNextRound({ engine, session: scoredSession, random: () => 1, words: ["Apple"] })
+    ).toEqual({ status: "invalidState" });
+  });
 });
+
+function createScoredSession() {
+  const { engine, session } = createGuessingSession();
+  const submitted = submitGuess({ engine, session, playerId: "player-1", guess: "Apple" });
+  if (submitted.status !== "submitted") throw new Error("Expected guess submission to succeed");
+  const confirmed = confirmResult({ engine, session: submitted.session, result: "correct" });
+  if (confirmed.status !== "confirmed") throw new Error("Expected result confirmation to succeed");
+  const scored = scoreRound({ engine, session: confirmed.session });
+  if (scored.status !== "scored") throw new Error("Expected round scoring to succeed");
+
+  return { engine, session: scored.session };
+}
 
 function createDuplicateReviewSession() {
   const { engine, session } = createHintingSession();

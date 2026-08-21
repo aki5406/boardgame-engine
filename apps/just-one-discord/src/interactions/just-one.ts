@@ -11,7 +11,8 @@ import {
   getHintSubmissionProgress,
   getRevealResult,
   getRoundPoints,
-  type Engine
+  type Engine,
+  type JustOneRandom
 } from "@boardgame/game-just-one";
 
 import {
@@ -21,6 +22,7 @@ import {
   confirmJustOneDuplicateReview,
   joinJustOneDiscordSessionForChannel,
   createJustOnePrivateHintThreads,
+  startNextJustOneDiscordRound,
   startJustOneDiscordSession,
   startJustOneDuplicateReviewForChannel,
   scoreJustOneRound,
@@ -36,6 +38,8 @@ import {
 import {
   createJustOneHintPlayerThreadIntro,
   createJustOneHintThreadName,
+  createJustOneNextRoundPartialFailureReply,
+  createJustOneNextRoundStartedReply,
   createJustOneStartPartialFailureReply,
   createJustOneStartedReply
 } from "../views/just-one-start.js";
@@ -57,6 +61,7 @@ import {
 } from "../views/just-one-guessing.js";
 import {
   createJustOneRevealMessage,
+  isJustOneNextRoundCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
 } from "../views/just-one-reveal.js";
@@ -64,6 +69,7 @@ import {
 export interface RegisterJustOneInteractionHandlersInput {
   readonly engine: Engine;
   readonly sessionRegistry: JustOneDiscordSessionRegistry;
+  readonly random: JustOneRandom;
 }
 
 export function registerJustOneInteractionHandlers(
@@ -93,6 +99,11 @@ export function registerJustOneInteractionHandlers(
 
       if (isJustOneScoreRoundCustomId(interaction.customId)) {
         await handleJustOneScoreRoundButton(interaction, input);
+        return;
+      }
+
+      if (isJustOneNextRoundCustomId(interaction.customId)) {
+        await handleJustOneNextRoundButton(interaction, input);
         return;
       }
 
@@ -161,7 +172,8 @@ async function handleJustOneCommand(
     const result = startJustOneDiscordSession({
       channelId: interaction.channelId,
       engine: input.engine,
-      registry: input.sessionRegistry
+      registry: input.sessionRegistry,
+      random: input.random
     });
 
     if (result.status === "notFound") {
@@ -653,6 +665,118 @@ async function handleJustOneScoreRoundButton(
         ephemeral: true
       });
     }
+  }
+}
+
+async function handleJustOneNextRoundButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+  const revealMessage = channelId ? input.sessionRegistry.getRevealMessage(channelId) : undefined;
+  const session = channelId ? input.sessionRegistry.get(channelId) : undefined;
+  const channel = interaction.channel;
+
+  if (
+    !channelId ||
+    !revealMessage ||
+    revealMessage.messageId !== interaction.message.id ||
+    !session ||
+    revealMessage.sessionId !== session.id ||
+    getJustOneState(session).phase !== "roundScored"
+  ) {
+    await interaction.reply({
+      content: "This next round has already started.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot || !getJustOneState(session).players.includes(interaction.user.id)) {
+    await interaction.reply({
+      content: "Only game participants can start the next round.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (!channel || channel.type !== ChannelType.GuildText) {
+    await interaction.reply({
+      content:
+        "The next round requires a regular guild text channel that supports private threads.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  await interaction.deferUpdate();
+
+  const result = startNextJustOneDiscordRound({
+    channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry,
+    random: input.random
+  });
+
+  if (result.status !== "started") {
+    await interaction.followUp({
+      content: "The next round could not be started.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    const threadResult = await createJustOnePrivateHintThreads({
+      channelId,
+      session: result.session,
+      registry: input.sessionRegistry,
+      createThreadName: ({ playerId }) => createJustOneHintThreadName(playerId),
+      createPrivateHintThread: async ({
+        playerId,
+        secretWord,
+        threadName
+      }): Promise<CreateJustOnePrivateHintThreadResult> => {
+        const thread = await channel.threads.create({
+          name: threadName,
+          autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+          type: ChannelType.PrivateThread,
+          invitable: false
+        });
+
+        await thread.members.add(playerId);
+        await thread.send(createJustOneHintPlayerThreadIntro(secretWord));
+
+        return { threadId: thread.id };
+      }
+    });
+
+    await interaction.editReply({ components: [] });
+    await channel.send(
+      threadResult.status === "partialFailure"
+        ? createJustOneNextRoundPartialFailureReply(
+            result.guesserId,
+            result.score,
+            threadResult.createdCount,
+            threadResult.failedCount
+          )
+        : createJustOneNextRoundStartedReply(result.guesserId, result.score)
+    );
+
+    const progressMessage = await channel.send(
+      createJustOneHintProgressMessage(getHintSubmissionProgress(getJustOneState(result.session)))
+    );
+    input.sessionRegistry.registerHintProgressMessage({
+      channelId,
+      sessionId: result.session.id,
+      messageId: progressMessage.id
+    });
+  } catch {
+    console.error("Failed to start the next Just One round.");
+    await interaction.followUp({
+      content: "The next round started, but private hint threads could not be created.",
+      ephemeral: true
+    });
   }
 }
 

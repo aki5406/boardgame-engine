@@ -41,6 +41,7 @@ export interface JustOneDiscordSessionRegistry {
   readonly get: (channelId: string) => JustOneDiscordSession | undefined;
   readonly delete: (channelId: string) => boolean;
   readonly has: (channelId: string) => boolean;
+  readonly clearRoundResources: (channelId: string) => void;
   readonly registerHintThread: (thread: JustOneDiscordHintThread) => void;
   readonly getHintThread: (threadId: string) => JustOneDiscordHintThread | undefined;
   readonly listHintThreadsByChannelId: (channelId: string) => readonly JustOneDiscordHintThread[];
@@ -84,27 +85,17 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
     },
 
     delete(channelId) {
-      for (const [threadId, thread] of hintThreadsByThreadId) {
-        if (thread.channelId === channelId) {
-          hintThreadsByThreadId.delete(threadId);
-        }
-      }
-
-      hintProgressMessagesByChannelId.delete(channelId);
-      guessingMessagesByChannelId.delete(channelId);
-      revealMessagesByChannelId.delete(channelId);
-
-      for (const [threadId, thread] of duplicateReviewThreadsByThreadId) {
-        if (thread.channelId === channelId) {
-          duplicateReviewThreadsByThreadId.delete(threadId);
-        }
-      }
+      clearRoundResources(channelId);
 
       return sessionsByChannelId.delete(channelId);
     },
 
     has(channelId) {
       return sessionsByChannelId.has(channelId);
+    },
+
+    clearRoundResources(channelId) {
+      clearRoundResources(channelId);
     },
 
     registerHintThread(thread) {
@@ -157,4 +148,22 @@ export function createJustOneDiscordSessionRegistry(): JustOneDiscordSessionRegi
       return revealMessagesByChannelId.get(channelId);
     }
   };
+
+  function clearRoundResources(channelId: string): void {
+    for (const [threadId, thread] of hintThreadsByThreadId) {
+      if (thread.channelId === channelId) {
+        hintThreadsByThreadId.delete(threadId);
+      }
+    }
+
+    hintProgressMessagesByChannelId.delete(channelId);
+    guessingMessagesByChannelId.delete(channelId);
+    revealMessagesByChannelId.delete(channelId);
+
+    for (const [threadId, thread] of duplicateReviewThreadsByThreadId) {
+      if (thread.channelId === channelId) {
+        duplicateReviewThreadsByThreadId.delete(threadId);
+      }
+    }
+  }
 }

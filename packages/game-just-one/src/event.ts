@@ -62,6 +62,13 @@ export type JustOneRoundScoredEvent = EngineEvent &
     points: number;
   }>;
 
+export type JustOneNextRoundStartedEvent = EngineEvent &
+  Readonly<{
+    type: "just-one.nextRoundStarted";
+    guesserId: PlayerId;
+    secretWord: string;
+  }>;
+
 export type JustOneEvent =
   | JustOnePlayerJoinedEvent
   | JustOneGameStartedEvent
@@ -72,4 +79,5 @@ export type JustOneEvent =
   | JustOneDuplicateReviewConfirmedEvent
   | JustOneGuessSubmittedEvent
   | JustOneResultConfirmedEvent
-  | JustOneRoundScoredEvent;
+  | JustOneRoundScoredEvent
+  | JustOneNextRoundStartedEvent;

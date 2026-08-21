@@ -5,6 +5,7 @@ import type { JustOneResult } from "@boardgame/game-just-one";
 const JUST_ONE_RESULT_CORRECT_CUSTOM_ID = "just-one:result:correct";
 const JUST_ONE_RESULT_INCORRECT_CUSTOM_ID = "just-one:result:incorrect";
 const JUST_ONE_SCORE_ROUND_CUSTOM_ID = "just-one:score-round";
+const JUST_ONE_NEXT_ROUND_CUSTOM_ID = "just-one:next-round";
 
 export interface JustOneRevealMessageInput {
   readonly guesserId: string;
@@ -30,7 +31,17 @@ export function createJustOneRevealMessage(input: JustOneRevealMessageInput): {
   ].join("\n");
 
   if (scored) {
-    return { content, components: [] };
+    return {
+      content,
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(JUST_ONE_NEXT_ROUND_CUSTOM_ID)
+            .setLabel("Next round")
+            .setStyle(ButtonStyle.Primary)
+        )
+      ]
+    };
   }
 
   if (input.result) {
@@ -76,6 +87,10 @@ export function parseJustOneResultCustomId(customId: string): JustOneResult | un
 
 export function isJustOneScoreRoundCustomId(customId: string): boolean {
   return customId === JUST_ONE_SCORE_ROUND_CUSTOM_ID;
+}
+
+export function isJustOneNextRoundCustomId(customId: string): boolean {
+  return customId === JUST_ONE_NEXT_ROUND_CUSTOM_ID;
 }
 
 function formatResult(result: JustOneResult): string {
