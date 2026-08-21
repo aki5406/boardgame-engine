@@ -24,7 +24,7 @@ describe("handleJustOneFinishGameButton", () => {
     expect(interaction.update).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining("Game finished"),
-        components: []
+        components: expect.any(Array)
       })
     );
     expect(interaction.update).toHaveBeenCalledWith(

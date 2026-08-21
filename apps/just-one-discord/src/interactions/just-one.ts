@@ -32,6 +32,7 @@ import {
   submitJustOneHintFromThread,
   toggleJustOneReviewHint,
   publishJustOneGuessingHints,
+  resetJustOneDiscordSessionForRematch,
   submitJustOneGuess,
   updateJustOneHintProgress,
   getJustOneState,
@@ -66,6 +67,7 @@ import {
   createJustOneRevealMessage,
   isJustOneFinishGameCustomId,
   isJustOneNextRoundCustomId,
+  isJustOnePlayAgainCustomId,
   isJustOneScoreRoundCustomId,
   parseJustOneResultCustomId
 } from "../views/just-one-reveal.js";
@@ -113,6 +115,11 @@ export function registerJustOneInteractionHandlers(
 
       if (isJustOneFinishGameCustomId(interaction.customId)) {
         await handleJustOneFinishGameButton(interaction, input);
+        return;
+      }
+
+      if (isJustOnePlayAgainCustomId(interaction.customId)) {
+        await handleJustOnePlayAgainButton(interaction, input);
         return;
       }
 
@@ -862,6 +869,132 @@ export async function handleJustOneFinishGameButton(
   }
 }
 
+export async function handleJustOnePlayAgainButton(
+  interaction: ButtonInteraction,
+  input: RegisterJustOneInteractionHandlersInput
+): Promise<void> {
+  const channelId = interaction.channelId;
+  const revealMessage = channelId ? input.sessionRegistry.getRevealMessage(channelId) : undefined;
+  const session = channelId ? input.sessionRegistry.get(channelId) : undefined;
+  const channel = interaction.channel;
+
+  if (
+    !channelId ||
+    !revealMessage ||
+    revealMessage.messageId !== interaction.message.id ||
+    !session ||
+    revealMessage.sessionId !== session.id ||
+    getJustOneState(session).phase !== "finished"
+  ) {
+    await interaction.reply({
+      content: "This rematch has already started.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (interaction.user.bot || !getJustOneState(session).players.includes(interaction.user.id)) {
+    await interaction.reply({
+      content: "Only game participants can start a rematch.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (!channel || channel.type !== ChannelType.GuildText) {
+    await interaction.reply({
+      content: "A rematch requires a regular guild text channel that supports private threads.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  await interaction.deferUpdate();
+
+  const reset = resetJustOneDiscordSessionForRematch({
+    channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (reset.status !== "reset") {
+    await interaction.followUp({
+      content: "The rematch could not be prepared.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const result = startJustOneDiscordSession({
+    channelId,
+    engine: input.engine,
+    registry: input.sessionRegistry,
+    random: input.random
+  });
+
+  if (result.status !== "started") {
+    await interaction.followUp({
+      content: "The game was reset, but could not be started. Use /just-one start to try again.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    const threadResult = await createJustOnePrivateHintThreads({
+      channelId,
+      session: result.session,
+      registry: input.sessionRegistry,
+      createThreadName: ({ playerId }) => createJustOneHintThreadName(playerId),
+      createPrivateHintThread: async ({
+        playerId,
+        secretWord,
+        threadName
+      }): Promise<CreateJustOnePrivateHintThreadResult> => {
+        const thread = await channel.threads.create({
+          name: threadName,
+          autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+          type: ChannelType.PrivateThread,
+          invitable: false
+        });
+
+        await thread.members.add(playerId);
+        await thread.send(createJustOneHintPlayerThreadIntro(secretWord));
+
+        return { threadId: thread.id };
+      }
+    });
+
+    await interaction.editReply({ components: [] });
+    await channel.send(
+      threadResult.status === "partialFailure"
+        ? createJustOneStartPartialFailureReply(
+            result.guesserId,
+            result.hintPlayerCount,
+            result.roundNumber,
+            threadResult.createdCount,
+            threadResult.failedCount
+          )
+        : createJustOneStartedReply(result.guesserId, result.hintPlayerCount, result.roundNumber)
+    );
+
+    const progressMessage = await channel.send(
+      createJustOneHintProgressMessage(getHintSubmissionProgress(getJustOneState(result.session)))
+    );
+    input.sessionRegistry.registerHintProgressMessage({
+      channelId,
+      sessionId: result.session.id,
+      messageId: progressMessage.id
+    });
+  } catch {
+    console.error("Failed to start a Just One rematch.");
+    await interaction.followUp({
+      content: "The rematch started, but private hint threads could not be created.",
+      ephemeral: true
+    });
+  }
+}
+
 function getJustOneRevealMessage(session: JustOneDiscordSession) {
   const state = getJustOneState(session);
   const reveal = getRevealResult(state);
@@ -887,6 +1020,7 @@ function getJustOneRevealMessage(session: JustOneDiscordSession) {
       roundNumber: state.roundNumber,
       canFinish: state.phase === "roundScored" && isJustOneFinalRound(state),
       finished: state.phase === "finished",
+      canRematch: state.phase === "finished",
       ...(finalEvaluation ? { finalEvaluation } : {})
     });
   }

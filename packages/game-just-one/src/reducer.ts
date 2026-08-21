@@ -111,6 +111,20 @@ export function reduceJustOneState(state: JustOneState, event: JustOneEvent): Ju
         phase: "finished"
       };
 
+    case "just-one.rematchReset":
+      return {
+        ...state,
+        phase: "waiting",
+        guesserId: null,
+        secretWord: null,
+        guess: null,
+        result: null,
+        score: 0,
+        roundNumber: 0,
+        hintsByPlayerId: {},
+        excludedHintPlayerIds: []
+      };
+
     default:
       return state;
   }

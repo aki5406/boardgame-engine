@@ -12,6 +12,8 @@ After the Engine scores round 13, the round-complete message offers a Finish gam
 
 The finished result also shows the Engine-derived score evaluation. The adapter does not define score thresholds.
 
+The finished result includes a Play again control for game participants. It resets the same session, invalidates prior round resource mappings, and starts a new first round with the same players.
+
 ### Required Permissions
 
 - View Channel

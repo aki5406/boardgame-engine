@@ -227,6 +227,16 @@ export interface FinishGameInput {
   readonly session: EngineGameSession;
 }
 
+export type ResetForRematchResult =
+  | Readonly<{ status: "reset"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "invalidState" }>;
+
+export interface ResetForRematchInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+}
+
 export function createJustOneEngine(): Engine {
   return createEngine(justOneGame);
 }
@@ -619,6 +629,28 @@ export function finishGame(input: FinishGameInput): FinishGameResult {
 
   return {
     status: "finished",
+    session: input.engine.applyEvent({
+      session: input.session,
+      event
+    })
+  };
+}
+
+export function resetForRematch(input: ResetForRematchInput): ResetForRematchResult {
+  const state = input.session.state as JustOneState;
+
+  if (state.phase !== "finished") {
+    return { status: "invalidPhase" };
+  }
+
+  if (state.players.length < 2) {
+    return { status: "invalidState" };
+  }
+
+  const event: JustOneEvent = { type: "just-one.rematchReset" };
+
+  return {
+    status: "reset",
     session: input.engine.applyEvent({
       session: input.session,
       event

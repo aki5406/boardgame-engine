@@ -9,6 +9,11 @@ export {
   type FinishJustOneGameResult
 } from "./finish.js";
 export {
+  resetJustOneDiscordSessionForRematch,
+  type ResetJustOneDiscordSessionForRematchInput,
+  type ResetJustOneDiscordSessionForRematchResult
+} from "./rematch.js";
+export {
   confirmJustOneResult,
   type ConfirmJustOneResultInput,
   type ConfirmJustOneResultResult
