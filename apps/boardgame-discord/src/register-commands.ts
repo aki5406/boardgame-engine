@@ -1,20 +1,24 @@
-import { REST, Routes } from "discord.js";
+import { REST } from "discord.js";
 
-import { getBoardgameDiscordCommandData } from "./commands.js";
+import {
+  registerBoardgameDiscordCommands,
+  type BoardgameDiscordCommandRest
+} from "./command-registration.js";
 import { loadBoardgameDiscordCommandRegistrationConfig } from "./config.js";
 
-export async function registerBoardgameDiscordCommands(): Promise<void> {
+async function runBoardgameDiscordCommandRegistration(): Promise<void> {
   const config = loadBoardgameDiscordCommandRegistrationConfig();
   const rest = new REST({ version: "10" }).setToken(config.discordBotToken);
 
-  await rest.put(Routes.applicationGuildCommands(config.discordClientId, config.discordGuildId), {
-    body: getBoardgameDiscordCommandData()
+  await registerBoardgameDiscordCommands({
+    config,
+    rest: rest as BoardgameDiscordCommandRest
   });
 
   console.log("Registered /ito and /just-one guild commands");
 }
 
-await registerBoardgameDiscordCommands().catch((error: unknown) => {
+await runBoardgameDiscordCommandRegistration().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : "Failed to register Discord commands";
 
   console.error(message);
