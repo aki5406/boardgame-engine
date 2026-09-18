@@ -9,6 +9,7 @@
     { "path": "./apps/ito-cli" },
     { "path": "./apps/ito-discord" },
     { "path": "./apps/just-one-discord" },
+    { "path": "./apps/boardgame-discord" },
     { "path": "./scripts/bea-reviewer" }
   ]
 }
