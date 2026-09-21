@@ -4,8 +4,9 @@ import { registerBoardgameDiscordCommands } from "./command-registration.js";
 import { getBoardgameDiscordCommandData } from "./commands.js";
 
 describe("getBoardgameDiscordCommandData", () => {
-  it("returns both game commands for one guild registration", () => {
+  it("returns all game commands for one guild registration", () => {
     expect(getBoardgameDiscordCommandData().map((command) => command.name)).toEqual([
+      "game",
       "ito",
       "just-one"
     ]);
@@ -31,6 +32,6 @@ describe("getBoardgameDiscordCommandData", () => {
     });
 
     expect(calls).toHaveLength(1);
-    expect(calls[0]?.body.map((command) => command.name)).toEqual(["ito", "just-one"]);
+    expect(calls[0]?.body.map((command) => command.name)).toEqual(["game", "ito", "just-one"]);
   });
 });

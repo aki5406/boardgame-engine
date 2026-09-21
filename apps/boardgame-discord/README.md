@@ -18,7 +18,7 @@ DISCORD_GUILD_ID=
 
 ## Register Commands
 
-Register both commands with one guild command update:
+Register all commands with one guild command update:
 
 ```bash
 pnpm --filter @boardgame/boardgame-discord register-commands
@@ -30,10 +30,20 @@ pnpm --filter @boardgame/boardgame-discord register-commands
 pnpm --filter @boardgame/boardgame-discord start
 ```
 
-The shared bot registers both `/ito` and `/just-one` on the same Discord Client.
+The shared bot registers `/game`, `/ito`, and `/just-one` on the same Discord
+Client.
+
+## Game Launcher
+
+Use `/game` to open an ephemeral game launcher. It currently lists ITO and Just
+One. Selecting a game shows its description and the game-specific create and
+join commands.
+
+The launcher is guidance only: it does not create a game session. Start a game
+with `/ito create` or `/just-one create`.
 
 ## Scope
 
 This app composes existing adapters only. It does not define a shared game
-session model, a game-selection UI, or a policy for running multiple games in
-the same channel.
+session model, a policy for running multiple games in the same channel, or a
+shared create and join flow.

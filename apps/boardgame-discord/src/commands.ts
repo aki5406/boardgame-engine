@@ -1,6 +1,13 @@
 import { itoCommand } from "@boardgame/ito-discord";
 import { justOneCommand } from "@boardgame/just-one-discord";
 
-export function getBoardgameDiscordCommandData(): readonly ReturnType<typeof itoCommand.toJSON>[] {
-  return [itoCommand.toJSON(), justOneCommand.toJSON()];
+import { gameCommand } from "./game-command.js";
+
+export type BoardgameDiscordCommandData =
+  | ReturnType<typeof gameCommand.toJSON>
+  | ReturnType<typeof itoCommand.toJSON>
+  | ReturnType<typeof justOneCommand.toJSON>;
+
+export function getBoardgameDiscordCommandData(): readonly BoardgameDiscordCommandData[] {
+  return [gameCommand.toJSON(), itoCommand.toJSON(), justOneCommand.toJSON()];
 }
