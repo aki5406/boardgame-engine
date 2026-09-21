@@ -9,7 +9,7 @@ describe("registerBoardgameDiscordAdapters", () => {
     const client = createBoardgameDiscordClient();
     const adapters = registerBoardgameDiscordAdapters(client);
 
-    expect(client.listenerCount(Events.InteractionCreate)).toBe(2);
+    expect(client.listenerCount(Events.InteractionCreate)).toBe(3);
     expect(client.listenerCount(Events.MessageCreate)).toBe(2);
     expect(adapters.ito.engine).not.toBe(adapters.justOne.engine);
     expect(adapters.ito.sessionRegistry).not.toBe(adapters.justOne.sessionRegistry);
@@ -44,15 +44,32 @@ describe("registerBoardgameDiscordAdapters", () => {
 
     client.destroy();
   });
+
+  it("opens the game launcher without handling it as a game command", async () => {
+    const client = createBoardgameDiscordClient();
+    registerBoardgameDiscordAdapters(client);
+    const interaction = createCommandInteraction("game", "");
+
+    client.emit(Events.InteractionCreate, interaction as never);
+    await flushAsyncHandlers();
+
+    expect(interaction.reply).toHaveBeenCalledOnce();
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true, content: expect.stringContaining("Board Games") })
+    );
+
+    client.destroy();
+  });
 });
 
-function createCommandInteraction(commandName: "ito" | "just-one", subcommand: string) {
+function createCommandInteraction(commandName: "game" | "ito" | "just-one", subcommand: string) {
   return {
     commandName,
     channelId: "channel-1",
     isButton: () => false,
     isModalSubmit: () => false,
     isChatInputCommand: () => true,
+    isStringSelectMenu: () => false,
     options: {
       getSubcommand: () => subcommand
     },
