@@ -1,9 +1,6 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
 
-import { createJustOneEngine } from "@boardgame/game-just-one";
-
-import { registerJustOneInteractionHandlers } from "./interactions/index.js";
-import { createJustOneDiscordSessionRegistry } from "./session/index.js";
+import { registerJustOneDiscordAdapter } from "./adapter.js";
 
 export function createJustOneDiscordClient(): Client {
   const client = new Client({
@@ -13,14 +10,7 @@ export function createJustOneDiscordClient(): Client {
       GatewayIntentBits.MessageContent
     ]
   });
-  const engine = createJustOneEngine();
-  const sessionRegistry = createJustOneDiscordSessionRegistry();
-
-  registerJustOneInteractionHandlers(client, {
-    engine,
-    sessionRegistry,
-    random: Math.random
-  });
+  registerJustOneDiscordAdapter(client);
 
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`Discord client ready as ${readyClient.user.tag}`);

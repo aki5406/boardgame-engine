@@ -1,18 +1,19 @@
 {
-  "name": "@boardgame/just-one-discord",
+  "name": "@boardgame/boardgame-discord",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@boardgame/game-just-one": "workspace:*",
+    "@boardgame/ito-discord": "workspace:*",
+    "@boardgame/just-one-discord": "workspace:*",
     "discord.js": "^14.26.4"
   },
   "scripts": {
     "build": "tsc -b",
     "register-commands": "pnpm build && node dist/register-commands.js",
-    "start": "pnpm build && node dist/start.js",
+    "start": "pnpm build && node dist/index.js",
     "typecheck": "tsc -b --pretty"
   }
 }
