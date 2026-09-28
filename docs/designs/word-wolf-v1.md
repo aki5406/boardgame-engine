@@ -12,7 +12,7 @@
 1. Create a game.
 2. Players join the game.
 3. Start the game with at least three players.
-4. The Engine selects one Minority Player and a word pair.
+4. The Engine selects one Minority Player and a word pair, then assigns either word to the Majority and Minority groups.
 5. Each player receives only their assigned word in a private thread.
 6. Players discuss in the public channel without stating their word directly.
 7. A participant starts voting.
@@ -38,9 +38,10 @@ waiting -> discussion -> voting -> revealed -> finished
 
 - There is exactly one Minority Player.
 - All other players are Majority Players.
-- The Minority Player and the word pair are selected using injected randomness.
+- The Minority Player, word pair, and word-to-group assignment are selected using injected randomness.
 - The Engine must not call `Math.random` directly.
-- A word pair supplies one Majority word and one Minority word.
+- A word pair is an unordered pair of related words with no Majority or Minority role in its data definition.
+- After selecting a pair, the Engine randomly assigns one word to the Majority group and the other to the Minority group.
 - v1 can use a small in-code default word-pair list.
 
 ### Discussion
@@ -89,7 +90,7 @@ interface WordWolfState {
 The Engine is responsible for:
 
 - Create, join, and start validation.
-- Minority Player and word-pair selection from injected randomness.
+- Minority Player selection, word-pair selection, and word-to-group assignment from injected randomness.
 - Phase transitions from discussion to voting and voting to reveal readiness.
 - Vote validation, including participant, self-vote, and duplicate-vote checks.
 - Vote progress, suspected-player calculation, tie detection, and winner calculation.
