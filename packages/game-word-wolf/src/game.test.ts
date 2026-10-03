@@ -97,6 +97,19 @@ describe("Word Wolf game", () => {
     expect(startGame({ engine, session: created })).toEqual({ status: "notEnoughPlayers" });
   });
 
+  it("starts with four players", () => {
+    const engine = createWordWolfEngine();
+    const created = createGame({ engine, id: "word-wolf-session-1" });
+    const first = joinGame({ engine, session: created, playerId: "player-1" });
+    const second = joinGame({ engine, session: getJoinedSession(first), playerId: "player-2" });
+    const third = joinGame({ engine, session: getJoinedSession(second), playerId: "player-3" });
+    const fourth = joinGame({ engine, session: getJoinedSession(third), playerId: "player-4" });
+
+    expect(startGame({ engine, session: getJoinedSession(fourth) })).toMatchObject({
+      status: "started"
+    });
+  });
+
   it("rejects joins and starts after discussion begins", () => {
     const engine = createWordWolfEngine();
     const created = createGame({ engine, id: "word-wolf-session-1" });
