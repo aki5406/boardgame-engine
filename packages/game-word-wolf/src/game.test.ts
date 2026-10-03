@@ -3,18 +3,25 @@ import { describe, expect, it } from "vitest";
 import {
   createGame,
   createWordWolfEngine,
+  defaultWordPairs,
+  getAssignedWord,
   joinGame,
   reduceWordWolfState,
   startGame,
   wordWolfGame,
-  wordWolfInitialState
+  wordWolfInitialState,
+  type WordWolfState,
+  type WordWolfWordPair
 } from "./index.js";
 
 describe("Word Wolf game", () => {
   it("provides an empty waiting state", () => {
     expect(wordWolfInitialState).toEqual({
       phase: "waiting",
-      players: []
+      players: [],
+      minorityPlayerId: null,
+      majorityWord: null,
+      minorityWord: null
     });
   });
 
@@ -27,102 +34,168 @@ describe("Word Wolf game", () => {
     expect(session.state).toEqual(wordWolfInitialState);
   });
 
-  it("adds players in join order", () => {
-    const engine = createWordWolfEngine();
-    const session = createGame({ engine, id: "word-wolf-session-1" });
-    const firstJoin = joinGame({ engine, session, playerId: "player-1" });
-
-    expect(firstJoin.status).toBe("joined");
-    if (firstJoin.status !== "joined") {
-      return;
-    }
-
-    const secondJoin = joinGame({ engine, session: firstJoin.session, playerId: "player-2" });
-
-    expect(secondJoin).toMatchObject({ status: "joined" });
-    if (secondJoin.status !== "joined") {
-      return;
-    }
-
-    expect(secondJoin.session.players).toEqual([{ id: "player-1" }, { id: "player-2" }]);
-    expect(secondJoin.session.state).toEqual({
-      phase: "waiting",
-      players: ["player-1", "player-2"]
-    });
+  it("provides multiple unordered default word pairs", () => {
+    expect(defaultWordPairs.length).toBeGreaterThan(1);
+    expect(
+      defaultWordPairs.every(({ words: [firstWord, secondWord] }) => firstWord !== secondWord)
+    ).toBe(true);
   });
 
-  it("rejects duplicate joins", () => {
+  it("adds players in join order and rejects duplicate joins", () => {
     const engine = createWordWolfEngine();
-    const session = createGame({ engine, id: "word-wolf-session-1" });
-    const joined = joinGame({ engine, session, playerId: "player-1" });
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2"]);
 
-    expect(joined.status).toBe("joined");
-    if (joined.status !== "joined") {
-      return;
-    }
-
-    expect(joinGame({ engine, session: joined.session, playerId: "player-1" })).toEqual({
+    expect(session.players).toEqual([{ id: "player-1" }, { id: "player-2" }]);
+    expect(session.state).toMatchObject({ players: ["player-1", "player-2"] });
+    expect(joinGame({ engine, session, playerId: "player-1" })).toEqual({
       status: "alreadyJoined"
     });
   });
 
-  it("starts with three or more players and preserves the roster", () => {
+  it("requires at least three players to start without changing the session", () => {
     const engine = createWordWolfEngine();
-    const created = createGame({ engine, id: "word-wolf-session-1" });
-    const first = joinGame({ engine, session: created, playerId: "player-1" });
-    const second = joinGame({ engine, session: getJoinedSession(first), playerId: "player-2" });
-    const third = joinGame({ engine, session: getJoinedSession(second), playerId: "player-3" });
-    const started = startGame({ engine, session: getJoinedSession(third) });
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2"]);
 
-    expect(started.status).toBe("started");
-    if (started.status !== "started") {
+    expect(startGame({ engine, session, random: createSequenceRandom([]) })).toEqual({
+      status: "notEnoughPlayers"
+    });
+    expect(session.state).toMatchObject({
+      phase: "waiting",
+      minorityPlayerId: null,
+      majorityWord: null,
+      minorityWord: null
+    });
+  });
+
+  it("selects a minority player, pair, and group words with injected random", () => {
+    const engine = createWordWolfEngine();
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2", "player-3"]);
+    const wordPairs: readonly WordWolfWordPair[] = [
+      { words: ["Sun", "Moon"] },
+      { words: ["Summer", "Winter"] }
+    ];
+
+    const result = startGame({
+      engine,
+      session,
+      random: createSequenceRandom([0.5, 0.5, 0.75]),
+      wordPairs
+    });
+
+    expect(result.status).toBe("started");
+    if (result.status !== "started") {
       return;
     }
 
-    expect(started.session.state).toEqual({
+    expect(result.session.state).toEqual({
       phase: "discussion",
-      players: ["player-1", "player-2", "player-3"]
+      players: ["player-1", "player-2", "player-3"],
+      minorityPlayerId: "player-2",
+      majorityWord: "Winter",
+      minorityWord: "Summer"
     });
-    expect(started.session.players).toEqual([
+    expect(result.session.players).toEqual([
       { id: "player-1" },
       { id: "player-2" },
       { id: "player-3" }
     ]);
+    expect(wordPairs).toEqual([{ words: ["Sun", "Moon"] }, { words: ["Summer", "Winter"] }]);
   });
 
-  it("requires at least three players to start", () => {
+  it("can reverse the group word assignment for the same pair", () => {
     const engine = createWordWolfEngine();
-    const created = createGame({ engine, id: "word-wolf-session-1" });
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2", "player-3"]);
+    const wordPairs: readonly WordWolfWordPair[] = [{ words: ["Sun", "Moon"] }];
 
-    expect(startGame({ engine, session: created })).toEqual({ status: "notEnoughPlayers" });
+    const result = startGame({
+      engine,
+      session,
+      random: createSequenceRandom([0, 0, 0]),
+      wordPairs
+    });
+
+    expect(result).toMatchObject({
+      status: "started",
+      session: {
+        state: {
+          majorityWord: "Sun",
+          minorityWord: "Moon"
+        }
+      }
+    });
   });
 
-  it("starts with four players", () => {
+  it("supports a four-player game and random values near one", () => {
     const engine = createWordWolfEngine();
-    const created = createGame({ engine, id: "word-wolf-session-1" });
-    const first = joinGame({ engine, session: created, playerId: "player-1" });
-    const second = joinGame({ engine, session: getJoinedSession(first), playerId: "player-2" });
-    const third = joinGame({ engine, session: getJoinedSession(second), playerId: "player-3" });
-    const fourth = joinGame({ engine, session: getJoinedSession(third), playerId: "player-4" });
+    const session = createSessionWithPlayers(engine, [
+      "player-1",
+      "player-2",
+      "player-3",
+      "player-4"
+    ]);
 
-    expect(startGame({ engine, session: getJoinedSession(fourth) })).toMatchObject({
-      status: "started"
+    const result = startGame({
+      engine,
+      session,
+      random: createSequenceRandom([0.999, 0.999, 0.999])
+    });
+
+    expect(result).toMatchObject({
+      status: "started",
+      session: {
+        state: {
+          minorityPlayerId: "player-4"
+        }
+      }
+    });
+  });
+
+  it("rejects an empty word pair list without changing the session", () => {
+    const engine = createWordWolfEngine();
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2", "player-3"]);
+
+    expect(startGame({ engine, session, random: createSequenceRandom([]), wordPairs: [] })).toEqual(
+      { status: "noWordPairs" }
+    );
+    expect(session.state).toMatchObject({
+      phase: "waiting",
+      minorityPlayerId: null,
+      majorityWord: null,
+      minorityWord: null
     });
   });
 
   it("rejects joins and starts after discussion begins", () => {
     const engine = createWordWolfEngine();
-    const created = createGame({ engine, id: "word-wolf-session-1" });
-    const first = joinGame({ engine, session: created, playerId: "player-1" });
-    const second = joinGame({ engine, session: getJoinedSession(first), playerId: "player-2" });
-    const third = joinGame({ engine, session: getJoinedSession(second), playerId: "player-3" });
-    const started = startGame({ engine, session: getJoinedSession(third) });
-    const discussionSession = getStartedSession(started);
+    const session = createSessionWithPlayers(engine, ["player-1", "player-2", "player-3"]);
+    const started = getStartedSession(
+      startGame({ engine, session, random: createSequenceRandom([0, 0, 0]) })
+    );
 
-    expect(joinGame({ engine, session: discussionSession, playerId: "player-4" })).toEqual({
+    expect(joinGame({ engine, session: started, playerId: "player-4" })).toEqual({
       status: "invalidPhase"
     });
-    expect(startGame({ engine, session: discussionSession })).toEqual({ status: "invalidPhase" });
+    expect(startGame({ engine, session: started, random: createSequenceRandom([]) })).toEqual({
+      status: "invalidPhase"
+    });
+  });
+
+  it("returns assigned words only for participants after start", () => {
+    const engine = createWordWolfEngine();
+    const waitingSession = createSessionWithPlayers(engine, ["player-1", "player-2", "player-3"]);
+    const started = getStartedSession(
+      startGame({
+        engine,
+        session: waitingSession,
+        random: createSequenceRandom([0, 0, 0]),
+        wordPairs: [{ words: ["Sun", "Moon"] }]
+      })
+    );
+
+    expect(getAssignedWord(waitingSession.state as WordWolfState, "player-1")).toBeUndefined();
+    expect(getAssignedWord(started.state as WordWolfState, "player-1")).toBe("Moon");
+    expect(getAssignedWord(started.state as WordWolfState, "player-2")).toBe("Sun");
+    expect(getAssignedWord(started.state as WordWolfState, "unknown-player")).toBeUndefined();
   });
 
   it("reduces creation, join, and start events", () => {
@@ -130,17 +203,36 @@ describe("Word Wolf game", () => {
       type: "word-wolf.playerJoined",
       playerId: "player-1"
     });
-    const started = reduceWordWolfState(joined, { type: "word-wolf.gameStarted" });
+    const started = reduceWordWolfState(joined, {
+      type: "word-wolf.gameStarted",
+      minorityPlayerId: "player-1",
+      majorityWord: "Dog",
+      minorityWord: "Cat"
+    });
 
     expect(reduceWordWolfState(started, { type: "word-wolf.gameCreated" })).toEqual(
       wordWolfInitialState
     );
-    expect(started).toEqual({
+    expect(started).toMatchObject({
       phase: "discussion",
-      players: ["player-1"]
+      minorityPlayerId: "player-1",
+      majorityWord: "Dog",
+      minorityWord: "Cat"
     });
   });
 });
+
+function createSessionWithPlayers(
+  engine: ReturnType<typeof createWordWolfEngine>,
+  playerIds: readonly string[]
+) {
+  return playerIds.reduce(
+    (session, playerId) => {
+      return getJoinedSession(joinGame({ engine, session, playerId }));
+    },
+    createGame({ engine, id: "word-wolf-session-1" })
+  );
+}
 
 function getJoinedSession(result: ReturnType<typeof joinGame>) {
   if (result.status !== "joined") {
@@ -156,4 +248,10 @@ function getStartedSession(result: ReturnType<typeof startGame>) {
   }
 
   return result.session;
+}
+
+function createSequenceRandom(values: readonly number[]) {
+  let index = 0;
+
+  return () => values[index++] ?? 0;
 }

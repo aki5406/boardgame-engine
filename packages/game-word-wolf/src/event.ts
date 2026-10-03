@@ -16,6 +16,9 @@ export type WordWolfPlayerJoinedEvent = EngineEvent &
 export type WordWolfGameStartedEvent = EngineEvent &
   Readonly<{
     type: "word-wolf.gameStarted";
+    minorityPlayerId: PlayerId;
+    majorityWord: string;
+    minorityWord: string;
   }>;
 
 export type WordWolfEvent =
