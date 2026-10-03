@@ -6,6 +6,7 @@
     { "path": "./packages/counter-sample" },
     { "path": "./packages/game-ito" },
     { "path": "./packages/game-just-one" },
+    { "path": "./packages/game-word-wolf" },
     { "path": "./apps/ito-cli" },
     { "path": "./apps/ito-discord" },
     { "path": "./apps/just-one-discord" },
