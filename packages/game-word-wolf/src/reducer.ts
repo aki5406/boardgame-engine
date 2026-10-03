@@ -24,7 +24,10 @@ export function reduceWordWolfState(state: WordWolfState, event: WordWolfEvent):
     case "word-wolf.gameStarted":
       return {
         ...state,
-        phase: "discussion"
+        phase: "discussion",
+        minorityPlayerId: event.minorityPlayerId,
+        majorityWord: event.majorityWord,
+        minorityWord: event.minorityWord
       };
   }
 }

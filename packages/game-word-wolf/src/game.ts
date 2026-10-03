@@ -8,6 +8,9 @@ import {
 import type { WordWolfEvent } from "./event.js";
 import { wordWolfReducer } from "./reducer.js";
 import { wordWolfInitialState, type PlayerId, type WordWolfState } from "./state.js";
+import { defaultWordPairs, type WordWolfWordPair } from "./words.js";
+
+export type WordWolfRandom = () => number;
 
 export const wordWolfGame: EngineGame = {
   id: "word-wolf",
@@ -33,12 +36,15 @@ export type JoinGameResult =
 export interface StartGameInput {
   readonly engine: Engine;
   readonly session: EngineGameSession;
+  readonly random: WordWolfRandom;
+  readonly wordPairs?: readonly WordWolfWordPair[];
 }
 
 export type StartGameResult =
   | Readonly<{ status: "started"; session: EngineGameSession }>
   | Readonly<{ status: "invalidPhase" }>
-  | Readonly<{ status: "notEnoughPlayers" }>;
+  | Readonly<{ status: "notEnoughPlayers" }>
+  | Readonly<{ status: "noWordPairs" }>;
 
 export function createWordWolfEngine(): Engine {
   return createEngine(wordWolfGame);
@@ -94,11 +100,44 @@ export function startGame(input: StartGameInput): StartGameResult {
     return { status: "notEnoughPlayers" };
   }
 
-  const event: WordWolfEvent = { type: "word-wolf.gameStarted" };
+  const wordPairs = input.wordPairs ?? defaultWordPairs;
+
+  if (wordPairs.length === 0) {
+    return { status: "noWordPairs" };
+  }
+
+  const minorityPlayerId = selectRandomItem(state.players, input.random);
+  const wordPair = selectRandomItem(wordPairs, input.random);
+  const [firstWord, secondWord] = wordPair.words;
+  const [majorityWord, minorityWord] =
+    input.random() < 0.5 ? [firstWord, secondWord] : [secondWord, firstWord];
+  const event: WordWolfEvent = {
+    type: "word-wolf.gameStarted",
+    minorityPlayerId,
+    majorityWord,
+    minorityWord
+  };
   const session = input.engine.applyEvent({
     session: input.session,
     event
   });
 
   return { status: "started", session };
+}
+
+export function getAssignedWord(state: WordWolfState, playerId: PlayerId): string | undefined {
+  if (
+    !state.players.includes(playerId) ||
+    state.minorityPlayerId === null ||
+    state.majorityWord === null ||
+    state.minorityWord === null
+  ) {
+    return undefined;
+  }
+
+  return playerId === state.minorityPlayerId ? state.minorityWord : state.majorityWord;
+}
+
+function selectRandomItem<T>(items: readonly T[], random: WordWolfRandom): T {
+  return items[Math.floor(random() * items.length)]!;
 }
