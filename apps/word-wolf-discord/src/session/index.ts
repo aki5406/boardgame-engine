@@ -31,3 +31,8 @@ export {
   type StartWordWolfVotingInput,
   type StartWordWolfVotingResult
 } from "./start-voting.js";
+export {
+  submitWordWolfVote,
+  type SubmitWordWolfVoteInput,
+  type SubmitWordWolfVoteResult
+} from "./vote.js";

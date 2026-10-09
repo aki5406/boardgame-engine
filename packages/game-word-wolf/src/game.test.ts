@@ -5,10 +5,12 @@ import {
   createWordWolfEngine,
   defaultWordPairs,
   getAssignedWord,
+  getVoteProgress,
   joinGame,
   reduceWordWolfState,
   startGame,
   startVoting,
+  submitVote,
   wordWolfGame,
   wordWolfInitialState,
   type WordWolfState,
@@ -22,7 +24,8 @@ describe("Word Wolf game", () => {
       players: [],
       minorityPlayerId: null,
       majorityWord: null,
-      minorityWord: null
+      minorityWord: null,
+      votesByPlayerId: {}
     });
   });
 
@@ -93,7 +96,8 @@ describe("Word Wolf game", () => {
       players: ["player-1", "player-2", "player-3"],
       minorityPlayerId: "player-2",
       majorityWord: "Winter",
-      minorityWord: "Summer"
+      minorityWord: "Summer",
+      votesByPlayerId: {}
     });
     expect(result.session.players).toEqual([
       { id: "player-1" },
@@ -219,7 +223,8 @@ describe("Word Wolf game", () => {
       players: ["player-1", "player-2", "player-3"],
       minorityPlayerId: "player-1",
       majorityWord: "Sun",
-      minorityWord: "Moon"
+      minorityWord: "Moon",
+      votesByPlayerId: {}
     });
   });
 
@@ -252,6 +257,118 @@ describe("Word Wolf game", () => {
     });
   });
 
+  it("submits one vote per participant and derives public progress", () => {
+    const engine = createWordWolfEngine();
+    const votingSession = getStartedVotingSession(
+      startVoting({ engine, session: createDiscussionSession(engine), playerId: "player-1" })
+    );
+
+    expect(getVoteProgress(votingSession.state as WordWolfState)).toEqual({
+      submitted: 0,
+      total: 3,
+      complete: false
+    });
+
+    const firstVote = submitVote({
+      engine,
+      session: votingSession,
+      voterPlayerId: "player-1",
+      targetPlayerId: "player-2"
+    });
+
+    expect(firstVote.status).toBe("submitted");
+    if (firstVote.status !== "submitted") {
+      return;
+    }
+
+    expect(firstVote.session.state as WordWolfState).toMatchObject({
+      votesByPlayerId: { "player-1": "player-2" },
+      minorityPlayerId: "player-1",
+      majorityWord: "Sun",
+      minorityWord: "Moon"
+    });
+    expect(getVoteProgress(firstVote.session.state as WordWolfState)).toEqual({
+      submitted: 1,
+      total: 3,
+      complete: false
+    });
+
+    let session = firstVote.session;
+    for (const [voterPlayerId, targetPlayerId] of [
+      ["player-2", "player-1"],
+      ["player-3", "player-1"]
+    ] as const) {
+      const vote = submitVote({ engine, session, voterPlayerId, targetPlayerId });
+      session = getSubmittedVoteSession(vote);
+    }
+
+    expect(getVoteProgress(session.state as WordWolfState)).toEqual({
+      submitted: 3,
+      total: 3,
+      complete: true
+    });
+  });
+
+  it("rejects invalid vote submissions without changing state", () => {
+    const engine = createWordWolfEngine();
+    const discussionSession = createDiscussionSession(engine);
+    const votingSession = getStartedVotingSession(
+      startVoting({ engine, session: discussionSession, playerId: "player-1" })
+    );
+    const submittedSession = getSubmittedVoteSession(
+      submitVote({
+        engine,
+        session: votingSession,
+        voterPlayerId: "player-1",
+        targetPlayerId: "player-2"
+      })
+    );
+
+    expect(
+      submitVote({
+        engine,
+        session: discussionSession,
+        voterPlayerId: "player-1",
+        targetPlayerId: "player-2"
+      })
+    ).toEqual({ status: "invalidPhase" });
+    expect(
+      submitVote({
+        engine,
+        session: votingSession,
+        voterPlayerId: "unknown-player",
+        targetPlayerId: "player-2"
+      })
+    ).toEqual({ status: "voterNotParticipant" });
+    expect(
+      submitVote({
+        engine,
+        session: votingSession,
+        voterPlayerId: "player-1",
+        targetPlayerId: "unknown-player"
+      })
+    ).toEqual({ status: "targetNotParticipant" });
+    expect(
+      submitVote({
+        engine,
+        session: votingSession,
+        voterPlayerId: "player-1",
+        targetPlayerId: "player-1"
+      })
+    ).toEqual({ status: "selfVote" });
+    expect(
+      submitVote({
+        engine,
+        session: submittedSession,
+        voterPlayerId: "player-1",
+        targetPlayerId: "player-3"
+      })
+    ).toEqual({ status: "alreadyVoted" });
+    expect((submittedSession.state as WordWolfState).votesByPlayerId).toEqual({
+      "player-1": "player-2"
+    });
+  });
+
   it("reduces creation, join, and start events", () => {
     const joined = reduceWordWolfState(wordWolfInitialState, {
       type: "word-wolf.playerJoined",
@@ -264,6 +381,11 @@ describe("Word Wolf game", () => {
       minorityWord: "Cat"
     });
     const voting = reduceWordWolfState(started, { type: "word-wolf.votingStarted" });
+    const voted = reduceWordWolfState(voting, {
+      type: "word-wolf.voteSubmitted",
+      voterPlayerId: "player-1",
+      targetPlayerId: "player-2"
+    });
 
     expect(reduceWordWolfState(started, { type: "word-wolf.gameCreated" })).toEqual(
       wordWolfInitialState
@@ -273,8 +395,10 @@ describe("Word Wolf game", () => {
       players: ["player-1"],
       minorityPlayerId: "player-1",
       majorityWord: "Dog",
-      minorityWord: "Cat"
+      minorityWord: "Cat",
+      votesByPlayerId: {}
     });
+    expect(voted.votesByPlayerId).toEqual({ "player-1": "player-2" });
   });
 });
 
@@ -309,6 +433,14 @@ function getStartedSession(result: ReturnType<typeof startGame>) {
 function getStartedVotingSession(result: ReturnType<typeof startVoting>) {
   if (result.status !== "started") {
     throw new Error(`Expected a started voting session, received ${result.status}.`);
+  }
+
+  return result.session;
+}
+
+function getSubmittedVoteSession(result: ReturnType<typeof submitVote>) {
+  if (result.status !== "submitted") {
+    throw new Error(`Expected a submitted vote, received ${result.status}.`);
   }
 
   return result.session;

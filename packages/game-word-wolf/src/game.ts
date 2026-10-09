@@ -57,6 +57,27 @@ export type StartVotingResult =
   | Readonly<{ status: "invalidPhase" }>
   | Readonly<{ status: "notParticipant" }>;
 
+export interface SubmitVoteInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly voterPlayerId: PlayerId;
+  readonly targetPlayerId: PlayerId;
+}
+
+export type SubmitVoteResult =
+  | Readonly<{ status: "submitted"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "voterNotParticipant" }>
+  | Readonly<{ status: "targetNotParticipant" }>
+  | Readonly<{ status: "selfVote" }>
+  | Readonly<{ status: "alreadyVoted" }>;
+
+export interface VoteProgress {
+  readonly submitted: number;
+  readonly total: number;
+  readonly complete: boolean;
+}
+
 export function createWordWolfEngine(): Engine {
   return createEngine(wordWolfGame);
 }
@@ -167,6 +188,53 @@ export function startVoting(input: StartVotingInput): StartVotingResult {
   });
 
   return { status: "started", session };
+}
+
+export function submitVote(input: SubmitVoteInput): SubmitVoteResult {
+  const state = input.session.state as WordWolfState;
+
+  if (state.phase !== "voting") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!state.players.includes(input.voterPlayerId)) {
+    return { status: "voterNotParticipant" };
+  }
+
+  if (!state.players.includes(input.targetPlayerId)) {
+    return { status: "targetNotParticipant" };
+  }
+
+  if (input.voterPlayerId === input.targetPlayerId) {
+    return { status: "selfVote" };
+  }
+
+  if (input.voterPlayerId in state.votesByPlayerId) {
+    return { status: "alreadyVoted" };
+  }
+
+  const event: WordWolfEvent = {
+    type: "word-wolf.voteSubmitted",
+    voterPlayerId: input.voterPlayerId,
+    targetPlayerId: input.targetPlayerId
+  };
+  const session = input.engine.applyEvent({
+    session: input.session,
+    event
+  });
+
+  return { status: "submitted", session };
+}
+
+export function getVoteProgress(state: WordWolfState): VoteProgress {
+  const submitted = state.players.filter((playerId) => playerId in state.votesByPlayerId).length;
+  const total = state.players.length;
+
+  return {
+    submitted,
+    total,
+    complete: total > 0 && submitted === total
+  };
 }
 
 function selectRandomItem<T>(items: readonly T[], random: WordWolfRandom): T {
