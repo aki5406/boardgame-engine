@@ -26,8 +26,16 @@ export type WordWolfVotingStartedEvent = EngineEvent &
     type: "word-wolf.votingStarted";
   }>;
 
+export type WordWolfVoteSubmittedEvent = EngineEvent &
+  Readonly<{
+    type: "word-wolf.voteSubmitted";
+    voterPlayerId: PlayerId;
+    targetPlayerId: PlayerId;
+  }>;
+
 export type WordWolfEvent =
   | WordWolfGameCreatedEvent
   | WordWolfPlayerJoinedEvent
   | WordWolfGameStartedEvent
-  | WordWolfVotingStartedEvent;
+  | WordWolfVotingStartedEvent
+  | WordWolfVoteSubmittedEvent;

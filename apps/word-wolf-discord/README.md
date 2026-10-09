@@ -29,7 +29,7 @@ pnpm --filter @boardgame/word-wolf-discord start
 
 ## Manual Flow
 
-Use a regular guild text channel and at least three Discord users.
+Use a regular guild text channel and three to 25 Discord users.
 
 ```text
 /word-wolf create
@@ -42,6 +42,10 @@ Use a regular guild text channel and at least three Discord users.
 After start, each player receives a private thread containing only that
 player's assigned word. The public channel only announces that discussion has
 started; it does not reveal words, roles, or the Minority Player.
+
+When discussion is complete, a participant can press **Start voting**. Each
+player then selects one other player from the public voting menu. Individual
+votes remain private; the public message shows only the submitted vote count.
 
 ## Required Permissions
 

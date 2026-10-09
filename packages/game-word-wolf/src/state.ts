@@ -11,6 +11,7 @@ export type WordWolfState = EngineState &
     minorityPlayerId: PlayerId | null;
     majorityWord: string | null;
     minorityWord: string | null;
+    votesByPlayerId: Readonly<Record<PlayerId, PlayerId>>;
   }>;
 
 export const wordWolfInitialState: WordWolfState = {
@@ -18,5 +19,6 @@ export const wordWolfInitialState: WordWolfState = {
   players: [],
   minorityPlayerId: null,
   majorityWord: null,
-  minorityWord: null
+  minorityWord: null,
+  votesByPlayerId: {}
 };

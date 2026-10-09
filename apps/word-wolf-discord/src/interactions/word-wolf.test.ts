@@ -6,7 +6,8 @@ import {
   ChannelType,
   type ButtonInteraction,
   type ChatInputCommandInteraction,
-  type Client
+  type Client,
+  type StringSelectMenuInteraction
 } from "discord.js";
 
 import { createWordWolfEngine, type WordWolfState } from "@boardgame/game-word-wolf";
@@ -16,9 +17,13 @@ import {
   createWordWolfDiscordSessionRegistry,
   joinWordWolfDiscordSessionForChannel,
   startWordWolfDiscordSession,
-  startWordWolfVoting
+  startWordWolfVoting,
+  submitWordWolfVote
 } from "../session/index.js";
-import { WORD_WOLF_START_VOTING_CUSTOM_ID } from "../views/word-wolf-start.js";
+import {
+  WORD_WOLF_START_VOTING_CUSTOM_ID,
+  WORD_WOLF_VOTE_CUSTOM_ID
+} from "../views/word-wolf-start.js";
 import { registerWordWolfInteractionHandlers } from "./word-wolf.js";
 
 describe("Word Wolf interaction routing", () => {
@@ -156,7 +161,7 @@ describe("Word Wolf interaction routing", () => {
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining("Votes stay hidden until reveal."),
-        components: []
+        components: [expect.anything()]
       })
     );
     expect(reply).not.toHaveBeenCalled();
@@ -242,6 +247,138 @@ describe("Word Wolf interaction routing", () => {
     expect(reply).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
+
+  it("records a participant vote privately and updates aggregate progress", async () => {
+    const client = new EventEmitter() as unknown as Client;
+    const { engine, registry } = createVotingSession();
+    const deferReply = vi.fn().mockResolvedValue(undefined);
+    const editReply = vi.fn().mockResolvedValue(undefined);
+    const messageEdit = vi.fn().mockResolvedValue(undefined);
+
+    registerWordWolfInteractionHandlers(client, {
+      engine,
+      sessionRegistry: registry,
+      random: () => 0
+    });
+
+    (client as unknown as EventEmitter).emit(
+      "interactionCreate",
+      createVoteSelectInteraction({
+        userId: "user-1",
+        targetPlayerId: "user-2",
+        deferReply,
+        editReply,
+        messageEdit
+      })
+    );
+    await flushInteraction();
+
+    expect(deferReply).toHaveBeenCalledWith({ ephemeral: true });
+    expect(editReply).toHaveBeenCalledWith("Your vote has been recorded.");
+    expect((registry.get("channel-1")?.state as WordWolfState).votesByPlayerId).toEqual({
+      "user-1": "user-2"
+    });
+    expect(messageEdit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("Votes: 1 / 3")
+      })
+    );
+    const updatedReply = getOnlyCallArgument(messageEdit);
+    if (!isComponentReply(updatedReply)) {
+      throw new Error("Expected an updated voting reply");
+    }
+
+    expect(updatedReply.content).not.toContain("user-1");
+    expect(updatedReply.content).not.toContain("user-2");
+  });
+
+  it("rejects self votes and duplicate votes ephemerally", async () => {
+    const client = new EventEmitter() as unknown as Client;
+    const { engine, registry } = createVotingSession();
+    const selfVoteReply = vi.fn().mockResolvedValue(undefined);
+    const duplicateVoteReply = vi.fn().mockResolvedValue(undefined);
+    const deferReply = vi.fn().mockResolvedValue(undefined);
+
+    registerWordWolfInteractionHandlers(client, {
+      engine,
+      sessionRegistry: registry,
+      random: () => 0
+    });
+
+    (client as unknown as EventEmitter).emit(
+      "interactionCreate",
+      createVoteSelectInteraction({
+        userId: "user-1",
+        targetPlayerId: "user-1",
+        deferReply,
+        editReply: selfVoteReply,
+        messageEdit: vi.fn()
+      })
+    );
+    await flushInteraction();
+
+    expect(selfVoteReply).toHaveBeenCalledWith("You cannot vote for yourself.");
+
+    submitWordWolfVote({
+      channelId: "channel-1",
+      voterPlayerId: "user-1",
+      targetPlayerId: "user-2",
+      engine,
+      registry
+    });
+    (client as unknown as EventEmitter).emit(
+      "interactionCreate",
+      createVoteSelectInteraction({
+        userId: "user-1",
+        targetPlayerId: "user-3",
+        deferReply,
+        editReply: duplicateVoteReply,
+        messageEdit: vi.fn()
+      })
+    );
+    await flushInteraction();
+
+    expect(duplicateVoteReply).toHaveBeenCalledWith("You have already voted.");
+  });
+
+  it("rejects votes from non-participants and ignores select menus from other games", async () => {
+    const client = new EventEmitter() as unknown as Client;
+    const { engine, registry } = createVotingSession();
+    const deferReply = vi.fn().mockResolvedValue(undefined);
+    const editReply = vi.fn().mockResolvedValue(undefined);
+
+    registerWordWolfInteractionHandlers(client, {
+      engine,
+      sessionRegistry: registry,
+      random: () => 0
+    });
+
+    (client as unknown as EventEmitter).emit(
+      "interactionCreate",
+      createVoteSelectInteraction({
+        userId: "not-a-player",
+        targetPlayerId: "user-1",
+        deferReply,
+        editReply,
+        messageEdit: vi.fn()
+      })
+    );
+    await flushInteraction();
+
+    expect(editReply).toHaveBeenCalledWith("Only players in this Word Wolf game can vote.");
+
+    const otherReply = vi.fn();
+    (client as unknown as EventEmitter).emit("interactionCreate", {
+      isChatInputCommand: () => false,
+      isButton: () => false,
+      isStringSelectMenu: () => true,
+      customId: "ito:vote",
+      reply: otherReply
+    });
+    await flushInteraction();
+
+    expect(otherReply).not.toHaveBeenCalled();
+  });
 });
 
 function createCommandInteraction(
@@ -294,6 +431,27 @@ function createStartVotingButtonInteraction(input: {
     update: input.update,
     reply: input.reply
   } as unknown as ButtonInteraction;
+}
+
+function createVoteSelectInteraction(input: {
+  readonly userId: string;
+  readonly targetPlayerId: string;
+  readonly deferReply: ReturnType<typeof vi.fn>;
+  readonly editReply: ReturnType<typeof vi.fn>;
+  readonly messageEdit: ReturnType<typeof vi.fn>;
+}): StringSelectMenuInteraction {
+  return {
+    isChatInputCommand: () => false,
+    isButton: () => false,
+    isStringSelectMenu: () => true,
+    customId: WORD_WOLF_VOTE_CUSTOM_ID,
+    channelId: "channel-1",
+    user: { id: input.userId },
+    values: [input.targetPlayerId],
+    deferReply: input.deferReply,
+    editReply: input.editReply,
+    message: { edit: input.messageEdit }
+  } as unknown as StringSelectMenuInteraction;
 }
 
 async function flushInteraction(): Promise<void> {
@@ -360,6 +518,22 @@ function createDiscussionSession() {
 
   if (result.status !== "started") {
     throw new Error("Expected a discussion session");
+  }
+
+  return { engine, registry };
+}
+
+function createVotingSession() {
+  const { engine, registry } = createDiscussionSession();
+  const result = startWordWolfVoting({
+    channelId: "channel-1",
+    playerId: "user-1",
+    engine,
+    registry
+  });
+
+  if (result.status !== "started") {
+    throw new Error("Expected a voting session");
   }
 
   return { engine, registry };

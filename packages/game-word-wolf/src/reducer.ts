@@ -35,5 +35,14 @@ export function reduceWordWolfState(state: WordWolfState, event: WordWolfEvent):
         ...state,
         phase: "voting"
       };
+
+    case "word-wolf.voteSubmitted":
+      return {
+        ...state,
+        votesByPlayerId: {
+          ...state.votesByPlayerId,
+          [event.voterPlayerId]: event.targetPlayerId
+        }
+      };
   }
 }

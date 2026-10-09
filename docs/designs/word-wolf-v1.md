@@ -31,7 +31,7 @@ waiting -> discussion -> voting -> revealed -> finished
 ### Players
 
 - At least three players are required to start.
-- v1 has no upper player limit.
+- v1 supports at most 25 players, matching Discord String Select Menu limits.
 - Joining and leaving are allowed only in the `waiting` phase.
 
 ### Roles And Words
@@ -216,7 +216,7 @@ shared `boardgame-discord` composition root and the `/game` catalog.
 ## Decisions
 
 - Word Wolf is the third planned game.
-- v1 has one Minority Player and at least three players.
+- v1 has one Minority Player, at least three players, and at most 25 players.
 - Each player receives a word in a private thread.
 - Discussion occurs in the public channel without a timer.
 - Voting is one private, immutable, non-self vote per participant.

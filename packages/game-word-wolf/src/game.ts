@@ -11,6 +11,7 @@ import { wordWolfInitialState, type PlayerId, type WordWolfState } from "./state
 import { defaultWordPairs, type WordWolfWordPair } from "./words.js";
 
 export type WordWolfRandom = () => number;
+export const MAX_WORD_WOLF_PLAYERS = 25;
 
 export const wordWolfGame: EngineGame = {
   id: "word-wolf",
@@ -31,7 +32,8 @@ export interface JoinGameInput {
 export type JoinGameResult =
   | Readonly<{ status: "joined"; session: EngineGameSession }>
   | Readonly<{ status: "alreadyJoined" }>
-  | Readonly<{ status: "invalidPhase" }>;
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "playerLimitReached" }>;
 
 export interface StartGameInput {
   readonly engine: Engine;
@@ -44,6 +46,7 @@ export type StartGameResult =
   | Readonly<{ status: "started"; session: EngineGameSession }>
   | Readonly<{ status: "invalidPhase" }>
   | Readonly<{ status: "notEnoughPlayers" }>
+  | Readonly<{ status: "playerLimitExceeded" }>
   | Readonly<{ status: "noWordPairs" }>;
 
 export interface StartVotingInput {
@@ -56,6 +59,27 @@ export type StartVotingResult =
   | Readonly<{ status: "started"; session: EngineGameSession }>
   | Readonly<{ status: "invalidPhase" }>
   | Readonly<{ status: "notParticipant" }>;
+
+export interface SubmitVoteInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly voterPlayerId: PlayerId;
+  readonly targetPlayerId: PlayerId;
+}
+
+export type SubmitVoteResult =
+  | Readonly<{ status: "submitted"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "voterNotParticipant" }>
+  | Readonly<{ status: "targetNotParticipant" }>
+  | Readonly<{ status: "selfVote" }>
+  | Readonly<{ status: "alreadyVoted" }>;
+
+export interface VoteProgress {
+  readonly submitted: number;
+  readonly total: number;
+  readonly complete: boolean;
+}
 
 export function createWordWolfEngine(): Engine {
   return createEngine(wordWolfGame);
@@ -81,6 +105,10 @@ export function joinGame(input: JoinGameInput): JoinGameResult {
 
   if (state.players.includes(input.playerId)) {
     return { status: "alreadyJoined" };
+  }
+
+  if (state.players.length >= MAX_WORD_WOLF_PLAYERS) {
+    return { status: "playerLimitReached" };
   }
 
   const event: WordWolfEvent = {
@@ -109,6 +137,10 @@ export function startGame(input: StartGameInput): StartGameResult {
 
   if (state.players.length < 3) {
     return { status: "notEnoughPlayers" };
+  }
+
+  if (state.players.length > MAX_WORD_WOLF_PLAYERS) {
+    return { status: "playerLimitExceeded" };
   }
 
   const wordPairs = input.wordPairs ?? defaultWordPairs;
@@ -167,6 +199,53 @@ export function startVoting(input: StartVotingInput): StartVotingResult {
   });
 
   return { status: "started", session };
+}
+
+export function submitVote(input: SubmitVoteInput): SubmitVoteResult {
+  const state = input.session.state as WordWolfState;
+
+  if (state.phase !== "voting") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!state.players.includes(input.voterPlayerId)) {
+    return { status: "voterNotParticipant" };
+  }
+
+  if (!state.players.includes(input.targetPlayerId)) {
+    return { status: "targetNotParticipant" };
+  }
+
+  if (input.voterPlayerId === input.targetPlayerId) {
+    return { status: "selfVote" };
+  }
+
+  if (input.voterPlayerId in state.votesByPlayerId) {
+    return { status: "alreadyVoted" };
+  }
+
+  const event: WordWolfEvent = {
+    type: "word-wolf.voteSubmitted",
+    voterPlayerId: input.voterPlayerId,
+    targetPlayerId: input.targetPlayerId
+  };
+  const session = input.engine.applyEvent({
+    session: input.session,
+    event
+  });
+
+  return { status: "submitted", session };
+}
+
+export function getVoteProgress(state: WordWolfState): VoteProgress {
+  const submitted = state.players.filter((playerId) => playerId in state.votesByPlayerId).length;
+  const total = state.players.length;
+
+  return {
+    submitted,
+    total,
+    complete: total > 0 && submitted === total
+  };
 }
 
 function selectRandomItem<T>(items: readonly T[], random: WordWolfRandom): T {

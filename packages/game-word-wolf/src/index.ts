@@ -12,15 +12,19 @@ export type {
   WordWolfGameCreatedEvent,
   WordWolfGameStartedEvent,
   WordWolfPlayerJoinedEvent,
-  WordWolfVotingStartedEvent
+  WordWolfVotingStartedEvent,
+  WordWolfVoteSubmittedEvent
 } from "./event.js";
 export {
   createGame,
   createWordWolfEngine,
   getAssignedWord,
+  getVoteProgress,
   joinGame,
+  MAX_WORD_WOLF_PLAYERS,
   startGame,
   startVoting,
+  submitVote,
   wordWolfGame
 } from "./game.js";
 export type {
@@ -31,6 +35,9 @@ export type {
   StartGameResult,
   StartVotingInput,
   StartVotingResult,
+  SubmitVoteInput,
+  SubmitVoteResult,
+  VoteProgress,
   WordWolfRandom
 } from "./game.js";
 export { reduceWordWolfState, wordWolfReducer } from "./reducer.js";

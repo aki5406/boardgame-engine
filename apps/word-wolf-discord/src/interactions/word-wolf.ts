@@ -1,7 +1,17 @@
-import type { ButtonInteraction, ChatInputCommandInteraction, Client } from "discord.js";
+import type {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Client,
+  StringSelectMenuInteraction
+} from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
-import type { Engine, WordWolfRandom } from "@boardgame/game-word-wolf";
+import {
+  getVoteProgress,
+  type Engine,
+  type WordWolfRandom,
+  type WordWolfState
+} from "@boardgame/game-word-wolf";
 
 import {
   createWordWolfDiscordSessionForChannel,
@@ -9,6 +19,7 @@ import {
   joinWordWolfDiscordSessionForChannel,
   startWordWolfDiscordSession,
   startWordWolfVoting,
+  submitWordWolfVote,
   type CreateWordWolfPrivateWordThreadResult,
   type WordWolfDiscordSessionRegistry
 } from "../session/index.js";
@@ -18,7 +29,8 @@ import {
   createWordWolfStartedReply,
   createWordWolfStartPartialFailureReply,
   createWordWolfVotingStartedReply,
-  isWordWolfStartVotingCustomId
+  isWordWolfStartVotingCustomId,
+  isWordWolfVoteCustomId
 } from "../views/word-wolf-start.js";
 
 export interface RegisterWordWolfInteractionHandlersInput {
@@ -39,6 +51,11 @@ export function registerWordWolfInteractionHandlers(
 
     if (interaction.isButton?.() && isWordWolfStartVotingCustomId(interaction.customId)) {
       await handleWordWolfStartVotingButton(interaction, input);
+      return;
+    }
+
+    if (interaction.isStringSelectMenu?.() && isWordWolfVoteCustomId(interaction.customId)) {
+      await handleWordWolfVoteSelect(interaction, input);
     }
   });
 }
@@ -79,10 +96,80 @@ async function handleWordWolfStartVotingButton(
   }
 
   try {
-    await interaction.update(createWordWolfVotingStartedReply());
+    await interaction.update(createWordWolfVotingReply(result.session.state as WordWolfState));
   } catch {
     console.error("Failed to update Word Wolf voting interaction.");
   }
+}
+
+async function handleWordWolfVoteSelect(
+  interaction: StringSelectMenuInteraction,
+  input: RegisterWordWolfInteractionHandlersInput
+): Promise<void> {
+  const targetPlayerId = interaction.values[0];
+
+  if (!targetPlayerId) {
+    await interaction.reply({
+      content: "That player is no longer available.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const result = submitWordWolfVote({
+    channelId: interaction.channelId,
+    voterPlayerId: interaction.user.id,
+    targetPlayerId,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status !== "submitted") {
+    await interaction.editReply(getWordWolfVoteErrorMessage(result.status));
+    return;
+  }
+
+  try {
+    await interaction.message.edit(
+      createWordWolfVotingReply(result.session.state as WordWolfState)
+    );
+  } catch {
+    console.error("Failed to update Word Wolf vote progress.");
+  }
+
+  await interaction.editReply("Your vote has been recorded.");
+}
+
+function getWordWolfVoteErrorMessage(
+  status: Exclude<ReturnType<typeof submitWordWolfVote>["status"], "submitted">
+): string {
+  switch (status) {
+    case "notFound":
+      return "This Word Wolf game is no longer available.";
+    case "invalidPhase":
+      return "Voting is not available right now.";
+    case "voterNotParticipant":
+      return "Only players in this Word Wolf game can vote.";
+    case "targetNotParticipant":
+      return "That player is no longer available.";
+    case "selfVote":
+      return "You cannot vote for yourself.";
+    case "alreadyVoted":
+      return "You have already voted.";
+  }
+}
+
+function createWordWolfVotingReply(state: WordWolfState) {
+  const progress = getVoteProgress(state);
+
+  return createWordWolfVotingStartedReply({
+    playerIds: state.players,
+    submittedVotes: progress.submitted,
+    totalVotes: progress.total,
+    complete: progress.complete
+  });
 }
 
 async function handleWordWolfCommand(
@@ -131,6 +218,11 @@ async function handleWordWolfCommand(
       return;
     }
 
+    if (result.status === "playerLimitReached") {
+      await interaction.reply("This Word Wolf game is full (maximum 25 players).");
+      return;
+    }
+
     await interaction.reply(`Joined the Word Wolf game.\nPlayers: ${result.playerCount}`);
     return;
   }
@@ -167,6 +259,14 @@ async function handleWordWolfCommand(
       await editStartReply(
         interaction,
         "At least three players must join before Word Wolf can start."
+      );
+      return;
+    }
+
+    if (result.status === "playerLimitExceeded") {
+      await editStartReply(
+        interaction,
+        "Word Wolf cannot start because the maximum player count is 25."
       );
       return;
     }
