@@ -106,6 +106,8 @@ async function handleWordWolfCommand(
       return;
     }
 
+    await interaction.deferReply();
+
     const result = startWordWolfDiscordSession({
       channelId: interaction.channelId,
       engine: input.engine,
@@ -114,22 +116,29 @@ async function handleWordWolfCommand(
     });
 
     if (result.status === "notEnoughPlayers") {
-      await interaction.reply("At least three players must join before Word Wolf can start.");
+      await editStartReply(
+        interaction,
+        "At least three players must join before Word Wolf can start."
+      );
       return;
     }
 
     if (result.status === "invalidPhase") {
-      await interaction.reply("The Word Wolf game has already started.");
+      await editStartReply(interaction, "The Word Wolf game has already started.");
       return;
     }
 
     if (result.status === "noWordPairs") {
-      await interaction.reply("Word Wolf could not start because no word pairs are available.");
+      await editStartReply(
+        interaction,
+        "Word Wolf could not start because no word pairs are available."
+      );
       return;
     }
 
     if (result.status === "notFound") {
-      await interaction.reply(
+      await editStartReply(
+        interaction,
         "No Word Wolf game exists in this channel. Use /word-wolf create first."
       );
       return;
@@ -157,7 +166,8 @@ async function handleWordWolfCommand(
       });
 
       if (threadResult.status === "partialFailure") {
-        await interaction.reply(
+        await editStartReply(
+          interaction,
           createWordWolfStartPartialFailureReply(
             result.playerCount,
             threadResult.createdCount,
@@ -167,10 +177,24 @@ async function handleWordWolfCommand(
         return;
       }
 
-      await interaction.reply(createWordWolfStartedReply(result.playerCount));
+      await editStartReply(interaction, createWordWolfStartedReply(result.playerCount));
     } catch {
       console.error("Failed to create Word Wolf private word threads.");
-      await interaction.reply("Word Wolf started, but private word threads could not be created.");
+      await editStartReply(
+        interaction,
+        "Word Wolf started, but private word threads could not be created."
+      );
     }
+  }
+}
+
+async function editStartReply(
+  interaction: ChatInputCommandInteraction,
+  content: string
+): Promise<void> {
+  try {
+    await interaction.editReply(content);
+  } catch {
+    console.error("Failed to update Word Wolf start interaction.");
   }
 }
