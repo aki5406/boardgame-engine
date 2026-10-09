@@ -46,6 +46,17 @@ export type StartGameResult =
   | Readonly<{ status: "notEnoughPlayers" }>
   | Readonly<{ status: "noWordPairs" }>;
 
+export interface StartVotingInput {
+  readonly engine: Engine;
+  readonly session: EngineGameSession;
+  readonly playerId: PlayerId;
+}
+
+export type StartVotingResult =
+  | Readonly<{ status: "started"; session: EngineGameSession }>
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "notParticipant" }>;
+
 export function createWordWolfEngine(): Engine {
   return createEngine(wordWolfGame);
 }
@@ -136,6 +147,26 @@ export function getAssignedWord(state: WordWolfState, playerId: PlayerId): strin
   }
 
   return playerId === state.minorityPlayerId ? state.minorityWord : state.majorityWord;
+}
+
+export function startVoting(input: StartVotingInput): StartVotingResult {
+  const state = input.session.state as WordWolfState;
+
+  if (state.phase !== "discussion") {
+    return { status: "invalidPhase" };
+  }
+
+  if (!state.players.includes(input.playerId)) {
+    return { status: "notParticipant" };
+  }
+
+  const event: WordWolfEvent = { type: "word-wolf.votingStarted" };
+  const session = input.engine.applyEvent({
+    session: input.session,
+    event
+  });
+
+  return { status: "started", session };
 }
 
 function selectRandomItem<T>(items: readonly T[], random: WordWolfRandom): T {

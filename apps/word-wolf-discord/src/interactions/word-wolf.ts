@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client } from "discord.js";
+import type { ButtonInteraction, ChatInputCommandInteraction, Client } from "discord.js";
 import { ChannelType, Events, ThreadAutoArchiveDuration } from "discord.js";
 
 import type { Engine, WordWolfRandom } from "@boardgame/game-word-wolf";
@@ -8,6 +8,7 @@ import {
   createWordWolfPrivateWordThreads,
   joinWordWolfDiscordSessionForChannel,
   startWordWolfDiscordSession,
+  startWordWolfVoting,
   type CreateWordWolfPrivateWordThreadResult,
   type WordWolfDiscordSessionRegistry
 } from "../session/index.js";
@@ -15,7 +16,9 @@ import {
   createWordWolfPrivateThreadName,
   createWordWolfPrivateWordMessage,
   createWordWolfStartedReply,
-  createWordWolfStartPartialFailureReply
+  createWordWolfStartPartialFailureReply,
+  createWordWolfVotingStartedReply,
+  isWordWolfStartVotingCustomId
 } from "../views/word-wolf-start.js";
 
 export interface RegisterWordWolfInteractionHandlersInput {
@@ -29,12 +32,57 @@ export function registerWordWolfInteractionHandlers(
   input: RegisterWordWolfInteractionHandlersInput
 ): void {
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand() || interaction.commandName !== "word-wolf") {
+    if (interaction.isChatInputCommand() && interaction.commandName === "word-wolf") {
+      await handleWordWolfCommand(interaction, input);
       return;
     }
 
-    await handleWordWolfCommand(interaction, input);
+    if (interaction.isButton?.() && isWordWolfStartVotingCustomId(interaction.customId)) {
+      await handleWordWolfStartVotingButton(interaction, input);
+    }
   });
+}
+
+async function handleWordWolfStartVotingButton(
+  interaction: ButtonInteraction,
+  input: RegisterWordWolfInteractionHandlersInput
+): Promise<void> {
+  const result = startWordWolfVoting({
+    channelId: interaction.channelId,
+    playerId: interaction.user.id,
+    engine: input.engine,
+    registry: input.sessionRegistry
+  });
+
+  if (result.status === "notFound") {
+    await interaction.reply({
+      content: "This Word Wolf game is no longer available.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status === "notParticipant") {
+    await interaction.reply({
+      content: "Only players in this Word Wolf game can start voting.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (result.status === "invalidPhase") {
+    await interaction.reply({
+      content: "Voting has already started.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    await interaction.update(createWordWolfVotingStartedReply());
+  } catch {
+    console.error("Failed to update Word Wolf voting interaction.");
+  }
 }
 
 async function handleWordWolfCommand(
@@ -190,7 +238,7 @@ async function handleWordWolfCommand(
 
 async function editStartReply(
   interaction: ChatInputCommandInteraction,
-  content: string
+  content: Parameters<ChatInputCommandInteraction["editReply"]>[0]
 ): Promise<void> {
   try {
     await interaction.editReply(content);
