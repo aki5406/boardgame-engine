@@ -65,6 +65,15 @@ importers:
         specifier: ^14.26.4
         version: 14.26.4
 
+  apps/word-wolf-discord:
+    dependencies:
+      "@boardgame/game-word-wolf":
+        specifier: workspace:*
+        version: link:../../packages/game-word-wolf
+      discord.js:
+        specifier: ^14.26.4
+        version: 14.26.4
+
   packages/counter-sample:
     dependencies:
       "@boardgame/engine":
