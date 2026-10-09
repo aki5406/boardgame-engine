@@ -6,6 +6,7 @@ export type JoinWordWolfDiscordSessionResult =
   | Readonly<{ status: "joined"; playerCount: number; session: WordWolfDiscordSession }>
   | Readonly<{ status: "alreadyJoined"; session: WordWolfDiscordSession }>
   | Readonly<{ status: "invalidPhase"; session: WordWolfDiscordSession }>
+  | Readonly<{ status: "playerLimitReached"; session: WordWolfDiscordSession }>
   | Readonly<{ status: "notFound" }>;
 
 export interface JoinWordWolfDiscordSessionInput {
@@ -36,6 +37,10 @@ export function joinWordWolfDiscordSessionForChannel(
 
   if (result.status === "invalidPhase") {
     return { status: "invalidPhase", session };
+  }
+
+  if (result.status === "playerLimitReached") {
+    return { status: "playerLimitReached", session };
   }
 
   input.registry.register({ channelId: input.channelId, session: result.session });

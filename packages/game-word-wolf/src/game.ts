@@ -11,6 +11,7 @@ import { wordWolfInitialState, type PlayerId, type WordWolfState } from "./state
 import { defaultWordPairs, type WordWolfWordPair } from "./words.js";
 
 export type WordWolfRandom = () => number;
+export const MAX_WORD_WOLF_PLAYERS = 25;
 
 export const wordWolfGame: EngineGame = {
   id: "word-wolf",
@@ -31,7 +32,8 @@ export interface JoinGameInput {
 export type JoinGameResult =
   | Readonly<{ status: "joined"; session: EngineGameSession }>
   | Readonly<{ status: "alreadyJoined" }>
-  | Readonly<{ status: "invalidPhase" }>;
+  | Readonly<{ status: "invalidPhase" }>
+  | Readonly<{ status: "playerLimitReached" }>;
 
 export interface StartGameInput {
   readonly engine: Engine;
@@ -44,6 +46,7 @@ export type StartGameResult =
   | Readonly<{ status: "started"; session: EngineGameSession }>
   | Readonly<{ status: "invalidPhase" }>
   | Readonly<{ status: "notEnoughPlayers" }>
+  | Readonly<{ status: "playerLimitExceeded" }>
   | Readonly<{ status: "noWordPairs" }>;
 
 export interface StartVotingInput {
@@ -104,6 +107,10 @@ export function joinGame(input: JoinGameInput): JoinGameResult {
     return { status: "alreadyJoined" };
   }
 
+  if (state.players.length >= MAX_WORD_WOLF_PLAYERS) {
+    return { status: "playerLimitReached" };
+  }
+
   const event: WordWolfEvent = {
     type: "word-wolf.playerJoined",
     playerId: input.playerId
@@ -130,6 +137,10 @@ export function startGame(input: StartGameInput): StartGameResult {
 
   if (state.players.length < 3) {
     return { status: "notEnoughPlayers" };
+  }
+
+  if (state.players.length > MAX_WORD_WOLF_PLAYERS) {
+    return { status: "playerLimitExceeded" };
   }
 
   const wordPairs = input.wordPairs ?? defaultWordPairs;

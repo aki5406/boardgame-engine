@@ -218,6 +218,11 @@ async function handleWordWolfCommand(
       return;
     }
 
+    if (result.status === "playerLimitReached") {
+      await interaction.reply("This Word Wolf game is full (maximum 25 players).");
+      return;
+    }
+
     await interaction.reply(`Joined the Word Wolf game.\nPlayers: ${result.playerCount}`);
     return;
   }
@@ -254,6 +259,14 @@ async function handleWordWolfCommand(
       await editStartReply(
         interaction,
         "At least three players must join before Word Wolf can start."
+      );
+      return;
+    }
+
+    if (result.status === "playerLimitExceeded") {
+      await editStartReply(
+        interaction,
+        "Word Wolf cannot start because the maximum player count is 25."
       );
       return;
     }

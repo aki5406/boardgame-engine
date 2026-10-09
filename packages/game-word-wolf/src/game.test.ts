@@ -7,6 +7,7 @@ import {
   getAssignedWord,
   getVoteProgress,
   joinGame,
+  MAX_WORD_WOLF_PLAYERS,
   reduceWordWolfState,
   startGame,
   startVoting,
@@ -53,6 +54,20 @@ describe("Word Wolf game", () => {
     expect(session.state).toMatchObject({ players: ["player-1", "player-2"] });
     expect(joinGame({ engine, session, playerId: "player-1" })).toEqual({
       status: "alreadyJoined"
+    });
+  });
+
+  it("limits Word Wolf games to the Select Menu maximum of 25 players", () => {
+    const engine = createWordWolfEngine();
+    const playerIds = Array.from(
+      { length: MAX_WORD_WOLF_PLAYERS },
+      (_, index) => `player-${index}`
+    );
+    const fullSession = createSessionWithPlayers(engine, playerIds);
+
+    expect(fullSession.state).toMatchObject({ players: playerIds });
+    expect(joinGame({ engine, session: fullSession, playerId: "player-25" })).toEqual({
+      status: "playerLimitReached"
     });
   });
 
@@ -167,6 +182,26 @@ describe("Word Wolf game", () => {
       minorityPlayerId: null,
       majorityWord: null,
       minorityWord: null
+    });
+  });
+
+  it("rejects starting a session that exceeds the player limit", () => {
+    const engine = createWordWolfEngine();
+    const playerIds = Array.from(
+      { length: MAX_WORD_WOLF_PLAYERS + 1 },
+      (_, index) => `player-${index}`
+    );
+    const session = engine.startSession({
+      id: "oversized-word-wolf-session",
+      players: playerIds.map((id) => ({ id })),
+      initialState: {
+        ...wordWolfInitialState,
+        players: playerIds
+      }
+    });
+
+    expect(startGame({ engine, session, random: createSequenceRandom([]) })).toEqual({
+      status: "playerLimitExceeded"
     });
   });
 

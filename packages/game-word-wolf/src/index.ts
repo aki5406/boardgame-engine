@@ -21,6 +21,7 @@ export {
   getAssignedWord,
   getVoteProgress,
   joinGame,
+  MAX_WORD_WOLF_PLAYERS,
   startGame,
   startVoting,
   submitVote,

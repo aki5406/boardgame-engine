@@ -29,7 +29,7 @@ pnpm --filter @boardgame/word-wolf-discord start
 
 ## Manual Flow
 
-Use a regular guild text channel and at least three Discord users.
+Use a regular guild text channel and three to 25 Discord users.
 
 ```text
 /word-wolf create

@@ -11,6 +11,7 @@ export type StartWordWolfDiscordSessionResult =
   | Readonly<{ status: "started"; playerCount: number; session: WordWolfDiscordSession }>
   | Readonly<{ status: "notFound" }>
   | Readonly<{ status: "notEnoughPlayers" }>
+  | Readonly<{ status: "playerLimitExceeded" }>
   | Readonly<{ status: "invalidPhase" }>
   | Readonly<{ status: "noWordPairs" }>;
 
