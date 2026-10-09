@@ -26,3 +26,8 @@ export {
   type StartWordWolfDiscordSessionInput,
   type StartWordWolfDiscordSessionResult
 } from "./start.js";
+export {
+  startWordWolfVoting,
+  type StartWordWolfVotingInput,
+  type StartWordWolfVotingResult
+} from "./start-voting.js";

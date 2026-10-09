@@ -2,7 +2,7 @@ import type { EngineState } from "@boardgame/engine";
 
 export type PlayerId = string;
 
-export type WordWolfPhase = "waiting" | "discussion";
+export type WordWolfPhase = "waiting" | "discussion" | "voting";
 
 export type WordWolfState = EngineState &
   Readonly<{

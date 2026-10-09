@@ -21,7 +21,13 @@ export type WordWolfGameStartedEvent = EngineEvent &
     minorityWord: string;
   }>;
 
+export type WordWolfVotingStartedEvent = EngineEvent &
+  Readonly<{
+    type: "word-wolf.votingStarted";
+  }>;
+
 export type WordWolfEvent =
   | WordWolfGameCreatedEvent
   | WordWolfPlayerJoinedEvent
-  | WordWolfGameStartedEvent;
+  | WordWolfGameStartedEvent
+  | WordWolfVotingStartedEvent;

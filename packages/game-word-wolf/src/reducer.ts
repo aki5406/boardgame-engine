@@ -29,5 +29,11 @@ export function reduceWordWolfState(state: WordWolfState, event: WordWolfEvent):
         majorityWord: event.majorityWord,
         minorityWord: event.minorityWord
       };
+
+    case "word-wolf.votingStarted":
+      return {
+        ...state,
+        phase: "voting"
+      };
   }
 }

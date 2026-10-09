@@ -11,7 +11,8 @@ export type {
   WordWolfEvent,
   WordWolfGameCreatedEvent,
   WordWolfGameStartedEvent,
-  WordWolfPlayerJoinedEvent
+  WordWolfPlayerJoinedEvent,
+  WordWolfVotingStartedEvent
 } from "./event.js";
 export {
   createGame,
@@ -19,6 +20,7 @@ export {
   getAssignedWord,
   joinGame,
   startGame,
+  startVoting,
   wordWolfGame
 } from "./game.js";
 export type {
@@ -27,6 +29,8 @@ export type {
   JoinGameResult,
   StartGameInput,
   StartGameResult,
+  StartVotingInput,
+  StartVotingResult,
   WordWolfRandom
 } from "./game.js";
 export { reduceWordWolfState, wordWolfReducer } from "./reducer.js";
